@@ -15,13 +15,14 @@
     "incremental": true, // Enable incremental compilation for faster builds
     "baseUrl": ".", // Set base URL for resolving non-relative imports
     "paths": {
-      "@components/*": ["src/components/*"], // Aliases for components
-      "@pages/*": ["src/pages/*"], // Alias for pages directory
-      "@styles/*": ["src/styles/*"], // Alias for styles directory
-      "@utils/*": ["src/utils/*"], // Alias for utility functions
-      "@hooks/*": ["src/hooks/*"], // Alias for custom hooks
-      "@lib/*": ["src/lib/*"], // Alias for libraries
-      "@context/*": ["src/context/*"] // Alias for context providers
+      "@/*": ["./src/*"],
+      "@components/*": ["./src/components/*"], // Aliases for components
+      "@pages/*": ["./src/pages/*"], // Alias for pages directory
+      "@styles/*": ["./src/styles/*"], // Alias for styles directory
+      "@utils/*": ["./src/utils/*"], // Alias for utility functions
+      "@hooks/*": ["./src/hooks/*"], // Alias for custom hooks
+      "@lib/*": ["./src/lib/*"], // Alias for libraries
+      "@context/*": ["./src/context/*"] // Alias for context providers
     },
     "plugins": [
       {

@@ -1,9 +1,12 @@
+'use client'
+
 import React from 'react';
 import Head from 'next/head';
+import MainNavbar from './components/Navbar/MainNavbar';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col justify-start bg-black text-white">
+    <div className="min-h-screen flex flex-col justify-start bg-zinc-950 text-white">
       <Head>
         <title>Underground Entertainment - Imperfect Gamers</title>
         <link
@@ -32,6 +35,8 @@ export default function Home() {
           }
         `}</style>
       </Head>
+
+<MainNavbar/>
 
       {/* Navigation */}
       <nav>
@@ -110,7 +115,7 @@ export default function Home() {
                   alt={`Avatar of Player${player}`}
                 />
                 <div className="ml-4">
-                  <p className="text-[#bec1c7]">Player{player}</p>
+                  <p className="text-[#bec1c7]">Player {player}</p>
                   <p className="text-[#bec1c7] text-sm">{player} hour{player > 1 ? "s" : ""} ago</p>
                 </div>
               </div>
