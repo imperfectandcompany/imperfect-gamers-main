@@ -8,7 +8,7 @@ import LandingPage from './pages/LandingPage';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col justify-start bg-zinc-950 text-white">
+    <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col justify-start">
       <Head>
         <title>Underground Entertainment - Imperfect Gamers</title>
         <link

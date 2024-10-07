@@ -9,7 +9,7 @@ interface NavListProps {
   handleRedirect: (url: string) => void;
 }
 
-const NavList: React.FC<NavListProps> = ({ isOpen, redirecting, handleRedirect }) => {
+const NavList: React.FC<NavListProps> = ({ isOpen = false, redirecting = false, handleRedirect }) => {
   if (redirecting) {
     return null; // Will handle redirect message separately
   }

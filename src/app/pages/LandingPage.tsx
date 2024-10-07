@@ -142,7 +142,6 @@ export default function LandingPage() {
 <>
 <MainNavbar />
 
-<div className="min-h-screen bg-black text-white font-sans">
   <Header />
 
   <AlertBanner 
@@ -179,7 +178,6 @@ export default function LandingPage() {
       onReject={() => setShowCookieBanner(false)} 
     />
   )}
-</div>
 </>
   )
 }

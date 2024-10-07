@@ -23,9 +23,11 @@ const NavItem: React.FC<NavItemProps> = ({ label, url, handleRedirect, icon }) =
 
   return (
     <StyledNavItem
-      onClick={() => handleRedirect(url)}
+      onClick={() => {
+        if (label !== 'HOME') handleRedirect(url);
+      }}
       onKeyUp={(event) => {
-        if (event.key === 'Enter') handleRedirect(url);
+        if (event.key === 'Enter' && label !== 'HOME') handleRedirect(url);
       }}
       role="button"
       tabIndex={0}

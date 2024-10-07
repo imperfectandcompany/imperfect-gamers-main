@@ -10,7 +10,7 @@ interface MenuToggleProps {
   cancelRedirect: () => void;
 }
 
-const MenuToggle: React.FC<MenuToggleProps> = ({ isOpen, redirecting, toggleMenu, cancelRedirect }) => (
+const MenuToggle: React.FC<MenuToggleProps> = ({ isOpen = false, redirecting = false, toggleMenu, cancelRedirect }) => (
   <StyledMenuToggle
     onClick={redirecting ? cancelRedirect : toggleMenu}
     onKeyUp={(event) => {

@@ -43,9 +43,9 @@ export const NavItem = styled.button`
  width: 100%;
  transition: background-color 0.3s, color 0.3s, transform 0.3s, opacity 0.3s;
 
- &:not(:last-child) {
+
    border-bottom: 2px solid #3a3a3a;
- }
+
 
  &:hover, &.active {
    background-color: #2a2a2a;
@@ -54,7 +54,6 @@ export const NavItem = styled.button`
 
  @media (min-width: 768px) {
    border-right: 2px solid #3a3a3a;
-   border-bottom: none;
  }
 
  &:last-child {
