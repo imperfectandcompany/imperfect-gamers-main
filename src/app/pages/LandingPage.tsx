@@ -15,6 +15,7 @@ import CookieBanner from '@components/CookieBanner/CookieBanner'
 import AlertBanner from '@components/AlertBanner/AlertBanner'
 
 import Icons from '@components/Shared/Icons';
+import CommunityFeedbackCard from '../components/Cards/CommunityFeedBackCard'
 
 export default function LandingPage() {
   const [recentEvents, setRecentEvents] = useState([
@@ -105,6 +106,14 @@ export default function LandingPage() {
     },
   ])
 
+  const handleLeaveReview = () => {
+    console.log('Leave a review action triggered');
+  };
+
+  const handleMakeSuggestion = () => {
+    console.log('Make a suggestion action triggered');
+  };
+
   const [showCookieBanner, setShowCookieBanner] = useState(true)
 
   const handleNewsReaction = (index: number, reactionIndex: number) => {
@@ -155,6 +164,10 @@ export default function LandingPage() {
         <UserStatsCard />
         <ServerStatusCard />
         <BlogPostsCard blogPosts={blogPosts} />
+        <CommunityFeedbackCard 
+                onLeaveReview={handleLeaveReview} 
+                onMakeSuggestion={handleMakeSuggestion} 
+              />
       </div>
     </div>
   </main>

@@ -29,9 +29,10 @@ const NavItem: React.FC<NavItemProps> = ({ label, url, handleRedirect, icon }) =
       }}
       role="button"
       tabIndex={0}
-    >
+      className={label === 'HOME' ? 'list__icon active' : ''}
+    > 
       {getIcon()}
-      <span className="ml-2">{label}</span>
+      <span className="ml-2">{label === 'HOME' ? null : label}</span>
     </StyledNavItem>
   );
 };
