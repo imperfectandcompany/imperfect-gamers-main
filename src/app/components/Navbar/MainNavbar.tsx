@@ -1,17 +1,16 @@
 // src/components/Navigation/MainNavbar.tsx
-import React, { useState } from 'react';
-import {
-  NavWrapper,
-} from '@components/Navbar/NavbarStyles';
+import React, { useState, useRef } from 'react';
+import { NavWrapper } from '@components/Navbar/NavbarStyles';
 import MenuToggle from '@components/Navbar/MenuToggle';
 import NavList from '@components/Navbar/NavList';
 import RedirectMessage from '@components/Navbar/RedirectMessage';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const MainNavbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [countdown, setCountdown] = useState(3);
-  let redirectTimeout = React.useRef<number | null>(null);
+  let redirectTimeout = useRef<number | null>(null);
 
   const toggleMenu = () => {
     setIsOpen(!isOpen);
@@ -46,12 +45,20 @@ const MainNavbar: React.FC = () => {
 
   return (
     <NavWrapper>
-      <MenuToggle
-        isOpen={isOpen}
-        redirecting={redirecting}
-        toggleMenu={toggleMenu}
-        cancelRedirect={cancelRedirect}
-      />
+      <AnimatePresence>
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+        >
+          <MenuToggle
+            isOpen={isOpen}
+            redirecting={redirecting}
+            toggleMenu={toggleMenu}
+            cancelRedirect={cancelRedirect}
+          />
+        </motion.div>
+      </AnimatePresence>
       {redirecting ? (
         <RedirectMessage countdown={countdown} cancelRedirect={cancelRedirect} />
       ) : (

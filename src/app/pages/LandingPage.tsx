@@ -95,6 +95,14 @@ export default function LandingPage() {
     setChangelog(newChangelog)
   }
 
+  const [achievements, setAchievements] = useState([
+    { icon: "🏆", title: "Map Master", description: "Complete 100 maps", date: "2024-07-01" },
+    { icon: "🔥", title: "Speed Demon", description: "Complete surf_mesa in under 20 seconds", date: "2024-07-15" },
+    { icon: "💎", title: "Diamond Surfer", description: "Reach Diamond rank", date: "2024-07-20" },
+    { icon: "⚡", title: "Lightning Fast", description: "Complete 10 maps in under an hour", date: "2024-07-25" },
+    { icon: "🌟", title: "Community Star", description: "Help 50 new players", date: "2024-07-30" },
+  ])
+
   return (
     <div className="min-h-screen bg-black text-white font-sans">
       <Header />
@@ -107,7 +115,7 @@ export default function LandingPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-            <UserProfileCard />
+            <UserProfileCard userName={'Low'} avatarUrl={'https://avatars.akamai.steamstatic.com/0bfd6a007df7f197f6b622848c60547bc3e611a0_full.jpg'} surfMapsCompleted={42} totalPlaytime={'120 hours'} totalMuteTime={'2 hours'} totalBans={1} rank={42} rankPercentage={'5'} achievements={achievements} />
             <LiveFeedCard recentEvents={recentEvents} />
             <RecentPostsCard recentPosts={recentPosts} />
             <NewsCard newsItems={newsItems} onReact={handleNewsReaction} />
