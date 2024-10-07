@@ -1,25 +1,28 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { Button } from '@components/ui/button'
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
+import { Button } from '@components/ui/button';
+import { Popover, PopoverContent, PopoverTrigger } from '@components/ui/popover';
+import { PlusCircle } from 'lucide-react';
 
 interface Reaction {
-  emoji: JSX.Element
-  count: number
+  emoji: string;
+  count: number;
 }
 
 interface NewsItem {
-  title: string
-  date: string
-  content: string
-  reactions: Reaction[]
+  title: string;
+  date: string;
+  content: string;
+  reactions: Reaction[];
 }
 
 interface NewsCardProps {
-  newsItems: NewsItem[]
-  onReact: (index: number, reactionIndex: number) => void
+  newsItems: NewsItem[];
+  onReact: (index: number, reactionIndex: number, emoji: string) => void;
+  reactionEmojis: string[];
 }
 
-const NewsCard: React.FC<NewsCardProps> = ({ newsItems, onReact }) => {
+const NewsCard: React.FC<NewsCardProps> = ({ newsItems, onReact, reactionEmojis }) => {
   return (
     <Card className="bg-zinc-950 border-zinc-800">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -39,19 +42,41 @@ const NewsCard: React.FC<NewsCardProps> = ({ newsItems, onReact }) => {
                     key={reactionIndex}
                     variant="outline"
                     size="sm"
-                    className="text-zinc-400 hover:text-white"
-                    onClick={() => onReact(index, reactionIndex)}
+                    className="bg-zinc-800 hover:bg-zinc-700 text-white border-none"
+                    onClick={() => onReact(index, reactionIndex, reaction.emoji)}
                   >
                     {reaction.emoji} {reaction.count}
                   </Button>
                 ))}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" size="sm" className="bg-zinc-800 hover:bg-zinc-700 text-white border-none">
+                      <PlusCircle className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="bg-zinc-800 border-none">
+                    <div className="grid grid-cols-5 gap-2">
+                      {reactionEmojis.map((emoji, emojiIndex) => (
+                        <Button
+                          key={emojiIndex}
+                          variant="ghost"
+                          size="sm"
+                          className="text-2xl"
+                          onClick={() => onReact(index, -1, emoji)}
+                        >
+                          {emoji}
+                        </Button>
+                      ))}
+                    </div>
+                  </PopoverContent>
+                </Popover>
               </div>
             </div>
           ))}
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default NewsCard
+export default NewsCard;

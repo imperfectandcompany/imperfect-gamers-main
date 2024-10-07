@@ -31,29 +31,53 @@ export default function LandingPage() {
     { title: "Tips for improving air strafes?", author: "AirStrafe101", thread: "Tutorials", timestamp: new Date(Date.now() - 4 * 60 * 60000) },
   ])
 
-  const [newsItems, setNewsItems] = useState([
-    {
-      title: "Summer Surf Championship Announced",
-      date: "2024-07-30",
-      content: "Get ready for the biggest surf event of the year!",
-      reactions: [
-        { emoji: <Icons.ThumbsUp className="h-4 w-4" />, count: 45 },
-        { emoji: <Icons.Heart className="h-4 w-4" />, count: 23 },
-        { emoji: <Icons.Laugh className="h-4 w-4" />, count: 7 },
-      ],
-    },
-  ])
-
   const [changelog, setChangelog] = useState([
-    {
-      version: '1.2.3',
-      date: '2024-08-01',
+    { 
+      version: '1.2.3', 
+      date: '2024-08-01', 
       changes: ['Added new surf maps', 'Fixed bug in leaderboard system', 'Improved server performance'],
       reactions: [
-        { emoji: <Icons.ThumbsUp className="h-4 w-4" />, count: 15 },
-        { emoji: <Icons.Heart className="h-4 w-4" />, count: 7 },
-        { emoji: <Icons.Laugh className="h-4 w-4" />, count: 3 },
-      ],
+        { emoji: "👍", count: 15 },
+        { emoji: "❤️", count: 7 },
+        { emoji: "🎉", count: 3 },
+        { emoji: "🔥", count: 1 },
+      ]
+    },
+    { 
+      version: '1.2.2', 
+      date: '2024-07-15', 
+      changes: ['Introduced VIP membership', 'Updated UI for better user experience', 'Added new community events'],
+      reactions: [
+        { emoji: "👍", count: 22 },
+        { emoji: "❤️", count: 11 },
+        { emoji: "🎉", count: 5 },
+        { emoji: "🔥", count: 2 },
+      ]
+    },
+  ])
+  
+  const [newsItems, setNewsItems] = useState([
+    { 
+      title: "Summer Surf Championship Announced", 
+      date: "2024-07-30", 
+      content: "Get ready for the biggest surf event of the year!",
+      reactions: [
+        { emoji: "👍", count: 45 },
+        { emoji: "❤️", count: 23 },
+        { emoji: "🎉", count: 7 },
+        { emoji: "🔥", count: 3 },
+      ]
+    },
+    { 
+      title: "New Map Pack Release",
+      date: "2024-07-27", 
+      content: "Five new challenging maps added to the rotation.",
+      reactions: [
+        { emoji: "👍", count: 38 },
+        { emoji: "❤️", count: 19 },
+        { emoji: "🎉", count: 4 },
+        { emoji: "🔥", count: 2 },
+      ]
     },
   ])
 
@@ -103,41 +127,46 @@ export default function LandingPage() {
     { icon: "🌟", title: "Community Star", description: "Help 50 new players", date: "2024-07-30" },
   ])
 
+  const reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "😡", "🎉", "🤔", "👀", "🔥"]
+
   return (
-    <div className="min-h-screen bg-black text-white font-sans">
-      <Header />
+<>
+<MainNavbar />
 
-      <AlertBanner 
-        title="New Challenge Available!" 
-        description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!" 
-      />
+<div className="min-h-screen bg-black text-white font-sans">
+  <Header />
 
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
-            <UserProfileCard userName={'Low'} avatarUrl={'https://avatars.akamai.steamstatic.com/0bfd6a007df7f197f6b622848c60547bc3e611a0_full.jpg'} surfMapsCompleted={42} totalPlaytime={'120 hours'} totalMuteTime={'2 hours'} totalBans={1} rank={42} rankPercentage={'5'} achievements={achievements} />
-            <LiveFeedCard recentEvents={recentEvents} />
-            <RecentPostsCard recentPosts={recentPosts} />
-            <NewsCard newsItems={newsItems} onReact={handleNewsReaction} />
-            <ChangelogCard changelog={changelog} onReact={handleChangelogReaction} />
-          </div>
+  <AlertBanner 
+    title="New Challenge Available!" 
+    description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!" 
+  />
 
-          <div className="space-y-8">
-            <QuickActionsCard />
-            <UserStatsCard />
-            <ServerStatusCard />
-            <BlogPostsCard blogPosts={blogPosts} />
-          </div>
-        </div>
-      </main>
-      <Footer />
-
-      {showCookieBanner && (
-        <CookieBanner 
-          onAccept={() => setShowCookieBanner(false)} 
-          onReject={() => setShowCookieBanner(false)} 
-        />
-      )}
+  <main className="container mx-auto px-4 py-8">
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="md:col-span-2 space-y-8">
+        <UserProfileCard userName={'Low'} avatarUrl={'https://avatars.akamai.steamstatic.com/0bfd6a007df7f197f6b622848c60547bc3e611a0_full.jpg'} surfMapsCompleted={42} totalPlaytime={'120 hours'} totalMuteTime={'2 hours'} totalBans={1} rank={42} rankPercentage={'5'} achievements={achievements} />
+        <LiveFeedCard recentEvents={recentEvents} />
+        <RecentPostsCard recentPosts={recentPosts} />
+        <NewsCard newsItems={newsItems} onReact={handleNewsReaction} reactionEmojis={reactionEmojis} />
+        <ChangelogCard changelog={changelog} onReact={handleChangelogReaction} reactionEmojis={reactionEmojis} />
+      </div>
+      <div className="space-y-8">
+        <QuickActionsCard />
+        <UserStatsCard />
+        <ServerStatusCard />
+        <BlogPostsCard blogPosts={blogPosts} />
+      </div>
     </div>
+  </main>
+  <Footer />
+
+  {showCookieBanner && (
+    <CookieBanner 
+      onAccept={() => setShowCookieBanner(false)} 
+      onReject={() => setShowCookieBanner(false)} 
+    />
+  )}
+</div>
+</>
   )
 }
