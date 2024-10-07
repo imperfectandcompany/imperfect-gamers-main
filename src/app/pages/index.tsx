@@ -14,7 +14,7 @@ interface HomeProps {
   servers: Server[];
 }
 
-const Home: React.FC<HomeProps> = ({ servers }) => {
+const HomeTest: React.FC<HomeProps> = ({ servers }) => {
   return (
     <div className="min-h-screen bg-gray-900 text-white">
       <Head>
@@ -69,4 +69,4 @@ export const getServerSideProps: GetServerSideProps = async () => {
   return { props: { servers } };
 };
 
-export default Home;
+export default HomeTest;

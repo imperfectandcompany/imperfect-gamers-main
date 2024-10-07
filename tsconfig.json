@@ -16,13 +16,13 @@
     "baseUrl": ".", // Set base URL for resolving non-relative imports
     "paths": {
       "@/*": ["./src/*"],
-      "@components/*": ["./src/components/*"], // Aliases for components
-      "@pages/*": ["./src/pages/*"], // Alias for pages directory
-      "@styles/*": ["./src/styles/*"], // Alias for styles directory
-      "@utils/*": ["./src/utils/*"], // Alias for utility functions
-      "@hooks/*": ["./src/hooks/*"], // Alias for custom hooks
-      "@lib/*": ["./src/lib/*"], // Alias for libraries
-      "@context/*": ["./src/context/*"] // Alias for context providers
+      "@components/*": ["./src/app/components/*"], // Aliases for components
+      "@pages/*": ["./src/app/app/pages/*"], // Alias for pages directory
+      "@styles/*": ["./src/app/styles/*"], // Alias for styles directory
+      "@utils/*": ["./src/app/utils/*"], // Alias for utility functions
+      "@hooks/*": ["./src/app/hooks/*"], // Alias for custom hooks
+      "@lib/*": ["./src/app/lib/*"], // Alias for libraries
+      "@context/*": ["./src/app/context/*"] // Alias for context providers
     },
     "plugins": [
       {

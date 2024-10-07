@@ -1,20 +1,32 @@
-import React from 'react'
+// src/components/Navigation/RedirectMessage.tsx
+import React from 'react';
+import { RedirectMessage as StyledRedirectMessage } from '@components/Navbar/NavbarStyles';
 
 interface RedirectMessageProps {
-  countdown: number
-  cancelRedirect: () => void
+  countdown: number;
+  cancelRedirect: () => void;
 }
 
 const RedirectMessage: React.FC<RedirectMessageProps> = ({ countdown, cancelRedirect }) => (
-  <div className="w-full p-4 bg-[#1a1a1a] text-white flex items-center justify-between transition-all duration-300">
-    <span>Redirecting in {countdown} seconds...</span>
-    <button
-      onClick={cancelRedirect}
-      className="px-4 py-1 text-white border-none bg-transparent cursor-pointer hover:text-[#bfbfbf] transition"
-    >
-      Cancel
-    </button>
-  </div>
-)
+  <StyledRedirectMessage redirecting={true}>
+    <div className="flex w-full items-center justify-between">
+      <span>Redirecting in {countdown} seconds...</span>
+      <div className="px-4 py-1 md:visible">
+        <button
+          onClick={cancelRedirect}
+          onKeyUp={(event) => {
+            if (event.key === 'Enter') {
+              cancelRedirect();
+            }
+          }}
+          tabIndex={0}
+          className="text-white bg-transparent cursor-pointer hover:text-[#bfbfbf] transition"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </StyledRedirectMessage>
+);
 
-export default RedirectMessage
+export default RedirectMessage;

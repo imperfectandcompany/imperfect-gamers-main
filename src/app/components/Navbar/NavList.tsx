@@ -1,15 +1,17 @@
-import React from 'react'
-import NavItem from './NavItem'
+// src/components/Navigation/NavList.tsx
+import React from 'react';
+import { NavList as StyledNavList } from '@components/Navbar/NavbarStyles';
+import NavItem from '@components/Navbar/NavItem';
 
 interface NavListProps {
-  isOpen: boolean
-  redirecting: boolean
-  handleRedirect: (url: string) => void
+  isOpen: boolean;
+  redirecting: boolean;
+  handleRedirect: (url: string) => void;
 }
 
 const NavList: React.FC<NavListProps> = ({ isOpen, redirecting, handleRedirect }) => {
   if (redirecting) {
-    return null // Will handle redirect message separately
+    return null; // Will handle redirect message separately
   }
 
   const navItems = [
@@ -18,14 +20,10 @@ const NavList: React.FC<NavListProps> = ({ isOpen, redirecting, handleRedirect }
     { label: 'INFRACTIONS', url: 'https://imperfectgamers.org/infractions' },
     { label: 'STORE', url: 'https://store.imperfectgamers.org' },
     { label: 'SUPPORT', url: 'https://support.imperfectgamers.org' },
-  ]
+  ];
 
   return (
-    <ul
-      className={`flex flex-col items-center transition-all duration-300 ease-out ${
-        isOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0'
-      } md:flex-row md:max-h-none md:opacity-100`}
-    >
+    <StyledNavList isOpen={isOpen} redirecting={redirecting}>
       {navItems.map((item, index) => (
         <NavItem
           key={index}
@@ -35,8 +33,8 @@ const NavList: React.FC<NavListProps> = ({ isOpen, redirecting, handleRedirect }
           icon={item.icon}
         />
       ))}
-    </ul>
-  )
-}
+    </StyledNavList>
+  );
+};
 
-export default NavList
+export default NavList;
