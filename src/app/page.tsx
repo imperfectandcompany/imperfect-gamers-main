@@ -1,13 +1,24 @@
 'use client'
 
-import React from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 import MainNavbar from './components/Navbar/MainNavbar';
 import HomeTest from './pages';
 import LandingPage from './pages/LandingPage';
+import { AuthProvider } from './context/AuthContext';
 
 export default function Home() {
+
+    // Handle authentication state
+    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+    // Mock login/logout functions
+    const handleLogin = () => setIsLoggedIn(true);
+    const handleLogout = () => setIsLoggedIn(false);
+
+    
   return (
+    <AuthProvider>
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col justify-start">
       <Head>
         <title>Underground Entertainment - Imperfect Gamers</title>
@@ -42,5 +53,6 @@ export default function Home() {
 
       <LandingPage/>
     </div>
+    </AuthProvider>
   );
 }

@@ -1,23 +1,26 @@
-import React, { useState } from 'react'
-import MainNavbar from '@components/Navbar/MainNavbar'
-import Header from '@components/Header/Header'
-import UserProfileCard from '@components/Cards/UserProfileCard'
-import LiveFeedCard from '@components/Cards/LiveFeedCard'
-import RecentPostsCard from '@components/Cards/RecentPostsCard'
-import NewsCard from '@components/Cards/NewsCard'
-import ChangelogCard from '@components/Cards/ChangelogCard'
-import QuickActionsCard from '@components/Cards/QuickActionsCard'
-import UserStatsCard from '@components/Cards/UserStatsCard'
-import ServerStatusCard from '@components/Cards/ServerStatusCard'
-import BlogPostsCard from '@components/Cards/BlogPostsCard'
-import Footer from '@components/Footer/Footer'
-import CookieBanner from '@components/CookieBanner/CookieBanner'
-import AlertBanner from '@components/AlertBanner/AlertBanner'
+import React, { useState } from 'react';
+import MainNavbar from '@components/Navbar/MainNavbar';
+import Header from '@components/Header/Header';
+import UserProfileCard from '@components/Cards/UserProfileCard';
+import LiveFeedCard from '@components/Cards/LiveFeedCard';
+import RecentPostsCard from '@components/Cards/RecentPostsCard';
+import NewsCard from '@components/Cards/NewsCard';
+import ChangelogCard from '@components/Cards/ChangelogCard';
+import QuickActionsCard from '@components/Cards/QuickActionsCard';
+import UserStatsCard from '@components/Cards/UserStatsCard';
+import ServerStatusCard from '@components/Cards/ServerStatusCard';
+import BlogPostsCard from '@components/Cards/BlogPostsCard';
+import Footer from '@components/Footer/Footer';
+import CookieBanner from '@components/CookieBanner/CookieBanner';
+import AlertBanner from '@components/AlertBanner/AlertBanner';
 
 import Icons from '@components/Shared/Icons';
-import CommunityFeedbackCard from '../components/Cards/CommunityFeedBackCard'
+import CommunityFeedbackCard from '../components/Cards/CommunityFeedBackCard';
+import { useAuth } from '../context/AuthContext';
 
 export default function LandingPage() {
+  const { isLoggedIn, user } = useAuth();
+
   const [recentEvents, setRecentEvents] = useState([
     { type: 'join', user: 'Player 1', details: 'joined the server', timestamp: new Date(Date.now() - 5 * 60000), icon: <Icons.LogIn className="h-4 w-4" />, isModerator: true },
     { type: 'mute', user: 'Player 2', details: 'got muted for 10 minutes', timestamp: new Date(Date.now() - 15 * 60000), icon: <Icons.Ban className="h-4 w-4" /> },
@@ -139,45 +142,69 @@ export default function LandingPage() {
   const reactionEmojis = ["👍", "❤️", "😂", "😮", "😢", "😡", "🎉", "🤔", "👀", "🔥"]
 
   return (
-<>
-<MainNavbar />
+    <>
+      <MainNavbar />
+      <Header isLoggedIn={isLoggedIn} />
 
-  <Header />
+      <AlertBanner
+        title="New Challenge Available!"
+        description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
+      />
 
-  <AlertBanner 
-    title="New Challenge Available!" 
-    description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!" 
-  />
+      <main className="container mx-auto px-4 py-8">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          <div className="md:col-span-2 space-y-8">
+            {isLoggedIn && user && (
+              <>
+                <UserProfileCard
+                  userName={user.userName}
+                  avatarUrl={user.avatarUrl}
+                  surfMapsCompleted={user.surfMapsCompleted}
+                  totalPlaytime={user.totalPlaytime}
+                  totalMuteTime={user.totalMuteTime}
+                  totalBans={user.totalBans}
+                  rank={user.rank}
+                  rankPercentage={user.rankPercentage}
+                  achievements={user.achievements}
+                />
+                <UserStatsCard
+                  rating={user.rating}
+                  pointsToNextRank={user.pointsToNextRank}
+                  progressToNextRank={user.progressToNextRank}
+                  totalJumps={user.totalJumps}
+                  avgSpeed={user.avgSpeed}
+                  favoriteMap={user.favoriteMap}
+                  rank={user.rank}
+                  rankPercentage={user.rankPercentage}
+                  xp={user.xp}
+                  maxXp={user.maxXp}
+                  level={user.level}
+                />
+              </>
+            )}
+            {!isLoggedIn && <p className="text-center text-zinc-400">Please log in to see your profile details.</p>}
+            <LiveFeedCard recentEvents={recentEvents} />
+            <RecentPostsCard recentPosts={recentPosts} />
+          </div>
+          <div className="space-y-8">
+            <QuickActionsCard />
+            <BlogPostsCard blogPosts={blogPosts} />
+            <ServerStatusCard />
+            <CommunityFeedbackCard
+              onLeaveReview={handleLeaveReview}
+              onMakeSuggestion={handleMakeSuggestion}
+            />
+          </div>
+        </div>
+      </main>
+      <Footer />
 
-  <main className="container mx-auto px-4 py-8">
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-      <div className="md:col-span-2 space-y-8">
-        <UserProfileCard userName={'Low'} avatarUrl={'https://avatars.akamai.steamstatic.com/0bfd6a007df7f197f6b622848c60547bc3e611a0_full.jpg'} surfMapsCompleted={42} totalPlaytime={'120 hours'} totalMuteTime={'2 hours'} totalBans={1} rank={42} rankPercentage={'5'} achievements={achievements} />
-        <LiveFeedCard recentEvents={recentEvents} />
-        <RecentPostsCard recentPosts={recentPosts} />
-        <NewsCard newsItems={newsItems} onReact={handleNewsReaction} reactionEmojis={reactionEmojis} />
-        <ChangelogCard changelog={changelog} onReact={handleChangelogReaction} reactionEmojis={reactionEmojis} />
-      </div>
-      <div className="space-y-8">
-        <QuickActionsCard />
-        <UserStatsCard />
-        <ServerStatusCard />
-        <BlogPostsCard blogPosts={blogPosts} />
-        <CommunityFeedbackCard 
-                onLeaveReview={handleLeaveReview} 
-                onMakeSuggestion={handleMakeSuggestion} 
-              />
-      </div>
-    </div>
-  </main>
-  <Footer />
-
-  {showCookieBanner && (
-    <CookieBanner 
-      onAccept={() => setShowCookieBanner(false)} 
-      onReject={() => setShowCookieBanner(false)} 
-    />
-  )}
-</>
-  )
+      {showCookieBanner && (
+        <CookieBanner
+          onAccept={() => setShowCookieBanner(false)}
+          onReject={() => setShowCookieBanner(false)}
+        />
+      )}
+    </>
+  );
 }
