@@ -8,9 +8,11 @@ interface Achievement {
 }
 
 interface User {
-    userName?: string; // Made userName optional
-    email?: string; // Added email field
+    userName?: string;
+    email?: string;
     avatarUrl: string;
+    isSteamLinked: boolean;
+    hasServerData: boolean;
     surfMapsCompleted: number;
     totalPlaytime: string;
     totalMuteTime: string;
@@ -27,10 +29,10 @@ interface User {
     xp: number;
     maxXp: number;
     level: number;
-    isSteamLinked: boolean;
     isDiscordLinked: boolean;
     hasCompletedOnboarding: boolean;
   }
+  
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -52,7 +54,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser((prevUser) => ({
       ...prevUser,
       ...userData,
-      // Do not set userName here during login; it will be set during onboarding.
+      hasServerData: userData.hasServerData ?? false, // Assume no server data until verified
       hasCompletedOnboarding: userData.hasCompletedOnboarding ?? false,
       isSteamLinked: userData.isSteamLinked ?? false,
       isDiscordLinked: userData.isDiscordLinked ?? false,
@@ -73,10 +75,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       xp: userData.xp ?? 0,
       maxXp: userData.maxXp ?? 100,
       level: userData.level ?? 1,
-      email: userData.email ?? '', // Set email during login
+      email: userData.email ?? '',
     }) as User);
     setIsLoggedIn(true);
   };
+  
 
   const logout = () => {
     setUser(null);
