@@ -1,62 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Dialog, DialogContent } from '@components/ui/dialog';
+import { Dialog, DialogContent, DialogTitle } from '@components/ui/dialog';
 import LoginView from '@components/Auth/LoginView';
 import SignupView from '@components/Auth/SignupView';
 import SetUsernameView from '@components/Auth/SetUsernameView';
 import WelcomeView from '@components/Auth/WelcomeView';
+import { useAuth } from '@context/AuthContext';
 
 // Type for managing different views
 type View = 'welcome' | 'signup' | 'login' | 'setUsername';
 
 const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen, onClose }) => {
+  const { isLoggedIn, user, login, logout, completeOnboarding } = useAuth();
+
   const [currentView, setCurrentView] = useState<View>('welcome');
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [username, setUsername] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [showLogoutAlert, setShowLogoutAlert] = useState<boolean>(false);
+
+  useEffect(() => {
+    // If logged in and onboarding not completed, navigate to username setup view
+    if (isLoggedIn && user && !user.hasCompletedOnboarding) {
+      setCurrentView('setUsername');
+    } else if (isLoggedIn) {
+      onClose();
+    }
+  }, [isLoggedIn, user, onClose]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
 
     try {
       if (currentView === 'signup') {
-        // Simulating API call
+        // Simulating API call for signup
         await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('Signup submitted', { email, password });
+
+        // After signup, direct the user to the login view to verify credentials
         setView('login');
-        setPassword(''); // Clear password but keep email
+        setPassword('');
+
       } else if (currentView === 'login') {
-        // Simulating API call
+        // Simulating API call for login
         await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('Login submitted', { email, password });
-        setView('setUsername');
-        setPassword(''); // Clear password after login
+
+        login({ userName: email, avatarUrl: '', hasCompletedOnboarding: false });
+        setPassword('');
+
       } else if (currentView === 'setUsername') {
-        // Simulating API call
+        // Simulating API call for setting username
         await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('Username set', { username });
+
+        completeOnboarding();
         alert('Onboarding complete! Welcome to Imperfect Gamers!');
         onClose();
       }
     } catch (error) {
       console.error('Error during form submission:', error);
-      // Handle error (e.g., show error message to user)
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    setShowLogoutAlert(true);
-    setTimeout(() => {
-      setShowLogoutAlert(false);
-      setView('login');
-      setEmail('');
-      setPassword('');
-      setUsername('');
-    }, 2000);
   };
 
   const setView = (newView: View) => {
@@ -65,7 +71,7 @@ const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
   useEffect(() => {
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === 'Escape' && currentView !== 'setUsername') {
         onClose();
       }
     };
@@ -75,10 +81,11 @@ const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
     return () => {
       window.removeEventListener('keydown', handleEscape);
     };
-  }, [onClose]);
+  }, [onClose, currentView]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogTitle>Authentication</DialogTitle>
       <DialogContent className="sm:max-w-[425px] bg-zinc-900 text-white border-zinc-800 overflow-hidden p-0">
         <div className="relative" style={{ height: '400px' }}>
           <AnimatePresence initial={false}>
@@ -123,7 +130,10 @@ const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
               )}
               {currentView === 'setUsername' && (
                 <SetUsernameView
-                  onLogout={handleLogout}
+                  onLogout={() => {
+                    logout();
+                    setView('login');
+                  }}
                   onSubmit={(username) => {
                     setUsername(username);
                     handleSubmit();

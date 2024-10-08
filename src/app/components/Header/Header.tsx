@@ -1,14 +1,15 @@
 import React, { useState } from 'react';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
-import { Bell, Search, LogIn } from 'lucide-react';
+import { Bell, Search, LogIn, Check } from 'lucide-react';
 import AuthModal from '@components/Auth/AuthModal';
 
 interface HeaderProps {
   isLoggedIn: boolean;
+  hasCompletedOnboarding: boolean | undefined;
 }
 
-const Header: React.FC<HeaderProps> = ({ isLoggedIn }) => {
+const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding }) => {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   return (
@@ -41,10 +42,22 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn }) => {
               </Button>
             </div>
             {isLoggedIn ? (
-              <Button variant="ghost" size="sm" className="flex items-center text-white">
-                <Bell className="h-5 w-5 mr-2 text-zinc-400" />
-                Notifications
-              </Button>
+              hasCompletedOnboarding ? (
+                <Button variant="ghost" size="sm" className="flex items-center text-white">
+                  <Bell className="h-5 w-5 mr-2 text-zinc-400" />
+                  Notifications
+                </Button>
+              ) : (
+                <Button
+                  variant="default"
+                  size="sm"
+                  className="flex items-center text-white"
+                  onClick={() => setIsAuthModalOpen(true)}
+                >
+                  <Check className="h-5 w-5 mr-2" />
+                  Verify
+                </Button>
+              )
             ) : (
               <Button
                 variant="default"

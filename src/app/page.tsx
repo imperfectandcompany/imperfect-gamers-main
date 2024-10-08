@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Head from 'next/head';
 import MainNavbar from './components/Navbar/MainNavbar';
 import HomeTest from './pages';
-import LandingPage from './pages/LandingPage';
+import MainPage from './pages/MainPage';
 import { AuthProvider } from './context/AuthContext';
 
 export default function Home() {
@@ -51,7 +51,7 @@ export default function Home() {
 
       {/* Navigation */}
 
-      <LandingPage/>
+      <MainPage/>
     </div>
     </AuthProvider>
   );

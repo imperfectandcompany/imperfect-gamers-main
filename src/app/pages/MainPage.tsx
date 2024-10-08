@@ -18,7 +18,7 @@ import Icons from '@components/Shared/Icons';
 import CommunityFeedbackCard from '../components/Cards/CommunityFeedBackCard';
 import { useAuth } from '../context/AuthContext';
 
-export default function LandingPage() {
+export default function MainPage() {
   const { isLoggedIn, user } = useAuth();
 
   const [recentEvents, setRecentEvents] = useState([
@@ -144,7 +144,7 @@ export default function LandingPage() {
   return (
     <>
       <MainNavbar />
-      <Header isLoggedIn={isLoggedIn} />
+      <Header isLoggedIn={isLoggedIn} hasCompletedOnboarding={user?.hasCompletedOnboarding} />
 
       <AlertBanner
         title="New Challenge Available!"
