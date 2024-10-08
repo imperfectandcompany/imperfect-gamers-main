@@ -30,31 +30,32 @@ const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
 
   const handleSubmit = async () => {
     setIsLoading(true);
-
+  
     try {
       if (currentView === 'signup') {
         // Simulating API call for signup
         await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('Signup submitted', { email, password });
-
+  
         // After signup, direct the user to the login view to verify credentials
         setView('login');
         setPassword('');
-
+  
       } else if (currentView === 'login') {
         // Simulating API call for login
         await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('Login submitted', { email, password });
-
-        login({ userName: email, avatarUrl: '', hasCompletedOnboarding: false });
-        setPassword('');
-
+  
+        // Set only the basic information needed for a logged-in state, including email
+        login({ email, hasCompletedOnboarding: false, avatarUrl: '' });
+  
       } else if (currentView === 'setUsername') {
         // Simulating API call for setting username
         await new Promise((resolve) => setTimeout(resolve, 1000));
         console.log('Username set', { username });
-
-        completeOnboarding();
+  
+        // Update user data to set the actual userName during onboarding
+        login({ userName: username, hasCompletedOnboarding: true });
         alert('Onboarding complete! Welcome to Imperfect Gamers!');
         onClose();
       }
@@ -64,7 +65,7 @@ const AuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({ isOpen,
       setIsLoading(false);
     }
   };
-
+  
   const setView = (newView: View) => {
     setCurrentView(newView);
   };

@@ -154,33 +154,33 @@ export default function MainPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
+          <UserProfileCard
+              isLoggedIn={isLoggedIn}
+              userName={user?.userName}
+              avatarUrl={user?.avatarUrl}
+              surfMapsCompleted={user?.surfMapsCompleted}
+              totalPlaytime={user?.totalPlaytime}
+              totalMuteTime={user?.totalMuteTime}
+              totalBans={user?.totalBans}
+              rank={user?.rank}
+              rankPercentage={user?.rankPercentage}
+              achievements={user?.achievements}
+              isVerified={user?.hasCompletedOnboarding}
+            />
             {isLoggedIn && user && (
-              <>
-                <UserProfileCard
-                  userName={user.userName}
-                  avatarUrl={user.avatarUrl}
-                  surfMapsCompleted={user.surfMapsCompleted}
-                  totalPlaytime={user.totalPlaytime}
-                  totalMuteTime={user.totalMuteTime}
-                  totalBans={user.totalBans}
-                  rank={user.rank}
-                  rankPercentage={user.rankPercentage}
-                  achievements={user.achievements}
-                />
-                <UserStatsCard
-                  rating={user.rating}
-                  pointsToNextRank={user.pointsToNextRank}
-                  progressToNextRank={user.progressToNextRank}
-                  totalJumps={user.totalJumps}
-                  avgSpeed={user.avgSpeed}
-                  favoriteMap={user.favoriteMap}
-                  rank={user.rank}
-                  rankPercentage={user.rankPercentage}
-                  xp={user.xp}
-                  maxXp={user.maxXp}
-                  level={user.level}
-                />
-              </>
+              <UserStatsCard
+                rating={user.rating}
+                pointsToNextRank={user.pointsToNextRank}
+                progressToNextRank={user.progressToNextRank}
+                totalJumps={user.totalJumps}
+                avgSpeed={user.avgSpeed}
+                favoriteMap={user.favoriteMap}
+                rank={user.rank}
+                rankPercentage={user.rankPercentage}
+                xp={user.xp}
+                maxXp={user.maxXp}
+                level={user.level}
+              />
             )}
             {!isLoggedIn && <p className="text-center text-zinc-400">Please log in to see your profile details.</p>}
             <LiveFeedCard recentEvents={recentEvents} />

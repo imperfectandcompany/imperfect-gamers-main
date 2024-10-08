@@ -1,8 +1,6 @@
-// src/components/UserProfileCard.tsx
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { Button } from '@components/ui/button';
-import { Flame, Gift } from 'lucide-react';
 
 interface Achievement {
   icon: string;
@@ -12,18 +10,21 @@ interface Achievement {
 }
 
 interface UserProfileProps {
-  userName: string;
-  avatarUrl: string;
-  surfMapsCompleted: number;
-  totalPlaytime: string;
-  totalMuteTime: string;
-  totalBans: number;
-  rank: number;
-  rankPercentage: string;
-  achievements: Achievement[];
+  isLoggedIn: boolean;
+  userName?: string;
+  avatarUrl?: string;
+  surfMapsCompleted?: number;
+  totalPlaytime?: string;
+  totalMuteTime?: string;
+  totalBans?: number;
+  rank?: number;
+  rankPercentage?: string;
+  achievements?: Achievement[];
+  isVerified?: boolean;
 }
 
 const UserProfileCard: React.FC<UserProfileProps> = ({
+  isLoggedIn,
   userName,
   avatarUrl,
   surfMapsCompleted,
@@ -33,11 +34,44 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
   rank,
   rankPercentage,
   achievements,
+  isVerified,
 }) => {
+  if (!isLoggedIn) {
+    return (
+      <Card className="bg-zinc-950 border-zinc-800 text-center py-8">
+        <CardTitle className="text-white mb-4">User Profile</CardTitle>
+        <div className="text-zinc-400 mb-4">
+          <span className="text-6xl block mb-4">👤</span>
+          <p className="text-lg font-bold">Welcome, Guest!</p>
+          <p className="text-zinc-400">Log in to view your profile and stats.</p>
+        </div>
+        <Button variant="default" className="px-4">
+          Log In
+        </Button>
+      </Card>
+    );
+  }
+
+  if (!userName) {
+    return (
+      <Card className="bg-zinc-950 border-zinc-800 text-center py-8">
+        <CardTitle className="text-white mb-4">User Profile</CardTitle>
+        <p className="text-yellow-500 font-semibold">Username not set - Please complete your onboarding.</p>
+      </Card>
+    );
+  }
+
   return (
     <Card className="bg-zinc-950 border-zinc-800">
       <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle className="text-white">User Profile</CardTitle>
+        <CardTitle className="text-white flex items-center space-x-2">
+          <span>User Profile</span>
+          {!isVerified && (
+            <span className="px-2 py-1 text-xs font-semibold text-yellow-500 bg-zinc-700 rounded-full">
+              Not Verified
+            </span>
+          )}
+        </CardTitle>
         <Button variant="default" className="px-4">
           View Profile
         </Button>
@@ -83,7 +117,7 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
             </Button>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            {achievements.slice(0, 3).map((achievement, index) => (
+            {achievements?.slice(0, 3).map((achievement, index) => (
               <div key={index} className="bg-zinc-900 p-3 rounded-lg flex items-center space-x-3">
                 <div className="text-3xl">{achievement.icon}</div>
                 <div>

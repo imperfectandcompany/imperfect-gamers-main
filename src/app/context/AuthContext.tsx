@@ -8,28 +8,29 @@ interface Achievement {
 }
 
 interface User {
-  userName: string;
-  avatarUrl: string;
-  surfMapsCompleted: number;
-  totalPlaytime: string;
-  totalMuteTime: string;
-  totalBans: number;
-  rank: number;
-  rankPercentage: string;
-  achievements: Achievement[];
-  rating: number;
-  pointsToNextRank: number;
-  progressToNextRank: number;
-  totalJumps: number;
-  avgSpeed: number;
-  favoriteMap: string;
-  xp: number;
-  maxXp: number;
-  level: number;
-  isSteamLinked: boolean;
-  isDiscordLinked: boolean;
-  hasCompletedOnboarding: boolean;
-}
+    userName?: string; // Made userName optional
+    email?: string; // Added email field
+    avatarUrl: string;
+    surfMapsCompleted: number;
+    totalPlaytime: string;
+    totalMuteTime: string;
+    totalBans: number;
+    rank: number;
+    rankPercentage: string;
+    achievements: Achievement[];
+    rating: number;
+    pointsToNextRank: number;
+    progressToNextRank: number;
+    totalJumps: number;
+    avgSpeed: number;
+    favoriteMap: string;
+    xp: number;
+    maxXp: number;
+    level: number;
+    isSteamLinked: boolean;
+    isDiscordLinked: boolean;
+    hasCompletedOnboarding: boolean;
+  }
 
 interface AuthContextType {
   isLoggedIn: boolean;
@@ -51,10 +52,11 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser((prevUser) => ({
       ...prevUser,
       ...userData,
+      // Do not set userName here during login; it will be set during onboarding.
       hasCompletedOnboarding: userData.hasCompletedOnboarding ?? false,
       isSteamLinked: userData.isSteamLinked ?? false,
       isDiscordLinked: userData.isDiscordLinked ?? false,
-      achievements: userData.achievements ?? [], // Set default value as an empty array
+      achievements: userData.achievements ?? [],
       avatarUrl: userData.avatarUrl ?? '',
       surfMapsCompleted: userData.surfMapsCompleted ?? 0,
       totalPlaytime: userData.totalPlaytime ?? '0h',
@@ -71,6 +73,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       xp: userData.xp ?? 0,
       maxXp: userData.maxXp ?? 100,
       level: userData.level ?? 1,
+      email: userData.email ?? '', // Set email during login
     }) as User);
     setIsLoggedIn(true);
   };
