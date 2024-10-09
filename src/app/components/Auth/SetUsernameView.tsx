@@ -20,17 +20,7 @@ const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, onSubmit, i
 
   return (
     <div className="flex flex-col h-full">
-      <nav className="flex justify-between items-center mb-8">
-      <Button variant="ghost" className="text-white p-0" onClick={onLogout}>
-          <LogOut className="h-6 w-6 mr-2" />
-          Logout
-        </Button>
-      </nav>
-
       <main className="flex-grow flex flex-col justify-center w-full">
-        <h2 className="text-3xl font-bold mb-2">Almost there!</h2>
-        <p className="text-zinc-400 mb-8">Pick a unique username to represent you in the Imperfect Gamers.</p>
-
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="username" className="sr-only">

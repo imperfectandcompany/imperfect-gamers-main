@@ -17,18 +17,7 @@ interface LoginViewProps {
 const LoginView: React.FC<LoginViewProps> = ({ onBack, onSubmit, email, password, setEmail, setPassword, isLoading }) => {
   return (
     <div className="flex flex-col h-full">
-      <nav className="flex justify-between items-center mb-8">
-        <Button variant="ghost" className="text-white p-0" onClick={onBack}>
-          <ArrowLeft className="h-6 w-6 mr-2" />
-          Back
-        </Button>
-        <h1 className="text-xl font-semibold">Log In</h1>
-        <div className="w-16" />
-      </nav>
-
       <main className="flex-grow flex flex-col justify-center w-full">
-        <h2 className="text-4xl font-bold mb-8">Yoo--yo. Welcome back.</h2>
-
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="email" className="sr-only">

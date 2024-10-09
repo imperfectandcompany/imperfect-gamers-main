@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 
 const MainNavbar: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [redirecting, setRedirecting] = useState(false);
+  const [redirecting, setRedirecting] = useState<boolean>(false);
   const [countdown, setCountdown] = useState(3);
   let redirectTimeout = useRef<number | null>(null);
 

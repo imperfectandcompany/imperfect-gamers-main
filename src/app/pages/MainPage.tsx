@@ -13,10 +13,11 @@ import BlogPostsCard from "@components/Cards/BlogPostsCard";
 import Footer from "@components/Footer/Footer";
 import CookieBanner from "@components/CookieBanner/CookieBanner";
 import AlertBanner from "@components/AlertBanner/AlertBanner";
-
+import { handleRestrictedAction } from "@utils/authUtils";
 import Icons from "@components/Shared/Icons";
 import CommunityFeedbackCard from "../components/Cards/CommunityFeedBackCard";
-import { useAuth } from "../context/AuthContext";
+import AuthModal from "@components/Auth/AuthModal";
+import { useAuth } from "@context/AuthContext";
 
 export default function MainPage() {
   const { isLoggedIn, user } = useAuth();
@@ -166,26 +167,64 @@ export default function MainPage() {
     },
   ]);
 
-  const handleLeaveReview = () => {
-    console.log("Leave a review action triggered");
-  };
-
-  const handleMakeSuggestion = () => {
-    console.log("Make a suggestion action triggered");
-  };
+  const canReactToItems =
+    isLoggedIn &&
+    user?.hasCompletedOnboarding &&
+    user?.isSteamLinked &&
+    user?.hasServerData;
 
   const [showCookieBanner, setShowCookieBanner] = useState(true);
+  const [authModalOpen, setAuthModalOpen] = useState(false);
+  const [authContextMessage, setAuthContextMessage] = useState<string>("");
+
+  const showAuthModal = (message?: string) => {
+    setAuthContextMessage(message || "");
+    setAuthModalOpen(true);
+  };
+
+  const handleRestrictedInteraction = (
+    requiredState: "login" | "onboard" | "steam"
+  ) => {
+    const { success, message } = handleRestrictedAction(
+      isLoggedIn,
+      user,
+      requiredState
+    );
+    if (!success) {
+      showAuthModal(message);
+      return false;
+    }
+    return true;
+  };
 
   const handleNewsReaction = (index: number, reactionIndex: number) => {
+    if (!handleRestrictedInteraction("steam")) return;
+
+    // Continue if authorized
     const newNewsItems = [...newsItems];
     newNewsItems[index].reactions[reactionIndex].count += 1;
     setNewsItems(newNewsItems);
   };
 
   const handleChangelogReaction = (index: number, reactionIndex: number) => {
+    if (!handleRestrictedInteraction("steam")) return;
+
+    // Continue if authorized
     const newChangelog = [...changelog];
     newChangelog[index].reactions[reactionIndex].count += 1;
     setChangelog(newChangelog);
+  };
+
+  const handleLeaveReview = () => {
+    if (!handleRestrictedInteraction("onboard")) return;
+
+    console.log("Leave a review action triggered");
+  };
+
+  const handleMakeSuggestion = () => {
+    if (!handleRestrictedInteraction("onboard")) return;
+
+    console.log("Make a suggestion action triggered");
   };
 
   const [achievements, setAchievements] = useState([
@@ -236,12 +275,17 @@ export default function MainPage() {
 
   return (
     <>
+      <AuthModal
+        isOpen={authModalOpen}
+        onClose={() => setAuthModalOpen(false)}
+        contextMessage={authContextMessage}
+      />
       <MainNavbar />
       <Header
         isLoggedIn={isLoggedIn}
         hasCompletedOnboarding={user?.hasCompletedOnboarding}
+        onOpenAuthModal={showAuthModal}
       />
-
       <AlertBanner
         title="New Challenge Available!"
         description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
@@ -264,31 +308,44 @@ export default function MainPage() {
               achievements={user?.achievements}
               isVerified={user?.hasCompletedOnboarding}
             />
-            {isLoggedIn && user && (
-              <UserStatsCard
-                rating={user.rating}
-                pointsToNextRank={user.pointsToNextRank}
-                progressToNextRank={user.progressToNextRank}
-                totalJumps={user.totalJumps}
-                avgSpeed={user.avgSpeed}
-                favoriteMap={user.favoriteMap}
-                rank={user.rank}
-                rankPercentage={user.rankPercentage}
-                xp={user.xp}
-                maxXp={user.maxXp}
-                level={user.level}
-              />
-            )}
-            {!isLoggedIn && (
-              <p className="text-center text-zinc-400">
-                Please log in to see your profile details.
-              </p>
-            )}
             <LiveFeedCard recentEvents={recentEvents} />
             <RecentPostsCard recentPosts={recentPosts} />
+            <NewsCard
+              newsItems={newsItems}
+              onReact={handleNewsReaction}
+              reactionEmojis={reactionEmojis}
+            />
+            <ChangelogCard
+              changelog={changelog}
+              onReact={handleChangelogReaction}
+              reactionEmojis={reactionEmojis}
+            />
           </div>
           <div className="space-y-8">
             <QuickActionsCard />
+            <UserStatsCard
+              isLoggedIn={isLoggedIn}
+              isSteamLinked={user?.isSteamLinked ?? false}
+              hasCompletedOnboarding={user?.hasCompletedOnboarding ?? false}
+              hasServerData={user?.hasServerData ?? false}
+              userStats={
+                user && user.isSteamLinked && user.hasServerData
+                  ? {
+                      rating: user.rating,
+                      pointsToNextRank: user.pointsToNextRank,
+                      progressToNextRank: user.progressToNextRank,
+                      totalJumps: user.totalJumps,
+                      avgSpeed: user.avgSpeed,
+                      favoriteMap: user.favoriteMap,
+                      rank: user.rank,
+                      rankPercentage: user.rankPercentage,
+                      xp: user.xp,
+                      maxXp: user.maxXp,
+                      level: user.level,
+                    }
+                  : null
+              }
+            />
             <BlogPostsCard blogPosts={blogPosts} />
             <ServerStatusCard />
             <CommunityFeedbackCard

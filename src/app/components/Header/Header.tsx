@@ -1,16 +1,23 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Bell, Search, LogIn, Check } from 'lucide-react';
-import AuthModal from '@components/Auth/AuthModal';
 
 interface HeaderProps {
   isLoggedIn: boolean;
   hasCompletedOnboarding: boolean | undefined;
+  onOpenAuthModal: (message?: string) => void; // Make message optional
 }
 
-const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding }) => {
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onOpenAuthModal }) => {
+
+  const handleLoginClick = () => {
+    onOpenAuthModal(); // Provide a default login context
+  };
+
+  const handleVerifyClick = () => {
+    onOpenAuthModal();
+  };
 
   return (
     <header className="bg-zinc-950 shadow-md">
@@ -43,7 +50,12 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding }) =
             </div>
             {isLoggedIn ? (
               hasCompletedOnboarding ? (
-                <Button variant="ghost" size="sm" className="flex items-center text-white">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="flex items-center text-white"
+                  aria-label="View Notifications"
+                >
                   <Bell className="h-5 w-5 mr-2 text-zinc-400" />
                   Notifications
                 </Button>
@@ -52,7 +64,8 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding }) =
                   variant="default"
                   size="sm"
                   className="flex items-center text-white"
-                  onClick={() => setIsAuthModalOpen(true)}
+                  onClick={handleVerifyClick}
+                  aria-label="Verify Account"
                 >
                   <Check className="h-5 w-5 mr-2" />
                   Verify
@@ -63,7 +76,8 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding }) =
                 variant="default"
                 size="sm"
                 className="flex items-center text-white"
-                onClick={() => setIsAuthModalOpen(true)}
+                onClick={handleLoginClick}
+                aria-label="Log In"
               >
                 <LogIn className="h-5 w-5 mr-2" />
                 Log In
@@ -72,7 +86,6 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding }) =
           </nav>
         </div>
       </div>
-      <AuthModal isOpen={isAuthModalOpen} onClose={() => setIsAuthModalOpen(false)} />
     </header>
   );
 };

@@ -7,7 +7,7 @@ interface Achievement {
   date: string;
 }
 
-interface User {
+export interface User {
     userName?: string;
     email?: string;
     avatarUrl: string;

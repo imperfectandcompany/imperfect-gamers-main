@@ -17,18 +17,7 @@ interface SignupViewProps {
 const SignupView: React.FC<SignupViewProps> = ({ email, password, setEmail, setPassword, onBack, onSubmit, isLoading }) => {
   return (
     <div className="flex flex-col h-full">
-      <nav className="flex justify-between items-center mb-8">
-        <Button variant="ghost" className="text-white p-0" onClick={onBack}>
-          <ArrowLeft className="h-6 w-6 mr-2" />
-          Back
-        </Button>
-        <h1 className="text-xl font-semibold">Sign Up</h1>
-        <div className="w-16" />
-      </nav>
-
       <main className="flex-grow flex flex-col justify-center w-full">
-        <h2 className="text-3xl font-bold mb-8">Get Started</h2>
-
         <form onSubmit={onSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="signup-email" className="sr-only">

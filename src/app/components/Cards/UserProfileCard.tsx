@@ -42,34 +42,47 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
 }) => {
   if (!isLoggedIn) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800 text-center py-8">
-        <CardTitle className="text-white mb-4">User Profile</CardTitle>
-        <div className="text-zinc-400 mb-4">
-          <span className="text-6xl block mb-4">👤</span>
-          <p className="text-lg font-bold">Welcome, Guest!</p>
-          <p className="text-zinc-400">
-            Log in to view your profile and stats.
-          </p>
-        </div>
-      </Card>
+          <Card className="bg-zinc-950 border-zinc-800">
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle className="text-white">User Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <span className="text-6xl block mb-4">👤</span>
+                <h2 className="text-2xl font-bold text-white mb-2">
+                  Welcome, Guest!
+                </h2>
+                <p className="text-zinc-400 mb-4">
+                  Log in to view your profile and stats.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
     );
   }
 
   if (!userName) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800 text-center py-8">
-        <CardTitle className="text-white mb-4">User Profile</CardTitle>
-        <p className="text-yellow-500 font-semibold">
+      <Card className="bg-zinc-950 border-zinc-800">
+        <CardHeader className="flex flex-row justify-between items-center">
+          <CardTitle className="text-white">User Profile</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-8">
+            <span className="text-6xl block mb-4">👤</span>
+            <p className="text-yellow-500 font-semibold">
           Username not set - Please complete your onboarding.
         </p>
+          </div>
+        </CardContent>
       </Card>
     );
   }
 
   return (
-    <Card className="bg-zinc-950 border-zinc-800">
-      <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle className="text-white flex items-center space-x-2">
+          <Card className="bg-zinc-950 border-zinc-800">
+            <CardHeader className="flex flex-row justify-between items-center">
+              <CardTitle className="text-white">
           <span>User Profile</span>
           {!isVerified && (
             <span className="px-2 py-1 text-xs font-semibold text-yellow-500 bg-zinc-700 rounded-full">
@@ -77,7 +90,7 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
             </span>
           )}
         </CardTitle>
-        <Button variant="default" className="px-4">
+        <Button variant="default">
           View Profile
         </Button>
       </CardHeader>

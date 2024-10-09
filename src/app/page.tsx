@@ -9,14 +9,6 @@ import { AuthProvider } from './context/AuthContext';
 
 export default function Home() {
 
-    // Handle authentication state
-    const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-    // Mock login/logout functions
-    const handleLogin = () => setIsLoggedIn(true);
-    const handleLogout = () => setIsLoggedIn(false);
-
-    
   return (
     <AuthProvider>
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col justify-start">
