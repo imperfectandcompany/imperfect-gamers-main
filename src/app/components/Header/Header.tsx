@@ -1,7 +1,9 @@
 import React from 'react';
 import { Input } from '@components/ui/input';
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@components/ui/dropdown-menu';
 import { Button } from '@components/ui/button';
-import { Bell, Search, LogIn, Check } from 'lucide-react';
+import { Bell, Search, LogIn, Check, User } from 'lucide-react';
+import { useAuth } from '@context/AuthContext';
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -10,6 +12,7 @@ interface HeaderProps {
 }
 
 const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onOpenAuthModal }) => {
+  const { user, logout } = useAuth();
 
   const handleLoginClick = () => {
     onOpenAuthModal(); // Provide a default login context
@@ -17,6 +20,10 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onO
 
   const handleVerifyClick = () => {
     onOpenAuthModal();
+  };
+
+  const handleLogout = () => {
+    logout();
   };
 
   return (
@@ -50,15 +57,23 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onO
             </div>
             {isLoggedIn ? (
               hasCompletedOnboarding ? (
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="flex items-center text-white"
-                  aria-label="View Notifications"
-                >
-                  <Bell className="h-5 w-5 mr-2 text-zinc-400" />
-                  Notifications
-                </Button>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center text-white"
+                      aria-label="Account Options"
+                    >
+                      <User className="h-5 w-5 mr-2 text-zinc-400" />
+                      {user?.userName}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => console.log('View Profile')}>View Profile</DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               ) : (
                 <Button
                   variant="default"
