@@ -1,23 +1,22 @@
-# Use Node.js base image
-FROM node:18-alpine
-
-# Set working directory
+FROM node:22-alpine
+ 
+RUN apk add --no-cache libc6-compat
+ 
 WORKDIR /app
-
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies
-RUN npm install
-
-# Copy the rest of the application code
+ 
 COPY . .
-
-# Build the Next.js app
-RUN npm run build
-
-# Expose the port the app runs on
-EXPOSE 3000
-
-# Start the Next.js app
-CMD ["npm", "start"]
+ 
+ENV NODE_ENV production
+ 
+ENV NEXT_TELEMETRY_DISABLED 1
+ 
+ENV NEXT_PRIVATE_STANDALONE true
+ 
+# If I don't install next, I get an error next: not found
+RUN npm i next sharp
+ 
+EXPOSE 3001
+ 
+ENV PORT 3001
+ 
+CMD HOSTNAME="0.0.0.0" node server.js

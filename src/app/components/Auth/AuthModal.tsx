@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dialog,
@@ -15,17 +15,23 @@ import { useAuth } from "@context/AuthContext";
 import { Alert, AlertDescription } from "../ui/alert";
 import { ArrowLeft } from "lucide-react";
 
-// Type for managing different views
-type View = "welcome" | "signup" | "login" | "setUsername";
-
 const AuthModal: React.FC<{
   isOpen: boolean;
   onClose: () => void;
   contextMessage?: string;
 }> = ({ isOpen, onClose, contextMessage }) => {
-  const { isLoggedIn, user, login, logout } = useAuth();
+  const {
+    isLoggedIn,
+    errorMessage,
+    user,
+    login,
+    logout,
+    currentView,
+    setCurrentView,
+    completeOnboarding,
+    setErrorMessage, // Add setErrorMessage here
+  } = useAuth();
 
-  const [currentView, setCurrentView] = useState<View>("welcome");
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [username, setUsername] = useState<string>("");
@@ -40,58 +46,51 @@ const AuthModal: React.FC<{
     } else if (isLoggedIn) {
       onClose();
     }
-  }, [isLoggedIn, user, onClose]);
+  }, [isLoggedIn, user, onClose, setCurrentView]);
+
+  useEffect(() => {
+    return () => {
+      setErrorMessage(''); // Clear the error message when the component unmounts
+    };
+  }, [setErrorMessage]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
+    setErrorMessage("");
 
     try {
       if (currentView === "signup") {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log("Signup submitted", { email, password });
-        setView("login", true);
+        // Implement signup logic
+        // For now, you can redirect to the login view
+        setErrorMessage(''); // Clear the error message when navigating to a different view
+        setCurrentView("login");
         setPassword("");
       } else if (currentView === "login") {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log("Login submitted", { email, password });
-        login({ email, hasCompletedOnboarding: false, avatarUrl: "" });
+        setErrorMessage(''); // Clear the error message when navigating to a different view
+        await login(email, password);
+        // The login function will handle setting the user state
       } else if (currentView === "setUsername") {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-        console.log("Username set", { username });
-        login({ userName: username, hasCompletedOnboarding: true });
-        alert("Onboarding complete! Welcome to Imperfect Gamers!");
+        setErrorMessage(''); // Clear the error message when navigating to a different view
+        // Implement username setting logic
+        // For now, we'll mock the completion of onboarding
+        // In real implementation, call the API to set the username
+        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+        completeOnboarding();
+        alert("Onboarding complete! Welcome to Sink.gg!");
         onClose();
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error during form submission:", error);
+      setErrorMessage(error.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  const setView = (newView: View, goingForward: boolean) => {
-    setIsGoingForward(goingForward);
-    setCurrentView(newView);
-  };
-
-  useEffect(() => {
-    const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape" && currentView !== "setUsername") {
-        onClose();
-      }
-    };
-
-    window.addEventListener("keydown", handleEscape);
-
-    return () => {
-      window.removeEventListener("keydown", handleEscape);
-    };
-  }, [onClose, currentView]);
-
   const getTitle = () => {
     switch (currentView) {
       case "welcome":
-        return "Imperfect Gamers";
+        return "Sink.gg";
       case "signup":
         return "Sign Up";
       case "login":
@@ -108,7 +107,7 @@ const AuthModal: React.FC<{
       case "welcome":
         return "Who's joining?";
       case "signup":
-        return "Get Started";   
+        return "Get Started";
       case "login":
         return "Welcome back";
       case "setUsername":
@@ -119,20 +118,31 @@ const AuthModal: React.FC<{
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <Dialog open={isOpen} onOpenChange={(open) => {
+      if (!open) {
+        onClose();
+        setErrorMessage(''); // Clear the error message when the modal is closed
+      }
+    }}>
       <DialogContent className="sm:max-w-[425px] bg-zinc-950 text-white text-center focus:outline-none transition duration-200 border-zinc-800 overflow-hidden">
         <div className="flex flex-col h-[600px]">
-          <DialogHeader className={`flex flex-row items-baseline transition pb-4 justify-${currentView === 'welcome' ? 'center' : 'between'} border-b border-zinc-800`}>
+          <DialogHeader
+            className={`flex flex-row items-baseline transition pb-4 justify-${
+              currentView === "welcome" ? "center" : "between"
+            } border-b border-zinc-800`}
+          >
             <div>
               {currentView !== "welcome" && (
                 <div
                   className="flex items-center p-0 hover:cursor-pointer focus:cursor-auto text-white/40 transition duration hover:no-underline hover:opacity-40"
                   onClick={() => {
+                    setErrorMessage(''); // Clear the error message when clicking "Logout" or "Back"
+                
                     if (currentView === "setUsername") {
                       logout();
-                      setView("login", false);
+                      setCurrentView("login");
                     } else {
-                      setView("welcome", false);
+                      setCurrentView("welcome");
                     }
                   }}
                 >
@@ -145,25 +155,31 @@ const AuthModal: React.FC<{
               <DialogTitle className="text-md font-medium flex-grow text-center">
                 {getTitle()}
               </DialogTitle>
-
             </div>
             {currentView !== "welcome" && <div className="w-16" />}
-            {/* {currentView !== "welcome" && <div className="w-24" />} */}
           </DialogHeader>
           <div
             className={`flex-grow overflow-y-auto ${
               isAnimating ? "overflow-x-hidden" : "overflow-x-auto"
             } p-4`}
           >
-                          <DialogDescription className="text-center text-2xl font-bold my-8 text-white">
-                {getDescription()}
-              </DialogDescription>
+            <DialogDescription className="text-center text-2xl font-bold my-8 text-white">
+              {getDescription()}
+            </DialogDescription>
             {contextMessage && (
               <Alert
                 variant="destructive"
                 className="mb-4 text-sm border border-red-500 bg-red-950/50 text-red-200"
               >
                 <AlertDescription>{contextMessage}</AlertDescription>
+              </Alert>
+            )}
+            {errorMessage && (
+              <Alert
+                variant="destructive"
+                className="mb-4 text-sm border border-red-500 bg-red-950/50 text-red-200"
+              >
+                <AlertDescription>{errorMessage}</AlertDescription>
               </Alert>
             )}
             <AnimatePresence
@@ -180,13 +196,22 @@ const AuthModal: React.FC<{
               >
                 {currentView === "welcome" && (
                   <WelcomeView
-                    onSignup={() => setView("signup", true)}
-                    onLogin={() => setView("login", true)}
+                    onSignup={() => {
+                      setIsGoingForward(true);
+                      setCurrentView("signup");
+                    }}
+                    onLogin={() => {
+                      setIsGoingForward(true);
+                      setCurrentView("login");
+                    }}
                   />
                 )}
                 {currentView === "signup" && (
                   <SignupView
-                    onBack={() => setView("welcome", false)}
+                    onBack={() => {
+                      setIsGoingForward(false);
+                      setCurrentView("welcome");
+                    }}
                     onSubmit={(e) => {
                       e.preventDefault();
                       handleSubmit();
@@ -200,7 +225,10 @@ const AuthModal: React.FC<{
                 )}
                 {currentView === "login" && (
                   <LoginView
-                    onBack={() => setView("welcome", false)}
+                    onBack={() => {
+                      setIsGoingForward(false);
+                      setCurrentView("welcome");
+                    }}
                     onSubmit={(e) => {
                       e.preventDefault();
                       handleSubmit();
@@ -216,7 +244,7 @@ const AuthModal: React.FC<{
                   <SetUsernameView
                     onLogout={() => {
                       logout();
-                      setView("login", false);
+                      setCurrentView("login");
                     }}
                     onSubmit={(username) => {
                       setUsername(username);
@@ -232,7 +260,7 @@ const AuthModal: React.FC<{
           </div>
 
           <footer className="text-center pt-4 text-sm text-red-500 border-t border-zinc-800">
-            Powered by Imperfect and Company LLC ☂️
+            Powered by Clydent.com☂️
           </footer>
         </div>
       </DialogContent>

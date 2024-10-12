@@ -1,21 +1,49 @@
-import React from 'react';
-import { Input } from '@components/ui/input';
-import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from '@components/ui/dropdown-menu';
-import { Button } from '@components/ui/button';
-import { Bell, Search, LogIn, Check, User } from 'lucide-react';
-import { useAuth } from '@context/AuthContext';
+import React, { useState } from "react";
+import { Input } from "@components/ui/input";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@components/ui/dropdown-menu";
+import { Button } from "@components/ui/button";
+import {
+  Bell,
+  Search,
+  LogIn,
+  Check,
+  User,
+  ChevronDown,
+  LogOutIcon,
+  SettingsIcon,
+  LogOut,
+} from "lucide-react";
+import { useAuth } from "@context/AuthContext";
+import { SettingsDialog } from "./SettingsDialog";
 
 interface HeaderProps {
   isLoggedIn: boolean;
   hasCompletedOnboarding: boolean | undefined;
-  onOpenAuthModal: (message?: string) => void; // Make message optional
+  onOpenAuthModal: (message?: string) => void;
+  linkSteam: () => void;
+  isSteamLinked: boolean;
+  steamId: string;
 }
 
-const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onOpenAuthModal }) => {
+const Header: React.FC<HeaderProps> = ({
+  isLoggedIn,
+  hasCompletedOnboarding,
+  isSteamLinked,
+  steamId,
+  onOpenAuthModal,
+  linkSteam
+}) => {
   const { user, logout } = useAuth();
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [selectedTab, setSelectedTab] = useState("ACCOUNT");
 
   const handleLoginClick = () => {
-    onOpenAuthModal(); // Provide a default login context
+    onOpenAuthModal();
   };
 
   const handleVerifyClick = () => {
@@ -25,6 +53,13 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onO
   const handleLogout = () => {
     logout();
   };
+
+  const openSettings = (tab: string) => {
+    setSelectedTab(tab);
+    setIsSettingsOpen(true);
+  };
+
+  const [isOpen, setIsOpen] = useState(false);
 
   return (
     <header className="bg-zinc-950 shadow-md">
@@ -36,10 +71,12 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onO
               alt="Imperfect Gamers Community Logo"
               className="h-10"
             />
-            <span className="text-xl font-bold text-white">Imperfect Gamers</span>
+            <span className="text-xl font-bold text-white">
+              Imperfect Gamers
+            </span>
           </div>
           <nav className="flex items-center space-x-4">
-            <div className="relative">
+            <div className="relative hidden">
               <Input
                 type="text"
                 placeholder="Search players..."
@@ -57,21 +94,59 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onO
             </div>
             {isLoggedIn ? (
               hasCompletedOnboarding ? (
-                <DropdownMenu>
+                <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                   <DropdownMenuTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="flex items-center text-white"
-                      aria-label="Account Options"
-                    >
-                      <User className="h-5 w-5 mr-2 text-zinc-400" />
-                      {user?.userName}
-                    </Button>
+                    <button className="flex items-center space-x-1 bg-transparent text-white hover:bg-zinc-800 px-2 py-1 rounded">
+                      <span>{user?.userName || "User"}</span>
+                      <ChevronDown
+                        className={`h-4 w-4 transition-transform duration-200 ${
+                          isOpen ? "rotate-180" : ""
+                        }`}
+                      />
+                    </button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem onClick={() => console.log('View Profile')}>View Profile</DropdownMenuItem>
-                    <DropdownMenuItem onClick={handleLogout}>Logout</DropdownMenuItem>
+                  <DropdownMenuContent
+                    align="end"
+                    alignOffset={-4}
+                    className="w-56 bg-zinc-800 text-white border-zinc-700"
+                  >
+                    <DropdownMenuItem
+                      onClick={() => openSettings("ACCOUNT")}
+                      className="focus:bg-zinc-700 focus:text-white"
+                    >
+                      Account
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => openSettings("SECURITY")}
+                      className="focus:bg-zinc-700 focus:text-white"
+                    >
+                      Security
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => openSettings("AFFILIATES")}
+                      className="focus:bg-zinc-700 focus:text-white"
+                    >
+                      Affiliates
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => openSettings("OPTIONS")}
+                      className="focus:bg-zinc-700 focus:text-white"
+                    >
+                      Options
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      onClick={() => openSettings("TRANSACTIONS")}
+                      className="focus:bg-zinc-700 focus:text-white"
+                    >
+                      Transactions
+                    </DropdownMenuItem>
+                    <DropdownMenuItem
+                      className="text-red-500 focus:bg-zinc-700 focus:text-red-500"
+                      onSelect={handleLogout}
+                    >
+                      <LogOut className="mr-2 h-4 w-4" />
+                      <span>Logout</span>
+                    </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               ) : (
@@ -101,6 +176,15 @@ const Header: React.FC<HeaderProps> = ({ isLoggedIn, hasCompletedOnboarding, onO
           </nav>
         </div>
       </div>
+      {/* Settings Dialog */}
+      <SettingsDialog
+      isSteamLinked={isSteamLinked}
+      steamId={steamId}
+      linkSteam={linkSteam}
+        isOpen={isSettingsOpen}
+        onOpenChange={setIsSettingsOpen}
+        selectedTab={selectedTab}
+      />
     </header>
   );
 };

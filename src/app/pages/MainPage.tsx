@@ -20,7 +20,7 @@ import AuthModal from "@components/Auth/AuthModal";
 import { useAuth } from "@context/AuthContext";
 
 export default function MainPage() {
-  const { isLoggedIn, user } = useAuth();
+  const { isLoggedIn, user, linkSteam } = useAuth();
 
   const [recentEvents, setRecentEvents] = useState([
     {
@@ -227,39 +227,6 @@ export default function MainPage() {
     console.log("Make a suggestion action triggered");
   };
 
-  const [achievements, setAchievements] = useState([
-    {
-      icon: "🏆",
-      title: "Map Master",
-      description: "Complete 100 maps",
-      date: "2024-07-01",
-    },
-    {
-      icon: "🔥",
-      title: "Speed Demon",
-      description: "Complete surf_mesa in under 20 seconds",
-      date: "2024-07-15",
-    },
-    {
-      icon: "💎",
-      title: "Diamond Surfer",
-      description: "Reach Diamond rank",
-      date: "2024-07-20",
-    },
-    {
-      icon: "⚡",
-      title: "Lightning Fast",
-      description: "Complete 10 maps in under an hour",
-      date: "2024-07-25",
-    },
-    {
-      icon: "🌟",
-      title: "Community Star",
-      description: "Help 50 new players",
-      date: "2024-07-30",
-    },
-  ]);
-
   const reactionEmojis = [
     "👍",
     "❤️",
@@ -283,6 +250,9 @@ export default function MainPage() {
       <MainNavbar />
       <Header
         isLoggedIn={isLoggedIn}
+        isSteamLinked={user?.isSteamLinked ?? false}
+        steamId={String(user?.steamId ?? 0)}
+        linkSteam={linkSteam}
         hasCompletedOnboarding={user?.hasCompletedOnboarding}
         onOpenAuthModal={showAuthModal}
       />
