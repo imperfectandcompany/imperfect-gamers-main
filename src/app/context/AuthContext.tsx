@@ -62,6 +62,7 @@ interface AuthContextType {
   setErrorMessage: (message: string) => void;
   changeUsername: (newUsername: string) => Promise<void>;
   checkUsernameExistence: (username: string) => Promise<boolean>;
+  setIsVerifying: (value: boolean) => void;
   isVerifying: boolean;
 }
 
@@ -454,7 +455,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setErrorMessage,
         checkUsernameExistence,
         changeUsername,
-        isVerifying, // Provide loading state
+        isVerifying,
+        setIsVerifying
       }}
     >
       {children}

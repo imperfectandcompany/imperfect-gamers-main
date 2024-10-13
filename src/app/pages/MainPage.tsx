@@ -21,8 +21,11 @@ import CommunityFeedbackCard from "../components/Cards/CommunityFeedBackCard";
 import AuthModal from "@components/Auth/AuthModal";
 import { useAuth } from "@context/AuthContext";
 import { Toaster } from "@components/ui/toaster";
+import { motion } from "framer-motion";
 
-export default function MainPage() {
+export default function MainPage({ fidelity }: { fidelity: number }) {
+  const blur = Math.max(20 - fidelity / 5, 0)
+  const opacity = fidelity / 100
   const { isLoggedIn, user, linkSteam } = useAuth();
 
   const [recentEvents, setRecentEvents] = useState([
@@ -245,6 +248,11 @@ export default function MainPage() {
 
   return (
     <>
+        <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen"
+    >
       <AuthModal
         isOpen={authModalOpen}
         onClose={() => setAuthModalOpen(false)}
@@ -252,6 +260,7 @@ export default function MainPage() {
       />
       <Toaster /> {/* Include Toaster component */}
       <MainNavbar />
+      <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
       <Header
         isLoggedIn={isLoggedIn}
         isSteamLinked={user?.isSteamLinked ?? false}
@@ -260,6 +269,7 @@ export default function MainPage() {
         hasCompletedOnboarding={user?.hasCompletedOnboarding}
         onOpenAuthModal={showAuthModal}
       />
+      </motion.div>
       <AlertBanner
         title="New Challenge Available!"
         description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
@@ -267,6 +277,9 @@ export default function MainPage() {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
+
+
+          <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
             <UserProfileCard
               isLoggedIn={isLoggedIn}
               isSteamLinked={user?.isSteamLinked ?? false}
@@ -282,13 +295,16 @@ export default function MainPage() {
               achievements={user?.achievements}
               isVerified={user?.hasCompletedOnboarding}
             />
+            </motion.div>
             <LiveFeedCard recentEvents={recentEvents} />
             <RecentPostsCard recentPosts={recentPosts} />
+            <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
             <NewsCard
               newsItems={newsItems}
               onReact={handleNewsReaction}
               reactionEmojis={reactionEmojis}
             />
+            </motion.div>
             <ChangelogCard
               changelog={changelog}
               onReact={handleChangelogReaction}
@@ -297,6 +313,7 @@ export default function MainPage() {
           </div>
           <div className="space-y-8">
             <QuickActionsCard />
+            <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
             <UserStatsCard
               isLoggedIn={isLoggedIn}
               isSteamLinked={user?.isSteamLinked ?? false}
@@ -320,6 +337,7 @@ export default function MainPage() {
                   : null
               }
             />
+            </motion.div>
             <BlogPostsCard blogPosts={blogPosts} />
             <ServerStatusCard />
             <CommunityFeedbackCard
@@ -337,6 +355,7 @@ export default function MainPage() {
           onReject={() => setShowCookieBanner(false)}
         />
       )}
+      </motion.div>
     </>
   );
 }

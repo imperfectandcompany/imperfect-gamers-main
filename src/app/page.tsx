@@ -1,13 +1,41 @@
 'use client'
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import Head from 'next/head';
+import { AuthProvider, useAuth } from '@context//AuthContext';
 import MainPage from './pages/MainPage';
-import { AuthProvider } from './context/AuthContext';
+import LoadingSpinner from './components/LoadingSpinner';
+
+
+const HomeContent = () => {
+  const { isVerifying, setIsVerifying } = useAuth();
+
+  const [fidelity, setFidelity] = useState(0)
+
+  useEffect(() => {
+    if (!isVerifying) {
+      const fidelityTimer = setInterval(() => {
+        setFidelity(prev => {
+          if (prev >= 100) {
+            clearInterval(fidelityTimer)
+            return 100
+          }
+          return prev + 1
+        })
+      }, 20)
+      return () => clearInterval(fidelityTimer)
+    }
+  }, [isVerifying])
+
+  return <MainPage key="main" fidelity={fidelity} />;
+};
+
 
 export default function Home() {
 
+
   return (
+    
     <AuthProvider>
     <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col justify-start">
       <Head>
@@ -41,7 +69,8 @@ export default function Home() {
 
       {/* Navigation */}
 
-      <MainPage/>
+      <HomeContent />
+
     </div>
     </AuthProvider>
   );
