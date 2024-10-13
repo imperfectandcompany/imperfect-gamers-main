@@ -30,6 +30,7 @@ const nextConfig = {
       '@utils': path.resolve(__dirname, './src/app/lib/utils'),
       '@hooks': path.resolve(__dirname, './src/app/hooks'),
       '@lib': path.resolve(__dirname, './src/app/lib'),
+      "@api": path.resolve(__dirname, './src/app/api'),
       '@context': path.resolve(__dirname, './src/app/context'),
     };
     return config;

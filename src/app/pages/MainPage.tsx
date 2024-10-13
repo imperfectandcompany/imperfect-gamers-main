@@ -1,3 +1,5 @@
+// MainPage.tsx
+
 import React, { useState } from "react";
 import MainNavbar from "@components/Navbar/MainNavbar";
 import Header from "@components/Header/Header";
@@ -301,17 +303,17 @@ export default function MainPage() {
               userStats={
                 user && user.isSteamLinked && user.hasServerData
                   ? {
-                      rating: user.rating,
-                      pointsToNextRank: user.pointsToNextRank,
-                      progressToNextRank: user.progressToNextRank,
-                      totalJumps: user.totalJumps,
-                      avgSpeed: user.avgSpeed,
-                      favoriteMap: user.favoriteMap,
-                      rank: user.rank,
-                      rankPercentage: user.rankPercentage,
-                      xp: user.xp,
-                      maxXp: user.maxXp,
-                      level: user.level,
+                      rating: user.rating || 0,
+                      pointsToNextRank: user.pointsToNextRank || 0,
+                      progressToNextRank: user.progressToNextRank || 0,
+                      totalJumps: user.totalJumps || 0,
+                      avgSpeed: user.avgSpeed || 0,
+                      favoriteMap: user.favoriteMap || '',
+                      rank: user.rank || 0,
+                      rankPercentage: user.rankPercentage || '',
+                      xp: user.xp || 0,
+                      maxXp: user.maxXp || 0,
+                      level: user.level || 0,
                     }
                   : null
               }

@@ -1,3 +1,5 @@
+// authUtils.ts
+
 import { User } from "../context/AuthContext";
 
 export const handleRestrictedAction = (

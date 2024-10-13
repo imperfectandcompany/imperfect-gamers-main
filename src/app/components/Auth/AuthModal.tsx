@@ -1,3 +1,5 @@
+// AuthModal.tsx
+
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -28,13 +30,11 @@ const AuthModal: React.FC<{
     logout,
     currentView,
     setCurrentView,
-    completeOnboarding,
-    setErrorMessage, // Add setErrorMessage here
+    setErrorMessage,
   } = useAuth();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const [username, setUsername] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGoingForward, setIsGoingForward] = useState<boolean>(true);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
@@ -61,23 +61,12 @@ const AuthModal: React.FC<{
     try {
       if (currentView === "signup") {
         // Implement signup logic
-        // For now, you can redirect to the login view
-        setErrorMessage(''); // Clear the error message when navigating to a different view
+        setErrorMessage('');
         setCurrentView("login");
         setPassword("");
       } else if (currentView === "login") {
-        setErrorMessage(''); // Clear the error message when navigating to a different view
+        setErrorMessage('');
         await login(email, password);
-        // The login function will handle setting the user state
-      } else if (currentView === "setUsername") {
-        setErrorMessage(''); // Clear the error message when navigating to a different view
-        // Implement username setting logic
-        // For now, we'll mock the completion of onboarding
-        // In real implementation, call the API to set the username
-        await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
-        completeOnboarding();
-        alert("Onboarding complete! Welcome to Sink.gg!");
-        onClose();
       }
     } catch (error: any) {
       console.error("Error during form submission:", error);
@@ -137,7 +126,7 @@ const AuthModal: React.FC<{
                   className="flex items-center p-0 hover:cursor-pointer focus:cursor-auto text-white/40 transition duration hover:no-underline hover:opacity-40"
                   onClick={() => {
                     setErrorMessage(''); // Clear the error message when clicking "Logout" or "Back"
-                
+
                     if (currentView === "setUsername") {
                       logout();
                       setCurrentView("login");
@@ -246,13 +235,7 @@ const AuthModal: React.FC<{
                       logout();
                       setCurrentView("login");
                     }}
-                    onSubmit={(username) => {
-                      setUsername(username);
-                      handleSubmit();
-                    }}
                     isLoading={isLoading}
-                    username={username}
-                    setUsername={setUsername}
                   />
                 )}
               </motion.div>

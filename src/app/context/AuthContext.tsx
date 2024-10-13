@@ -1,6 +1,15 @@
-import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
-import axios from 'axios';
+// AuthContext.tsx
 
+import React, {
+  createContext,
+  useState,
+  useContext,
+  ReactNode,
+  useEffect,
+} from 'react';
+import apiClient from '@api/apiClient';
+
+// Achievement Interface
 interface Achievement {
   icon: string;
   title: string;
@@ -8,33 +17,36 @@ interface Achievement {
   date: string;
 }
 
+// User Interface
 export interface User {
+  uid: number;
+  email: string;
   userName?: string;
-  email?: string;
-  avatarUrl: string;
+  avatarUrl?: string;
   isSteamLinked: boolean;
   steamId?: string;
   hasServerData: boolean;
-  surfMapsCompleted: number;
-  totalPlaytime: string;
-  totalMuteTime: string;
-  totalBans: number;
-  rank: number;
-  rankPercentage: string;
-  achievements: Achievement[];
-  rating: number;
-  pointsToNextRank: number;
-  progressToNextRank: number;
-  totalJumps: number;
-  avgSpeed: number;
-  favoriteMap: string;
-  xp: number;
-  maxXp: number;
-  level: number;
+  surfMapsCompleted?: number;
+  totalPlaytime?: string;
+  totalMuteTime?: string;
+  totalBans?: number;
+  rank?: number;
+  rankPercentage?: string;
+  achievements?: Achievement[];
+  rating?: number;
+  pointsToNextRank?: number;
+  progressToNextRank?: number;
+  totalJumps?: number;
+  avgSpeed?: number;
+  favoriteMap?: string;
+  xp?: number;
+  maxXp?: number;
+  level?: number;
   isDiscordLinked: boolean;
   hasCompletedOnboarding: boolean;
 }
 
+// Auth Context Interface
 interface AuthContextType {
   isLoggedIn: boolean;
   user: User | null;
@@ -47,69 +59,96 @@ interface AuthContextType {
   linkDiscord: () => void;
   setCurrentView: (view: string) => void;
   setErrorMessage: (message: string) => void;
+  changeUsername: (newUsername: string) => Promise<void>;
+  checkUsernameExistence: (username: string) => Promise<boolean>;
 }
 
-interface SuccessResponse {
+// Interfaces for API responses
+interface LoginSuccessResponse {
   status: 'success';
   token: string;
   uid: number;
   email: string;
 }
 
-interface ErrorResponse {
+interface LoginErrorResponse {
   status: 'error';
   message: string;
 }
 
-type LoginResponse = SuccessResponse | ErrorResponse;
+type LoginResponse = LoginSuccessResponse | LoginErrorResponse;
+
+interface VerifyTokenResponse {
+  status: 'success' | 'error';
+  valid?: boolean;
+  message?: string;
+}
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+// AuthProvider component that wraps the application
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // State variables
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string | null>(null);
-  const [currentView, setCurrentView] = useState('welcome');
+  const [currentView, setCurrentView] = useState<string>('welcome');
   const [errorMessage, setErrorMessage] = useState<string>('');
-
-  const apiBase = 'https://api.imperfectgamers.org';
 
   // Load token from localStorage on initial render
   useEffect(() => {
     const storedToken = localStorage.getItem('token');
     if (storedToken) {
-      setToken(storedToken);
-      // Optionally fetch user data
-      fetchUserData(storedToken);
+      verifyToken(storedToken);
     }
   }, []);
 
-  const fetchUserData = async (token: string) => {
+  // Verifies the token and updates the authentication state
+  const verifyToken = async (token: string) => {
     try {
-      const response = await axios.get(`${apiBase}/user/onboarded`, {
-        headers: {
-          authorization: token,
-          'Content-Type': 'application/json',
-        },
+      const response = await apiClient.get<VerifyTokenResponse>('/auth/verifyToken', {
+        params: { token },
       });
+
+      if (response.data.status === 'success' && response.data.valid) {
+        setIsLoggedIn(true);
+        // Fetch user data
+        await fetchUserData();
+        // Optionally, set uid if available from localStorage
+        const uidString = localStorage.getItem('uid');
+        if (uidString) {
+          const uid = parseInt(uidString, 10);
+          setUser((prevUser) =>
+            prevUser ? { ...prevUser, uid } : prevUser
+          );
+        }
+      } else {
+        handleLogout();
+      }
+    } catch (error) {
+      console.error('Error verifying token:', error);
+      handleLogout();
+    }
+  };
+
+  // Fetches user data, including onboarding status
+  const fetchUserData = async () => {
+    try {
+      const response = await apiClient.get('/user/onboarded');
 
       if (response.data.status === 'success') {
         const { onboarded, username } = response.data;
+
         setUser((prevUser) =>
           prevUser
             ? {
                 ...prevUser,
-                userName: username || prevUser.userName,
                 hasCompletedOnboarding: onboarded,
+                userName: username || prevUser.userName || '',
               }
             : prevUser
         );
 
-        if (!onboarded) {
-          setCurrentView('setUsername');
-        } else {
-          setCurrentView('welcome');
-        }
+        setCurrentView(onboarded ? 'welcome' : 'setUsername');
       } else {
         console.error('Failed to fetch user onboarding status:', response.data.message);
       }
@@ -117,239 +156,196 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       console.error('Error fetching user data:', error);
     }
   };
-  
 
-
+  // Handles user login
   const login = async (email: string, password: string) => {
     try {
-      const response = await axios.post<LoginResponse>(`${apiBase}/auth`, {
+      const response = await apiClient.post<LoginResponse>('/auth', {
         username: email,
-        password: password,
+        password,
       });
-  
-      if (response.data.status === 'success') {
-        const { token: token, uid } = response.data;
-        setToken(token);
-        localStorage.setItem('token', token);
-  
 
-        // Set user data with mocked values
+      if (response.data.status === 'success') {
+        const { token, uid } = response.data;
+        localStorage.setItem('token', token);
+        localStorage.setItem('uid', uid.toString());
+
         setUser({
-          userName: email.split('@')[0], // Example username derived from email
-          email: email,
-          avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s',
+          uid,
+          email,
+          hasCompletedOnboarding: false,
           isSteamLinked: false,
-          steamId: undefined,
           hasServerData: false,
-          surfMapsCompleted: 0,
-          totalPlaytime: '0h',
-          totalMuteTime: '0h',
-          totalBans: 0,
-          rank: 0,
-          rankPercentage: '0%',
-          achievements: [],
-          rating: 0,
-          pointsToNextRank: 0,
-          progressToNextRank: 0,
-          totalJumps: 0,
-          avgSpeed: 0,
-          favoriteMap: 'None',
-          xp: 0,
-          maxXp: 100,
-          level: 1,
           isDiscordLinked: false,
-          hasCompletedOnboarding: false, // Assume not completed until verified
         });
 
         setIsLoggedIn(true);
-        setCurrentView('setUsername');
-        setErrorMessage(''); // Clear any previous error message
-      } else if (response.data.status === 'error') {
+        await fetchUserData();
+        setErrorMessage('');
+      } else {
         console.error('Login failed:', response.data.message);
-        setErrorMessage(response.data.message); // Set the error message from the API
+        setErrorMessage(response.data.message);
       }
     } catch (error) {
       console.error('Error during login:', error);
-      setErrorMessage('An unexpected error occurred.'); // Set a generic error message
+      setErrorMessage('An unexpected error occurred.');
     }
   };
 
-  // const login = (userData: Partial<User>) => {
-    
-  //   setUser((prevUser) => ({
-  //     ...prevUser,
-  //     ...userData,
-  //     hasServerData: userData.hasServerData ?? false, // Assume no server data until verified
-  //     hasCompletedOnboarding: userData.hasCompletedOnboarding ?? false,
-  //     isSteamLinked: userData.isSteamLinked ?? false,
-  //     isDiscordLinked: userData.isDiscordLinked ?? false,
-  //     achievements: userData.achievements ?? [],
-  //     avatarUrl: userData.avatarUrl ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s',
-  //     surfMapsCompleted: userData.surfMapsCompleted ?? 0,
-  //     totalPlaytime: userData.totalPlaytime ?? '0h',
-  //     totalMuteTime: userData.totalMuteTime ?? '0h',
-  //     totalBans: userData.totalBans ?? 0,
-  //     rank: userData.rank ?? 0,
-  //     rankPercentage: userData.rankPercentage ?? '0%',
-  //     rating: userData.rating ?? 0,
-  //     pointsToNextRank: userData.pointsToNextRank ?? 0,
-  //     progressToNextRank: userData.progressToNextRank ?? 0,
-  //     totalJumps: userData.totalJumps ?? 0,
-  //     avgSpeed: userData.avgSpeed ?? 0,
-  //     favoriteMap: userData.favoriteMap ?? 'None',
-  //     xp: userData.xp ?? 0,
-  //     maxXp: userData.maxXp ?? 100,
-  //     level: userData.level ?? 1,
-  //     email: userData.email ?? '',
-  //   }) as User);
-  //   setIsLoggedIn(true);
-  //   setCurrentView(userData.hasCompletedOnboarding ? 'welcome' : 'setUsername');
-  // };
+  // Changes the username during onboarding
+  const changeUsername = async (newUsername: string) => {
+    try {
+      const response = await apiClient.post('/user/changeusername', {
+        username: newUsername,
+      });
 
-
-  // try {
-  //   const response = await axios.post(`${apiBase}/auth`, {
-  //     username: email,
-  //     password: password,
-  //   });
-
-    // if (response.data.status === 'success') {
-    //   const { email: userEmail, userToken: token, uid } = response.data.data;
-    //   setUserToken(token);
-    //   localStorage.setItem('userToken', token);
-    // }
-
-  // setUser((prevUser) => ({
-  //   ...prevUser,
-  //   ...userData,
-  //   hasServerData: userData.hasServerData ?? false, // Assume no server data until verified
-  //   hasCompletedOnboarding: userData.hasCompletedOnboarding ?? false,
-  //   isSteamLinked: userData.isSteamLinked ?? false,
-  //   isDiscordLinked: userData.isDiscordLinked ?? false,
-  //   achievements: userData.achievements ?? [],
-  //   avatarUrl: userData.avatarUrl ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s',
-  //   surfMapsCompleted: userData.surfMapsCompleted ?? 0,
-  //   totalPlaytime: userData.totalPlaytime ?? '0h',
-  //   totalMuteTime: userData.totalMuteTime ?? '0h',
-  //   totalBans: userData.totalBans ?? 0,
-  //   rank: userData.rank ?? 0,
-  //   rankPercentage: userData.rankPercentage ?? '0%',
-  //   rating: userData.rating ?? 0,
-  //   pointsToNextRank: userData.pointsToNextRank ?? 0,
-  //   progressToNextRank: userData.progressToNextRank ?? 0,
-  //   totalJumps: userData.totalJumps ?? 0,
-  //   avgSpeed: userData.avgSpeed ?? 0,
-  //   favoriteMap: userData.favoriteMap ?? 'None',
-  //   xp: userData.xp ?? 0,
-  //   maxXp: userData.maxXp ?? 100,
-  //   level: userData.level ?? 1,
-  //   email: userData.email ?? '',
-  // }) as User);
-  // setIsLoggedIn(true);
-
-  const logout = () => {
-    setUser(null);
-    setIsLoggedIn(false);
-    setCurrentView('welcome');
+      if (response.data.status === 'success') {
+        setUser((prevUser) =>
+          prevUser
+            ? {
+                ...prevUser,
+                userName: newUsername,
+                hasCompletedOnboarding: true,
+              }
+            : prevUser
+        );
+        setCurrentView('welcome');
+      } else {
+        setErrorMessage(response.data.error || 'An error occurred while changing username.');
+      }
+    } catch (error) {
+      console.error('Error changing username:', error);
+      setErrorMessage('An unexpected error occurred.');
+    }
   };
 
-  const completeOnboarding = () => {
-    setUser((prevUser) =>
-      prevUser ? { ...prevUser, hasCompletedOnboarding: true } : prevUser
-    );
-    setCurrentView('welcome');
+  // Checks if a username already exists
+  const checkUsernameExistence = async (username: string): Promise<boolean> => {
+    try {
+      const response = await apiClient.post('/user/checkUsernameExistence', {
+        username,
+      });
+
+      if (response.data.status === 'success') {
+        return response.data.exists;
+      } else {
+        console.error('Failed to check username existence:', response.data.error);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error checking username existence:', error);
+      return false;
+    }
   };
 
-  const linkSteam = () => {
+  // Fetches server data after linking Steam
+  const fetchServerData = async () => {
+    if (!user || !user.steamId) return;
+    try {
+      const response = await apiClient.get('/user/serverData');
+
+      if (response.data.status === 'success') {
+        const serverData = response.data.data;
+        setUser((prevUser) =>
+          prevUser
+            ? {
+                ...prevUser,
+                hasServerData: true,
+                totalBans: serverData.totalBans,
+                favoriteMap: serverData.favoriteMap,
+                // Update other server-related properties here
+              }
+            : prevUser
+        );
+      } else {
+        console.error('Failed to fetch server data:', response.data.message);
+      }
+    } catch (error) {
+      console.error('Error fetching server data:', error);
+    }
+  };
+
+  // Handles linking the Steam account
+  const linkSteam = async () => {
+    // TODO: Implement actual Steam linking logic
     setUser((prevUser) =>
       prevUser
         ? {
             ...prevUser,
             isSteamLinked: true,
-            steamId: '7656119815919597', // Set a mock Steam ID
-            avatarUrl: 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s',
-            hasServerData: true,
-            // You can set othr mock data here
-            surfMapsCompleted: 42,
-            totalPlaytime: '123h',
-            totalMuteTime: '0h',
-            totalBans: 0,
-            rank: 1,
-            rankPercentage: '0.1',
-            achievements: [
-              {
-                icon: "🏆",
-                title: "Map Master",
-                description: "Complete 100 maps",
-                date: "2024-07-01",
-              },
-              {
-                icon: "🔥",
-                title: "Speed Demon",
-                description: "Complete surf_mesa in under 20 seconds",
-                date: "2024-07-15",
-              },
-              {
-                icon: "💎",
-                title: "Diamond Surfer",
-                description: "Reach Diamond rank",
-                date: "2024-07-20",
-              },
-              {
-                icon: "⚡",
-                title: "Lightning Fast",
-                description: "Complete 10 maps in under an hour",
-                date: "2024-07-25",
-              },
-              {
-                icon: "🌟",
-                title: "Community Star",
-                description: "Help 50 new players",
-                date: "2024-07-30",
-              },
-            ],
-            rating: 2500,
-            pointsToNextRank: 500,
-            progressToNextRank: 80,
-            totalJumps: 10000,
-            avgSpeed: 350,
-            favoriteMap: 'surf_kitsune',
-            xp: 9000,
-            maxXp: 10000,
-            level: 10,
+            steamId: '7656119815919597', // Mock Steam ID
+            hasServerData: false,
+          }
+        : prevUser
+    );
+    await fetchServerData();
+  };
+
+  // Handles linking the Discord account
+  const linkDiscord = () => {
+    // TODO: Implement actual Discord linking logic
+    setUser((prevUser) =>
+      prevUser
+        ? {
+            ...prevUser,
+            isDiscordLinked: true,
           }
         : prevUser
     );
   };
 
-  const linkDiscord = () => {
+  // Logs the user out
+  const logout = () => {
+    handleLogout();
+    // TODO: Call logout endpoint to invalidate token on the server
+  };
+
+  // Helper function to handle logout
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    setCurrentView('welcome');
+    localStorage.removeItem('token');
+    localStorage.removeItem('uid');
+  };
+
+  // Marks the onboarding process as complete
+  const completeOnboarding = () => {
     setUser((prevUser) =>
-      prevUser ? { ...prevUser, isDiscordLinked: true } : prevUser
+      prevUser
+        ? {
+            ...prevUser,
+            hasCompletedOnboarding: true,
+          }
+        : prevUser
     );
+    setCurrentView('welcome');
   };
 
   return (
-<AuthContext.Provider
-  value={{
-    isLoggedIn,
-    user,
-    currentView,
-    errorMessage,
-    login,
-    logout,
-    completeOnboarding,
-    linkSteam,
-    linkDiscord,
-    setCurrentView,
-    setErrorMessage,
-  }}
->
-  {children}
-</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{
+        isLoggedIn,
+        user,
+        currentView,
+        errorMessage,
+        login,
+        logout,
+        completeOnboarding,
+        linkSteam,
+        linkDiscord,
+        setCurrentView,
+        setErrorMessage,
+        checkUsernameExistence,
+        changeUsername,
+      }}
+    >
+      {children}
+    </AuthContext.Provider>
   );
 };
 
-// Custom hook for accessing auth context
+// Custom Hook
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {

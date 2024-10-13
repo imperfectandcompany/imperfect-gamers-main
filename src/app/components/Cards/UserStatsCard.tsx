@@ -1,3 +1,5 @@
+// UserStatsCard.tsx
+
 import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@components/ui/card';
 import { Button } from '@components/ui/button';
@@ -39,7 +41,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
         </CardTitle>
       </CardHeader>
       <CardContent>
-        {!isLoggedIn ? (
+      {!isLoggedIn ? (
           <p className="text-center text-yellow-500">
             Please log in to see your stats.
           </p>

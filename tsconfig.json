@@ -22,6 +22,7 @@
       "@utils/*": ["./src/app/utils/*"], // Alias for utility functions
       "@hooks/*": ["./src/app/hooks/*"], // Alias for custom hooks
       "@lib/*": ["./src/app/lib/*"], // Alias for libraries
+      "@api/*": ["./src/app/api/*"], // Alias for API
       "@context/*": ["./src/app/context/*"] // Alias for context providers
     },
     "plugins": [

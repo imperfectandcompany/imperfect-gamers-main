@@ -1,3 +1,5 @@
+// Header.tsx
+
 import React, { useState } from "react";
 import { Input } from "@components/ui/input";
 import {
@@ -14,8 +16,6 @@ import {
   Check,
   User,
   ChevronDown,
-  LogOutIcon,
-  SettingsIcon,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@context/AuthContext";
@@ -36,7 +36,7 @@ const Header: React.FC<HeaderProps> = ({
   isSteamLinked,
   steamId,
   onOpenAuthModal,
-  linkSteam
+  linkSteam,
 }) => {
   const { user, logout } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -178,9 +178,9 @@ const Header: React.FC<HeaderProps> = ({
       </div>
       {/* Settings Dialog */}
       <SettingsDialog
-      isSteamLinked={isSteamLinked}
-      steamId={steamId}
-      linkSteam={linkSteam}
+        isSteamLinked={isSteamLinked}
+        steamId={steamId}
+        linkSteam={linkSteam}
         isOpen={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         selectedTab={selectedTab}

@@ -2,20 +2,36 @@ import React, { useState } from 'react';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Label } from '@components/ui/label';
-import { LogOut, Loader2 } from 'lucide-react';
+import { useAuth } from '@context/AuthContext';
+import { Loader2 } from 'lucide-react';
 
 interface SetUsernameViewProps {
   onLogout: () => void;
-  onSubmit: (username: string) => void;
   isLoading: boolean;
-  username: string;
-  setUsername: React.Dispatch<React.SetStateAction<string>>;
 }
 
-const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, onSubmit, isLoading, username, setUsername }) => {
-  const handleSubmit = (e: React.FormEvent) => {
+const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, isLoading }) => {
+  const [username, setUsername] = useState<string>('');
+  const { changeUsername, checkUsernameExistence, errorMessage, setErrorMessage } = useAuth();
+  const [loading, setLoading] = useState<boolean>(false);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    onSubmit(username);
+    setErrorMessage('');
+    setLoading(true);
+    try {
+      const exists = await checkUsernameExistence(username);
+      if (exists) {
+        setErrorMessage('Username is already taken.');
+      } else {
+        await changeUsername(username);
+      }
+    } catch (error) {
+      console.error('Error setting username:', error);
+      setErrorMessage('An unexpected error occurred.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -33,16 +49,16 @@ const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, onSubmit, i
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               required
-              disabled={isLoading}
+              disabled={loading}
               className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
             />
           </div>
           <Button
             type="submit"
             className="w-full bg-red-600 hover:bg-red-700 text-white"
-            disabled={isLoading}
+            disabled={loading}
           >
-            {isLoading ? (
+            {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Please wait
