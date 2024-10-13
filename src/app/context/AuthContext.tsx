@@ -21,7 +21,7 @@ interface Achievement {
 export interface User {
   uid: number;
   email: string;
-  userName?: string;
+  userName: string;
   avatarUrl?: string;
   isSteamLinked: boolean;
   steamId?: string | null;
@@ -52,7 +52,7 @@ interface AuthContextType {
   user: User | null;
   currentView: string;
   errorMessage: string;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<User | null>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   completeOnboarding: () => void;
@@ -62,6 +62,7 @@ interface AuthContextType {
   setErrorMessage: (message: string) => void;
   changeUsername: (newUsername: string) => Promise<void>;
   checkUsernameExistence: (username: string) => Promise<boolean>;
+  isVerifying: boolean;
 }
 
 // Interfaces for API responses
@@ -81,7 +82,7 @@ type LoginResponse = LoginSuccessResponse | LoginErrorResponse;
 
 interface VerifyTokenResponse {
   status: 'success' | 'error';
-  valid?: boolean;
+  uid?: number;
   message?: string;
 }
 
@@ -94,6 +95,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [currentView, setCurrentView] = useState<string>('welcome');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [isVerifying, setIsVerifying] = useState<boolean>(false);
 
   // Load token from localStorage on initial render
   useEffect(() => {
@@ -105,59 +107,76 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Verifies the token and updates the authentication state
   const verifyToken = async (token: string) => {
+    setIsVerifying(true); // Start loading
     try {
       const response = await apiClient.get<VerifyTokenResponse>('/auth/verifyToken', {
         params: { token },
       });
 
-      if (response.data.status === 'success' && response.data.valid) {
+      if (response.data.status === 'success' && response.data.uid) {
+        const uid = response.data.uid;
         setIsLoggedIn(true);
+
+        // Set initial user state
+        setUser({
+          uid,
+          email: '', // Will be fetched in fetchUserData
+          userName: '',
+          hasCompletedOnboarding: false,
+          isSteamLinked: false,
+          hasServerData: false,
+          isDiscordLinked: false,
+        });
+
         // Fetch user data
-        await fetchUserData();
-        // Optionally, set uid if available from localStorage
-        const uidString = localStorage.getItem('uid');
-        if (uidString) {
-          const uid = parseInt(uidString, 10);
-          setUser((prevUser) =>
-            prevUser ? { ...prevUser, uid } : prevUser
-          );
-        }
+        await fetchUserData(uid);
       } else {
         handleLogout();
       }
     } catch (error) {
       console.error('Error verifying token:', error);
       handleLogout();
+    } finally {
+      setIsVerifying(false); // End loading
     }
   };
 
   // Fetches user data, including onboarding status and Steam verification
-  const fetchUserData = async () => {
+  const fetchUserData = async (uid: number): Promise<User | null> => {
     try {
       const response = await apiClient.get('/user/onboarded');
 
       if (response.data.status === 'success') {
-        const { onboarded, username } = response.data;
+        const { onboarded, username, email } = response.data;
 
-        setUser((prevUser) =>
-          prevUser
-            ? {
-                ...prevUser,
-                hasCompletedOnboarding: onboarded,
-                userName: username || prevUser.userName || '',
-              }
-            : prevUser
-        );
+        const updatedUser: User = {
+          uid: uid,
+          email: email || '',
+          userName: username || '',
+          hasCompletedOnboarding: onboarded,
+          avatarUrl: user?.avatarUrl,
+          isSteamLinked: user?.isSteamLinked || false,
+          steamId: user?.steamId || null,
+          hasServerData: user?.hasServerData || false,
+          isDiscordLinked: user?.isDiscordLinked || false,
+          // Initialize other properties if needed
+        };
+
+        setUser(updatedUser);
 
         setCurrentView(onboarded ? 'welcome' : 'setUsername');
 
         // Verify if Steam is linked
         await verifySteamAccount();
+
+        return updatedUser;
       } else {
         console.error('Failed to fetch user onboarding status:', response.data.message);
+        return null;
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+      return null;
     }
   };
 
@@ -208,7 +227,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Handles user login
-  const login = async (email: string, password: string) => {
+  const login = async (email: string, password: string): Promise<User | null> => {
     try {
       const response = await apiClient.post<LoginResponse>('/auth', {
         username: email,
@@ -223,6 +242,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setUser({
           uid,
           email,
+          userName: '',
           hasCompletedOnboarding: false,
           isSteamLinked: false,
           hasServerData: false,
@@ -230,15 +250,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         });
 
         setIsLoggedIn(true);
-        await fetchUserData();
-        setErrorMessage('');
+        const updatedUser = await fetchUserData(uid);
+
+        return updatedUser;
       } else {
         console.error('Login failed:', response.data.message);
-        throw new Error(response.data.message);
+        throw new Error(response.data.message || 'Login failed.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error during login:', error);
-      throw error;
+      let errorMessage = 'An unexpected error occurred.';
+      if (error.response) {
+        if (error.response.status === 401) {
+          errorMessage = 'Invalid email or password.';
+        } else {
+          errorMessage = error.response.data.message || 'An unexpected error occurred.';
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
   };
 
@@ -255,11 +286,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return;
       } else {
         console.error('Registration failed:', response.data.message);
-        throw new Error(response.data.message);
+        throw new Error(response.data.message || 'Registration failed.');
       }
     } catch (error: any) {
       console.error('Error during registration:', error);
-      throw new Error(error.response?.data?.message || 'An unexpected error occurred during registration.');
+      let errorMessage = 'An unexpected error occurred during registration.';
+      if (error.response) {
+        errorMessage = error.response.data.message || 'An unexpected error occurred during registration.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
   };
 
@@ -282,11 +319,18 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
         setCurrentView('welcome');
       } else {
-        setErrorMessage(response.data.error || 'An error occurred while changing username.');
+        console.error('Failed to change username:', response.data.message);
+        throw new Error(response.data.message || 'An error occurred while changing username.');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error changing username:', error);
-      setErrorMessage('An unexpected error occurred.');
+      let errorMessage = 'An unexpected error occurred.';
+      if (error.response) {
+        errorMessage = error.response.data.message || 'An unexpected error occurred.';
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      throw new Error(errorMessage);
     }
   };
 
@@ -410,6 +454,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setErrorMessage,
         checkUsernameExistence,
         changeUsername,
+        isVerifying, // Provide loading state
       }}
     >
       {children}

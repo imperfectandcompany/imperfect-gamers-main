@@ -31,7 +31,6 @@ const AuthModal: React.FC<{
     logout,
     currentView,
     setCurrentView,
-    setErrorMessage,
   } = useAuth();
 
   const { toast } = useToast();
@@ -47,10 +46,8 @@ const AuthModal: React.FC<{
     // If logged in and onboarding not completed, navigate to username setup view
     if (isLoggedIn && user && !user.hasCompletedOnboarding) {
       setCurrentView("setUsername");
-    } else if (isLoggedIn) {
-      onClose();
     }
-  }, [isLoggedIn, user, onClose, setCurrentView]);
+  }, [isLoggedIn, user, setCurrentView]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -66,9 +63,23 @@ const AuthModal: React.FC<{
         });
         // After showing the toast, redirect to login view
         setCurrentView("login");
-        setPassword("");
+        setPassword(""); // Clear password
       } else if (currentView === "login") {
-        await login(email, password);
+        const updatedUser = await login(email, password);
+
+        // Clear password after login
+        setPassword("");
+
+        // If the user has completed onboarding, show a toast
+        if (updatedUser?.hasCompletedOnboarding) {
+          toast({
+            title: "Logged in successfully",
+            description: `Welcome back, ${updatedUser.userName || 'user'}!`,
+          });
+          onClose();
+        } else if (updatedUser && !updatedUser.hasCompletedOnboarding) {
+          setCurrentView("setUsername");
+        }
       }
     } catch (error: any) {
       console.error("Error during form submission:", error);
@@ -76,6 +87,14 @@ const AuthModal: React.FC<{
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleModalClose = () => {
+    onClose();
+    setLocalErrorMessage("");
+    setEmail("");
+    setPassword("");
+    setCurrentView("welcome");
   };
 
   const getTitle = () => {
@@ -113,8 +132,7 @@ const AuthModal: React.FC<{
       open={isOpen}
       onOpenChange={(open) => {
         if (!open) {
-          onClose();
-          setLocalErrorMessage(""); // Clear the error message when the modal is closed
+          handleModalClose();
         }
       }}
     >
@@ -134,7 +152,13 @@ const AuthModal: React.FC<{
 
                     if (currentView === "setUsername") {
                       logout();
+                      setEmail("");
+                      setPassword("");
                       setCurrentView("login");
+                    } else if (currentView === "login" || currentView === "signup") {
+                      setEmail("");
+                      setPassword("");
+                      setCurrentView("welcome");
                     } else {
                       setCurrentView("welcome");
                     }
@@ -238,9 +262,18 @@ const AuthModal: React.FC<{
                   <SetUsernameView
                     onLogout={() => {
                       logout();
+                      setEmail("");
+                      setPassword("");
                       setCurrentView("login");
                     }}
                     isLoading={isLoading}
+                    onSuccess={(newUsername) => {
+                      onClose();
+                      toast({
+                        title: "Onboarding Complete",
+                        description: `Welcome, ${newUsername}!`,
+                      });
+                    }}
                   />
                 )}
               </motion.div>

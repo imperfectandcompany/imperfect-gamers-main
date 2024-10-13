@@ -2,8 +2,6 @@
 
 import React, { useState } from 'react';
 import Head from 'next/head';
-import MainNavbar from './components/Navbar/MainNavbar';
-import HomeTest from './pages';
 import MainPage from './pages/MainPage';
 import { AuthProvider } from './context/AuthContext';
 

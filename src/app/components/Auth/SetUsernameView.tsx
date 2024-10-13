@@ -1,19 +1,24 @@
+// SetUsernameView.tsx
+
 import React, { useState } from 'react';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Label } from '@components/ui/label';
 import { useAuth } from '@context/AuthContext';
 import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@components/ui/alert';
 
 interface SetUsernameViewProps {
   onLogout: () => void;
   isLoading: boolean;
+  onSuccess: (newUsername: string) => void;
 }
 
-const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, isLoading }) => {
+const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, isLoading, onSuccess }) => {
   const [username, setUsername] = useState<string>('');
-  const { changeUsername, checkUsernameExistence, errorMessage, setErrorMessage } = useAuth();
+  const { changeUsername, checkUsernameExistence } = useAuth();
   const [loading, setLoading] = useState<boolean>(false);
+  const [errorMessage, setErrorMessage] = useState<string>('');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -25,10 +30,11 @@ const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, isLoading }
         setErrorMessage('Username is already taken.');
       } else {
         await changeUsername(username);
+        onSuccess(username); // Pass the new username
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error setting username:', error);
-      setErrorMessage('An unexpected error occurred.');
+      setErrorMessage(error.message || 'An unexpected error occurred.');
     } finally {
       setLoading(false);
     }
@@ -37,6 +43,14 @@ const SetUsernameView: React.FC<SetUsernameViewProps> = ({ onLogout, isLoading }
   return (
     <div className="flex flex-col h-full">
       <main className="flex-grow flex flex-col justify-center w-full">
+        {errorMessage && (
+          <Alert
+            variant="destructive"
+            className="mb-4 text-sm border border-red-500 bg-red-950/50 text-red-200"
+          >
+            <AlertDescription>{errorMessage}</AlertDescription>
+          </Alert>
+        )}
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="username" className="sr-only">

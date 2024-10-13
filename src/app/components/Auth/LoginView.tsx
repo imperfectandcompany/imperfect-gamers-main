@@ -1,8 +1,10 @@
+// LoginView.tsx
+
 import React from 'react';
 import { Input } from '@components/ui/input';
 import { Button } from '@components/ui/button';
 import { Label } from '@components/ui/label';
-import { ArrowLeft, Loader2 } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 interface LoginViewProps {
   onBack: () => void;
@@ -31,6 +33,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onBack, onSubmit, email, password
               onChange={(e) => setEmail(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="email"
               className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
             />
           </div>
@@ -46,6 +49,7 @@ const LoginView: React.FC<LoginViewProps> = ({ onBack, onSubmit, email, password
               onChange={(e) => setPassword(e.target.value)}
               required
               disabled={isLoading}
+              autoComplete="new-password" // Prevent autofill
               className="bg-zinc-800 border-zinc-700 text-white placeholder-zinc-400"
             />
           </div>
