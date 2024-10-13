@@ -24,7 +24,7 @@ export interface User {
   userName?: string;
   avatarUrl?: string;
   isSteamLinked: boolean;
-  steamId?: string;
+  steamId?: string | null;
   hasServerData: boolean;
   surfMapsCompleted?: number;
   totalPlaytime?: string;
@@ -53,6 +53,7 @@ interface AuthContextType {
   currentView: string;
   errorMessage: string;
   login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   completeOnboarding: () => void;
   linkSteam: () => void;
@@ -130,7 +131,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Fetches user data, including onboarding status
+  // Fetches user data, including onboarding status and Steam verification
   const fetchUserData = async () => {
     try {
       const response = await apiClient.get('/user/onboarded');
@@ -149,11 +150,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
 
         setCurrentView(onboarded ? 'welcome' : 'setUsername');
+
+        // Verify if Steam is linked
+        await verifySteamAccount();
       } else {
         console.error('Failed to fetch user onboarding status:', response.data.message);
       }
     } catch (error) {
       console.error('Error fetching user data:', error);
+    }
+  };
+
+  // Verifies if the Steam account is linked
+  const verifySteamAccount = async () => {
+    try {
+      const response = await apiClient.post('/user/verifySteam');
+
+      if (response.data.status === 'success') {
+        const { hasSteam, steamId } = response.data;
+        setUser((prevUser) =>
+          prevUser
+            ? {
+                ...prevUser,
+                isSteamLinked: hasSteam,
+                steamId: steamId || null,
+              }
+            : prevUser
+        );
+        if (hasSteam) {
+          // Fetch server data if Steam is linked
+          await fetchServerData();
+        }
+      } else {
+        console.error('Failed to verify Steam account:', response.data.message);
+        setUser((prevUser) =>
+          prevUser
+            ? {
+                ...prevUser,
+                isSteamLinked: false,
+                steamId: null,
+              }
+            : prevUser
+        );
+      }
+    } catch (error) {
+      console.error('Error verifying Steam account:', error);
+      setUser((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              isSteamLinked: false,
+              steamId: null,
+            }
+          : prevUser
+      );
     }
   };
 
@@ -184,11 +234,32 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         setErrorMessage('');
       } else {
         console.error('Login failed:', response.data.message);
-        setErrorMessage(response.data.message);
+        throw new Error(response.data.message);
       }
     } catch (error) {
       console.error('Error during login:', error);
-      setErrorMessage('An unexpected error occurred.');
+      throw error;
+    }
+  };
+
+  // Handles user registration
+  const register = async (email: string, password: string): Promise<void> => {
+    try {
+      const response = await apiClient.post('/register', {
+        email,
+        password,
+      });
+
+      if (response.data.status === 'success') {
+        // Registration successful
+        return;
+      } else {
+        console.error('Registration failed:', response.data.message);
+        throw new Error(response.data.message);
+      }
+    } catch (error: any) {
+      console.error('Error during registration:', error);
+      throw new Error(error.response?.data?.message || 'An unexpected error occurred during registration.');
     }
   };
 
@@ -330,6 +401,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         currentView,
         errorMessage,
         login,
+        register,
         logout,
         completeOnboarding,
         linkSteam,

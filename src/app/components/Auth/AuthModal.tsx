@@ -16,6 +16,7 @@ import WelcomeView from "@components/Auth/WelcomeView";
 import { useAuth } from "@context/AuthContext";
 import { Alert, AlertDescription } from "../ui/alert";
 import { ArrowLeft } from "lucide-react";
+import { useToast } from "@hooks/use-toast";
 
 const AuthModal: React.FC<{
   isOpen: boolean;
@@ -24,20 +25,23 @@ const AuthModal: React.FC<{
 }> = ({ isOpen, onClose, contextMessage }) => {
   const {
     isLoggedIn,
-    errorMessage,
     user,
     login,
+    register,
     logout,
     currentView,
     setCurrentView,
     setErrorMessage,
   } = useAuth();
 
+  const { toast } = useToast();
+
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isGoingForward, setIsGoingForward] = useState<boolean>(true);
   const [isAnimating, setIsAnimating] = useState<boolean>(false);
+  const [errorMessage, setLocalErrorMessage] = useState<string>("");
 
   useEffect(() => {
     // If logged in and onboarding not completed, navigate to username setup view
@@ -48,29 +52,27 @@ const AuthModal: React.FC<{
     }
   }, [isLoggedIn, user, onClose, setCurrentView]);
 
-  useEffect(() => {
-    return () => {
-      setErrorMessage(''); // Clear the error message when the component unmounts
-    };
-  }, [setErrorMessage]);
-
   const handleSubmit = async () => {
     setIsLoading(true);
-    setErrorMessage("");
+    setLocalErrorMessage("");
 
     try {
       if (currentView === "signup") {
-        // Implement signup logic
-        setErrorMessage('');
+        await register(email, password);
+        // Show toast notification
+        toast({
+          title: "Registration Successful",
+          description: "Your account has been created. Please log in.",
+        });
+        // After showing the toast, redirect to login view
         setCurrentView("login");
         setPassword("");
       } else if (currentView === "login") {
-        setErrorMessage('');
         await login(email, password);
       }
     } catch (error: any) {
       console.error("Error during form submission:", error);
-      setErrorMessage(error.message || "An unexpected error occurred.");
+      setLocalErrorMessage(error.message || "An unexpected error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -107,12 +109,15 @@ const AuthModal: React.FC<{
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={(open) => {
-      if (!open) {
-        onClose();
-        setErrorMessage(''); // Clear the error message when the modal is closed
-      }
-    }}>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!open) {
+          onClose();
+          setLocalErrorMessage(""); // Clear the error message when the modal is closed
+        }
+      }}
+    >
       <DialogContent className="sm:max-w-[425px] bg-zinc-950 text-white text-center focus:outline-none transition duration-200 border-zinc-800 overflow-hidden">
         <div className="flex flex-col h-[600px]">
           <DialogHeader
@@ -125,7 +130,7 @@ const AuthModal: React.FC<{
                 <div
                   className="flex items-center p-0 hover:cursor-pointer focus:cursor-auto text-white/40 transition duration hover:no-underline hover:opacity-40"
                   onClick={() => {
-                    setErrorMessage(''); // Clear the error message when clicking "Logout" or "Back"
+                    setLocalErrorMessage(""); // Clear the error message when clicking "Logout" or "Back"
 
                     if (currentView === "setUsername") {
                       logout();

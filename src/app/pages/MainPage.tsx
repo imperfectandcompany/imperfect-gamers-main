@@ -20,6 +20,7 @@ import Icons from "@components/Shared/Icons";
 import CommunityFeedbackCard from "../components/Cards/CommunityFeedBackCard";
 import AuthModal from "@components/Auth/AuthModal";
 import { useAuth } from "@context/AuthContext";
+import { Toaster } from "@components/ui/toaster";
 
 export default function MainPage() {
   const { isLoggedIn, user, linkSteam } = useAuth();
@@ -249,6 +250,7 @@ export default function MainPage() {
         onClose={() => setAuthModalOpen(false)}
         contextMessage={authContextMessage}
       />
+      <Toaster /> {/* Include Toaster component */}
       <MainNavbar />
       <Header
         isLoggedIn={isLoggedIn}
