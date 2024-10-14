@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@context/AuthContext';
 import { MainPage } from './pages/MainPage';
 import LoadingSpinner from './components/LoadingSpinner';
 import { Toaster } from '@components/ui/toaster';
+import { FeatureFlagProvider } from './context/FeatureFlagContext';
 
 const HomeContent = () => {
   const { isVerifying } = useAuth();
@@ -51,6 +52,7 @@ const HomeContent = () => {
 
 export default function Home() {
   return (
+    <FeatureFlagProvider>
     <AuthProvider>
       <Toaster />
       <div className="min-h-screen bg-zinc-950 text-white font-sans flex flex-col justify-start">
@@ -88,5 +90,6 @@ export default function Home() {
         <HomeContent />
       </div>
     </AuthProvider>
+    </FeatureFlagProvider>
   );
 }

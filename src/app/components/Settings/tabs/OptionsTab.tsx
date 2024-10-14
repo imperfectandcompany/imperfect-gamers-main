@@ -1,53 +1,55 @@
-import React, { useState } from "react";
-import {
-  motion
-} from "framer-motion";
-import { Switch } from "@components/ui/switch";
-import { Slider } from "@components/ui/slider";
-import { Input } from "@components/ui/input";
-import { Button } from "@components/ui/button";
+// components/settings/tabs/OptionsTab.tsx
+
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
+import { Switch } from '@components/ui/switch';
+import { Slider } from '@components/ui/slider';
+import { Input } from '@components/ui/input';
+import { Button } from '@components/ui/button';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@components/ui/select";
-import { useAuth } from "@/app/context/AuthContext";
-import { FeatureNotAvailable, SteamAuthModal } from "../reusable";
-import { Copy } from "lucide-react";
+} from '@components/ui/select';
+import { FeatureNotAvailable, SteamAuthModal } from '../reusable';
+import { Copy } from 'lucide-react';
+import { useAuth } from '@context/AuthContext';
+import { useFeatureFlags } from '@context/FeatureFlagContext';
 
+interface OptionsTabProps {
+  isSteamLinked: boolean;
+  steamId: string;
+  linkSteam: (steamId: string) => void;
+}
 
-const OptionsTab: React.FC<{
-    isSteamLinked: boolean;
-    steamId: string;
-    // linkSteam: () => void;
-    linkSteam: (steamId: string) => void;
-  }> = ({ linkSteam, steamId, isSteamLinked }) => {
-  
-      const { user } = useAuth(); 
-      const [isSteamModalOpen, setIsSteamModalOpen] = useState(false);
-  
-    const [steamTradeURL, setSteamTradeURL] = useState(
-      "https://steamcommunity.com/..."
-    );
-    const [displayName, setDisplayName] = useState("CoolGuy");
-    const [email, setEmail] = useState("admin@sink.gg");
-    const [hideStats, setHideStats] = useState(false);
-    const [receivePromos, setReceivePromos] = useState(true);
-    const [chatOnRight, setChatOnRight] = useState(false);
-    const [streamerMode, setStreamerMode] = useState(false);
-    const [language, setLanguage] = useState("English");
-    const [mainVolume, setMainVolume] = useState(7);
-    const [itemsVolume, setItemsVolume] = useState(8);
-    const [notificationsVolume, setNotificationsVolume] = useState(6);
-    const [disableHelpTours, setDisableHelpTours] = useState(true);
-    const [wheelOfFortuneSounds, setWheelOfFortuneSounds] = useState(true);
-    const [simplifiedBetInterface, setSimplifiedBetInterface] = useState(true);
-    const [devMode, setDevMode] = useState(true);
-  
-    return (
-      <div className="space-y-6">
+const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLinked }) => {
+  const { isFeatureEnabled } = useFeatureFlags();
+  const { user } = useAuth(); // Ensure AuthContext is correctly used
+  const [isSteamModalOpen, setIsSteamModalOpen] = useState(false);
+
+  // State variables
+  const [steamTradeURL, setSteamTradeURL] = useState("https://steamcommunity.com/...");
+  const [displayName, setDisplayName] = useState("CoolGuy");
+  const [email, setEmail] = useState("admin@sink.gg");
+  const [hideStats, setHideStats] = useState(false);
+  const [receivePromos, setReceivePromos] = useState(true);
+  const [chatOnRight, setChatOnRight] = useState(false);
+  const [streamerMode, setStreamerMode] = useState(false);
+  const [language, setLanguage] = useState("English");
+  const [mainVolume, setMainVolume] = useState(7);
+  const [liveFeedVolume, setLiveFeedVolume] = useState(8);
+  const [notificationsVolume, setNotificationsVolume] = useState(6);
+  const [disableHelpTours, setDisableHelpTours] = useState(true);
+  const [wheelOfFortuneSounds, setWheelOfFortuneSounds] = useState(true);
+  const [simplifiedBetInterface, setSimplifiedBetInterface] = useState(true);
+  const [devMode, setDevMode] = useState(true);
+
+  return (
+    <div className="space-y-6">
+      {/* ACCOUNT Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -55,67 +57,79 @@ const OptionsTab: React.FC<{
           transition={{ duration: 0.5 }}
         >
           <h3 className="text-lg font-bold text-white">ACCOUNT</h3>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Steam Trade URL</label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={steamTradeURL}
-                onChange={(e) => setSteamTradeURL(e.target.value)}
-                className="flex-grow bg-[#2a2a2a] border-none text-white"
-              />
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">SAVE</Button>
-              </motion.div>
+          {/* Steam Trade URL */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL') && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Steam Trade URL</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={steamTradeURL}
+                  onChange={(e) => setSteamTradeURL(e.target.value)}
+                  className="flex-grow bg-[#2a2a2a] border-none text-white"
+                />
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">SAVE</Button>
+                </motion.div>
+              </div>
+              <p className="text-sm text-gray-400">
+                Your trade URL is required to send you items. You can find it{" "}
+                <a href="#" className="text-[#c75d38]">
+                  here
+                </a>
+                .
+              </p>
             </div>
-            <p className="text-sm text-gray-400">
-              Your trade URL is required to send you items. You can find it{" "}
-              <a href="#" className="text-[#c75d38]">
-                here
-              </a>
-              .
-            </p>
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Display name</label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                className="flex-grow bg-[#2a2a2a] border-none text-white"
-              />
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">SAVE</Button>
-              </motion.div>
+          )}
+          {/* Display Name */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME') && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Display Name</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={displayName}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  className="flex-grow bg-[#2a2a2a] border-none text-white"
+                />
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">SAVE</Button>
+                </motion.div>
+              </div>
+              <p className="text-sm text-gray-400">
+                (Max 28 chars, no websites or bad words)
+              </p>
             </div>
-            <p className="text-sm text-gray-400">
-              (Max 28 chars, no websites or bad words)
-            </p>
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium">Email address</label>
-            <div className="flex flex-col sm:flex-row gap-2">
-              <Input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="flex-grow bg-[#2a2a2a] border-none text-white"
-              />
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
-                  UPDATE
-                </Button>
-              </motion.div>
+          )}
+          {/* Email Address */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_EMAIL_ADDRESS') && (
+            <div className="space-y-2">
+              <label className="block text-sm font-medium">Email Address</label>
+              <div className="flex flex-col sm:flex-row gap-2">
+                <Input
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="flex-grow bg-[#2a2a2a] border-none text-white"
+                />
+                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">UPDATE</Button>
+                </motion.div>
+              </div>
+              <p className="text-sm text-gray-400">
+                Receive free promo codes, important account updates, and other rewards. We don't spam!
+              </p>
             </div>
-            <p className="text-sm text-gray-400">
-              Receive free promo codes, important account updates and other
-              rewards. We don't spam!
-            </p>
-          </div>
-          <div className="flex items-center justify-between">
-            <span>Hide stats from public</span>
-            <Switch checked={hideStats} onCheckedChange={setHideStats} />
-          </div>
+          )}
+          {/* Hide Stats */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS') && (
+            <div className="flex items-center justify-between">
+              <span>Hide stats from public</span>
+              <Switch checked={hideStats} onCheckedChange={setHideStats} />
+            </div>
+          )}
         </motion.div>
-  
+      )}
+
+      {/* BLOCKED USERS Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -128,7 +142,10 @@ const OptionsTab: React.FC<{
           </p>
           <p className="text-gray-500">No users blocked</p>
         </motion.div>
-  
+      )}
+
+      {/* CONNECTIONS Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_CONNECTIONS') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -138,21 +155,23 @@ const OptionsTab: React.FC<{
           <h3 className="text-lg font-bold text-white">CONNECTIONS</h3>
           <div className="flex items-center justify-between">
             <span>Discord</span>
-            <FeatureNotAvailable
-              title="Discord Connection"
-              description="This feature is not available yet. We're working on it and will notify you when it's ready!"
-            />
+            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD') ? (
+              <FeatureNotAvailable
+                title="Discord Connection"
+                description="This feature is not available yet. We're working on it and will notify you when it's ready!"
+              />
+            ) : null}
           </div>
           <div className="flex items-center justify-between">
             <div>
               <span className="block">Steam</span>
-              {user?.isSteamLinked && user.steamId && (
+              {isSteamLinked && steamId && (
                 <span className="text-sm text-gray-500">
-                  Steam ID: {user.steamId}
+                  Steam ID: {steamId}
                 </span>
               )}
             </div>
-            {user?.isSteamLinked ? (
+            {isSteamLinked ? (
               <Button disabled className="bg-green-500 hover:bg-green-600">
                 Linked
               </Button>
@@ -171,19 +190,24 @@ const OptionsTab: React.FC<{
               </>
             )}
           </div>
-          <div className="flex items-center">
-            <input
-              type="checkbox"
-              checked={receivePromos}
-              onChange={(e) => setReceivePromos(e.target.checked)}
-              className="mr-2"
-            />
-            <label className="text-sm text-gray-400">
-              I want to receive free promo codes & updates in future
-            </label>
-          </div>
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS') && (
+            <div className="flex items-center">
+              <input
+                type="checkbox"
+                checked={receivePromos}
+                onChange={(e) => setReceivePromos(e.target.checked)}
+                className="mr-2"
+              />
+              <label className="text-sm text-gray-400">
+                I want to receive free promo codes & updates in the future
+              </label>
+            </div>
+          )}
         </motion.div>
-  
+      )}
+
+      {/* USER INTERFACE Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -191,29 +215,41 @@ const OptionsTab: React.FC<{
           transition={{ duration: 0.5, delay: 0.3 }}
         >
           <h3 className="text-lg font-bold text-white">USER INTERFACE</h3>
-          <div className="flex items-center justify-between">
-            <span>CHAT ON RIGHT SIDE</span>
-            <Switch checked={chatOnRight} onCheckedChange={setChatOnRight} />
-          </div>
-          <div className="flex items-center justify-between">
-            <span>STREAMER MODE</span>
-            <Switch checked={streamerMode} onCheckedChange={setStreamerMode} />
-          </div>
-          <div className="flex items-center justify-between">
-            <span>LANGUAGE</span>
-            <Select value={language} onValueChange={setLanguage}>
-              <SelectTrigger className="w-[180px] bg-[#2a2a2a] border-none">
-                <SelectValue placeholder="Select a language" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="English">English</SelectItem>
-                <SelectItem value="Spanish">Spanish</SelectItem>
-                <SelectItem value="French">French</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {/* Chat on Right Side */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_CHAT_ON_RIGHT_SIDE') && (
+            <div className="flex items-center justify-between">
+              <span>CHAT ON RIGHT SIDE</span>
+              <Switch checked={chatOnRight} onCheckedChange={setChatOnRight} />
+            </div>
+          )}
+          {/* Streamer Mode */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE') && (
+            <div className="flex items-center justify-between">
+              <span>STREAMER MODE</span>
+              <Switch checked={streamerMode} onCheckedChange={setStreamerMode} />
+            </div>
+          )}
+          {/* Language Selection */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE') && (
+            <div className="flex items-center justify-between">
+              <span>LANGUAGE</span>
+              <Select value={language} onValueChange={setLanguage}>
+                <SelectTrigger className="w-[180px] bg-[#2a2a2a] border-none">
+                  <SelectValue placeholder="Select a language" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="English">English</SelectItem>
+                  <SelectItem value="Spanish">Spanish</SelectItem>
+                  <SelectItem value="French">French</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
         </motion.div>
-  
+      )}
+
+      {/* AUDIO Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -222,7 +258,8 @@ const OptionsTab: React.FC<{
         >
           <h3 className="text-lg font-bold text-white">AUDIO</h3>
           <div className="space-y-4">
-            <div className="space-y-2">
+            {/* Main Volume */}
+            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME') && (
               <div className="flex items-center justify-between">
                 <span>MAIN VOLUME</span>
                 <div className="w-64">
@@ -234,17 +271,23 @@ const OptionsTab: React.FC<{
                   />
                 </div>
               </div>
+            )}
+            {/* Live Feed Volume */}
+            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME') && (
               <div className="flex items-center justify-between">
                 <span>LIVE FEED VOLUME</span>
                 <div className="w-64">
                   <Slider
-                    value={[itemsVolume]}
-                    onValueChange={([value]) => setItemsVolume(value)}
+                    value={[liveFeedVolume]}
+                    onValueChange={([value]) => setLiveFeedVolume(value)}
                     max={10}
                     step={1}
                   />
                 </div>
               </div>
+            )}
+            {/* Notifications Volume */}
+            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME') && (
               <div className="flex items-center justify-between">
                 <span>NOTIFICATIONS VOLUME</span>
                 <div className="w-64">
@@ -256,10 +299,13 @@ const OptionsTab: React.FC<{
                   />
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </motion.div>
-  
+      )}
+
+      {/* TIPS & TOURS Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -267,23 +313,32 @@ const OptionsTab: React.FC<{
           transition={{ duration: 0.5, delay: 0.5 }}
         >
           <h3 className="text-lg font-bold text-white">TIPS & TOURS</h3>
-          <div className="flex items-center justify-between">
-            <span>DISABLE HELP TOURS</span>
-            <Switch
-              checked={disableHelpTours}
-              onCheckedChange={setDisableHelpTours}
-            />
-          </div>
-          <div className="flex items-center justify-between">
-            <span>RESET ALL TOURS</span>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
-                RESET TOURS
-              </Button>
-            </motion.div>
-          </div>
+          {/* Disable Help Tours */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_DISABLE_HELP_TOURS') && (
+            <div className="flex items-center justify-between">
+              <span>DISABLE HELP TOURS</span>
+              <Switch
+                checked={disableHelpTours}
+                onCheckedChange={setDisableHelpTours}
+              />
+            </div>
+          )}
+          {/* Reset All Tours */}
+          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_RESET_ALL_TOURS') && (
+            <div className="flex items-center justify-between">
+              <span>RESET ALL TOURS</span>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
+                  RESET TOURS
+                </Button>
+              </motion.div>
+            </div>
+          )}
         </motion.div>
-  
+      )}
+
+      {/* DEV MODE Section */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_DEV_MODE') && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -296,9 +351,12 @@ const OptionsTab: React.FC<{
             <Switch checked={devMode} onCheckedChange={setDevMode} />
           </div>
         </motion.div>
-  {/* Will be setup for future giveaway system and random case opening system  */}
+      )}
+
+      {/* FAIRNESS Section (Future Feature) */}
+      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_FAIRNESS') && (
         <motion.div
-          className="bg-[#1a1a1a] p-4 rounded space-y-4 hidden"
+          className="bg-[#1a1a1a] p-4 rounded space-y-4 hidden" // Hidden for now
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.8 }}
@@ -337,14 +395,15 @@ const OptionsTab: React.FC<{
               />
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
                 <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
-                  <Copy className="w-4" />
+                  <Copy className="w-4 h-4" />
                 </Button>
               </motion.div>
             </div>
           </div>
         </motion.div>
-      </div>
-    );
-  };
+      )}
+    </div>
+  );
+};
 
-  export default OptionsTab;
+export default OptionsTab;

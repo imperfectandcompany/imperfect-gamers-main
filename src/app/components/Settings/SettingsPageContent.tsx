@@ -1,10 +1,12 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { Menu } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import TransactionsTab from "@/app/components/Settings/tabs/TransactionsTab";
 import { Button } from "@components/ui/button";
-import { TabButton } from "../Settings/reusable";
+import { FeatureNotAvailable, TabButton } from "../Settings/reusable";
 import { AccountTab, SecurityTab, AffiliatesTab, OptionsTab } from "@/app/components/Settings/tabs";
+import { useFeatureFlags } from '../../context/FeatureFlagContext';
+import { FeatureFlagKeys } from "@/app/utils/featureFlags";
 
 const SettingsPageContent: React.FC<{
   selectedTab: string;
@@ -17,7 +19,29 @@ const SettingsPageContent: React.FC<{
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  const tabs = ["ACCOUNT", "SECURITY", "AFFILIATES", "OPTIONS", "TRANSACTIONS"];
+  const { flags, isFeatureEnabled } = useFeatureFlags();
+
+  // Conditional rendering based on ENABLE_SETTINGS
+  if (!isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS)) {
+    return <FeatureNotAvailable title="Womp womp." description="Settings are currently disabled." />;
+  }
+
+  // Define available tabs based on feature flags using isFeatureEnabled
+  const allTabs = useMemo(() => [
+    { key: 'ACCOUNT', label: 'Account', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT) },
+    { key: 'SECURITY', label: 'Security', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_SECURITY) },
+    { key: 'AFFILIATES', label: 'Affiliates', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES) },
+    { key: 'OPTIONS', label: 'Options', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS) },
+    { key: 'TRANSACTIONS', label: 'Transactions', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS) },
+  ], [isFeatureEnabled]);
+
+  const availableTabs = useMemo(() => allTabs.filter(tab => tab.enabled), [allTabs]);
+
+  // Debugging Logs
+  useEffect(() => {
+    console.log('Feature Flags:', flags); // Ensure 'flags' is still destructured if needed
+    console.log('Available Tabs:', availableTabs);
+  }, [availableTabs]);
 
   useEffect(() => {
     setActiveTab(selectedTab);
@@ -79,13 +103,13 @@ const SettingsPageContent: React.FC<{
                 <h2 className="text-lg font-bold text-white">Settings</h2>
               </div>
               <div className="flex-1 overflow-y-auto py-2">
-                {tabs.map((tab) => (
+                {availableTabs.map((tab) => (
                   <TabButton
-                    key={tab}
-                    tab={tab}
+                    key={tab.key}
+                    tab={tab.key}
                     activeTab={activeTab}
-                    onClick={(tab) => {
-                      setActiveTab(tab);
+                    onClick={(tabKey) => {
+                      setActiveTab(tabKey);
                       setIsMobileMenuOpen(false);
                     }}
                   />
@@ -135,15 +159,15 @@ const SettingsPageContent: React.FC<{
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {tabs.map((tab, index) => (
+            {availableTabs.map((tab, index) => (
               <motion.div
-                key={tab}
+                key={tab.key}
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
               >
                 <TabButton
-                  tab={tab}
+                  tab={tab.key}
                   activeTab={activeTab}
                   onClick={setActiveTab}
                 />
