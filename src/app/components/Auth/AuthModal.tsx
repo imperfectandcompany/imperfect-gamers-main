@@ -1,4 +1,4 @@
-// AuthModal.tsx
+// components/AuthModal.tsx
 
 import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -74,7 +74,7 @@ const AuthModal: React.FC<{
         if (updatedUser?.hasCompletedOnboarding) {
           toast({
             title: "Logged in successfully",
-            description: `Welcome back, ${updatedUser.userName || 'user'}!`,
+            description: `Welcome back, ${updatedUser.userName || "user"}!`,
           });
           onClose();
         } else if (updatedUser && !updatedUser.hasCompletedOnboarding) {
@@ -155,7 +155,10 @@ const AuthModal: React.FC<{
                       setEmail("");
                       setPassword("");
                       setCurrentView("login");
-                    } else if (currentView === "login" || currentView === "signup") {
+                    } else if (
+                      currentView === "login" ||
+                      currentView === "signup"
+                    ) {
                       setEmail("");
                       setPassword("");
                       setCurrentView("welcome");

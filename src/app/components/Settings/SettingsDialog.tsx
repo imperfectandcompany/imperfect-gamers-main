@@ -1,14 +1,15 @@
 import React from "react";
 import { Dialog, DialogContent } from "@components/ui/dialog";
-import { SettingsPageContent } from "./SettingsPageContent";
+import SettingsPageContent from "./SettingsPageContent";
 
-export const SettingsDialog: React.FC<{
+const SettingsDialog: React.FC<{
   isOpen: boolean;
   steamId: string;
   isSteamLinked: boolean;
   onOpenChange: (isOpen: boolean) => void;
   selectedTab: string;
-  linkSteam: () => void;
+  // linkSteam: () => void;
+  linkSteam: (steamId: string) => void;
 }> = ({
   isOpen,
   onOpenChange,
@@ -32,3 +33,5 @@ export const SettingsDialog: React.FC<{
     </div>
   );
 };
+
+export default SettingsDialog;

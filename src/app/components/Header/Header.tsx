@@ -10,23 +10,22 @@ import {
 } from "@components/ui/dropdown-menu";
 import { Button } from "@components/ui/button";
 import {
-  Bell,
   Search,
   LogIn,
   Check,
-  User,
   ChevronDown,
   LogOut,
 } from "lucide-react";
 import { useAuth } from "@context/AuthContext";
-import { SettingsDialog } from "./SettingsDialog";
 import { motion } from "framer-motion";
+import { SettingsDialog } from "../Settings";
 
 interface HeaderProps {
   isLoggedIn: boolean;
   hasCompletedOnboarding: boolean | undefined;
   onOpenAuthModal: (message?: string) => void;
-  linkSteam: () => void;
+  // linkSteam: () => void;
+  linkSteam: (steamId: string) => void;
   isSteamLinked: boolean;
   steamId: string;
   isVerifying: boolean;

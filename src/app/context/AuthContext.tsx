@@ -1,4 +1,4 @@
-// AuthContext.tsx
+// context/AuthContext.tsx
 
 import React, {
   createContext,
@@ -50,13 +50,14 @@ export interface User {
 interface AuthContextType {
   isLoggedIn: boolean;
   user: User | null;
+  setUser: React.Dispatch<React.SetStateAction<User | null>>;
   currentView: string;
   errorMessage: string;
   login: (email: string, password: string) => Promise<User | null>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
   completeOnboarding: () => void;
-  linkSteam: () => void;
+  linkSteam: (steamId: string) => void;
   linkDiscord: () => void;
   setCurrentView: (view: string) => void;
   setErrorMessage: (message: string) => void;
@@ -67,7 +68,7 @@ interface AuthContextType {
 }
 
 // Interfaces for API responses
-interface LoginSuccessResponse {  
+interface LoginSuccessResponse {
   status: 'success';
   token: string;
   uid: number;
@@ -199,7 +200,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
         if (hasSteam) {
           // Fetch server data if Steam is linked
-          await fetchServerData();
+          await fetchServerData(steamId);
         }
       } else {
         console.error('Failed to verify Steam account:', response.data.message);
@@ -355,10 +356,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Fetches server data after linking Steam
-  const fetchServerData = async () => {
-    if (!user || !user.steamId) return;
+  const fetchServerData = async (steamId: string) => {
+    if (!user || !steamId) return;
     try {
-      const response = await apiClient.get('/user/serverData');
+      const response = await apiClient.get(`/user/serverData/${steamId}`);
 
       if (response.data.status === 'success') {
         const serverData = response.data.data;
@@ -375,26 +376,41 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         );
       } else {
         console.error('Failed to fetch server data:', response.data.message);
+        setUser((prevUser) =>
+          prevUser
+            ? {
+                ...prevUser,
+                hasServerData: false,
+              }
+            : prevUser
+        );
       }
     } catch (error) {
       console.error('Error fetching server data:', error);
+      setUser((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              hasServerData: false,
+            }
+          : prevUser
+      );
     }
   };
 
   // Handles linking the Steam account
-  const linkSteam = async () => {
-    // TODO: Implement actual Steam linking logic
+  const linkSteam = async (steamId: string) => {
     setUser((prevUser) =>
       prevUser
         ? {
             ...prevUser,
             isSteamLinked: true,
-            steamId: '7656119815919597', // Mock Steam ID
-            hasServerData: false,
+            steamId: steamId,
           }
         : prevUser
     );
-    await fetchServerData();
+    // Fetch server data if needed
+    await fetchServerData(steamId);
   };
 
   // Handles linking the Discord account
@@ -443,6 +459,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       value={{
         isLoggedIn,
         user,
+        setUser,
         currentView,
         errorMessage,
         login,
@@ -456,7 +473,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         checkUsernameExistence,
         changeUsername,
         isVerifying,
-        setIsVerifying
+        setIsVerifying,
       }}
     >
       {children}

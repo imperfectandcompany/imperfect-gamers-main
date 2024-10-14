@@ -19,7 +19,7 @@ const NavList: React.FC<NavListProps> = ({ isOpen = false, redirecting = false, 
     { label: 'STATS', url: 'https://imperfectgamers.org/stats' },
     { label: 'INFRACTIONS', url: 'https://imperfectgamers.org/infractions' },
     { label: 'STORE', url: 'https://store.imperfectgamers.org' },
-    { label: 'Blog', url: 'https://blog.imperfectgamers.org' },
+    { label: 'BLOG', url: 'https://blog.imperfectgamers.org' },
     { label: 'SUPPORT', url: 'https://support.imperfectgamers.org' },
   ];
 

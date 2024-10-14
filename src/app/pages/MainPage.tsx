@@ -257,29 +257,29 @@ export const MainPage: React.FC<MainPageProps> = ({
 
   return (
     <>
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-     className="min-h-screen"
-    >
-      <AuthModal
-        isOpen={authModalOpen}
-        onClose={() => setAuthModalOpen(false)}
-        contextMessage={authContextMessage}
-      />
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen"
+      >
+        <AuthModal
+          isOpen={authModalOpen}
+          onClose={() => setAuthModalOpen(false)}
+          contextMessage={authContextMessage}
+        />
       <Toaster /> {/* Include Toaster component */}
       <MainNavbar />
       <Header
-        isLoggedIn={isLoggedIn}
-        isSteamLinked={user?.isSteamLinked ?? false}
-        steamId={String(user?.steamId ?? 0)}
-        linkSteam={linkSteam}
-        hasCompletedOnboarding={user?.hasCompletedOnboarding}
-        onOpenAuthModal={showAuthModal}
-        isVerifying={isVerifying}
-        fidelity={fidelity}
-        shouldApplyBlur={true}
-      />
+          isLoggedIn={isLoggedIn}
+          isSteamLinked={user?.isSteamLinked ?? false}
+          steamId={String(user?.steamId ?? 0)}
+          hasCompletedOnboarding={user?.hasCompletedOnboarding}
+          onOpenAuthModal={showAuthModal}
+          linkSteam={linkSteam} // Add this line
+          isVerifying={isVerifying}
+          fidelity={fidelity}
+          shouldApplyBlur={true}
+        />
       <AlertBanner
         title="New Challenge Available!"
         description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
@@ -288,12 +288,12 @@ export const MainPage: React.FC<MainPageProps> = ({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
           <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
-            <UserProfileCard
+            <UserProfileCard  
               isLoggedIn={isLoggedIn}
               isSteamLinked={user?.isSteamLinked ?? false}
               hasServerData={user?.hasServerData ?? false}
               userName={user?.userName}
-              avatarUrl={user?.avatarUrl}
+              avatarUrl={user?.avatarUrl ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s'}
               surfMapsCompleted={user?.surfMapsCompleted}
               totalPlaytime={user?.totalPlaytime}
               totalMuteTime={user?.totalMuteTime}
