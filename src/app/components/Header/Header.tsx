@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { useAuth } from "@context/AuthContext";
 import { SettingsDialog } from "./SettingsDialog";
+import { motion } from "framer-motion";
 
 interface HeaderProps {
   isLoggedIn: boolean;
@@ -28,6 +29,9 @@ interface HeaderProps {
   linkSteam: () => void;
   isSteamLinked: boolean;
   steamId: string;
+  isVerifying: boolean;
+  fidelity: number;
+  shouldApplyBlur: boolean;
 }
 
 const Header: React.FC<HeaderProps> = ({
@@ -37,6 +41,9 @@ const Header: React.FC<HeaderProps> = ({
   steamId,
   onOpenAuthModal,
   linkSteam,
+  isVerifying,
+  fidelity,
+  shouldApplyBlur,
 }) => {
   const { user, logout } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -60,6 +67,9 @@ const Header: React.FC<HeaderProps> = ({
   };
 
   const [isOpen, setIsOpen] = useState(false);
+
+  const blur = Math.max(20 - fidelity / 5, 0);
+  const opacity = fidelity / 100;
 
   return (
     <header className="bg-zinc-950 shadow-md">
@@ -94,62 +104,77 @@ const Header: React.FC<HeaderProps> = ({
             </div>
             {isLoggedIn ? (
               hasCompletedOnboarding ? (
-                <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
-                  <DropdownMenuTrigger asChild>
-                    <button className="flex items-center space-x-1 bg-transparent text-white hover:bg-zinc-800 px-2 py-1 rounded">
-                      <span>{user?.userName || "User"}</span>
-                      <ChevronDown
-                        className={`h-4 w-4 transition-transform duration-200 ${
-                          isOpen ? "rotate-180" : ""
-                        }`}
-                      />
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent
-                    align="end"
-                    alignOffset={-4}
-                    className="w-56 bg-zinc-800 text-white border-zinc-700"
-                  >
-                    <DropdownMenuItem
-                      onClick={() => openSettings("ACCOUNT")}
-                      className="focus:bg-zinc-700 focus:text-white"
+                <motion.div
+                  style={
+                    shouldApplyBlur
+                      ? { filter: `blur(${blur}px)`, opacity }
+                      : {}
+                  }
+                >
+                  <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+                    <DropdownMenuTrigger asChild>
+                      <button className="flex items-center space-x-1 bg-transparent text-white hover:bg-zinc-800 px-2 py-1 rounded">
+                        <span>{user?.userName || "User"}</span>
+                        <ChevronDown
+                          className={`h-4 w-4 transition-transform duration-200 ${
+                            isOpen ? "rotate-180" : ""
+                          }`}
+                        />
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent
+                      align="end"
+                      alignOffset={-4}
+                      className="w-56 bg-zinc-800 text-white border-zinc-700"
                     >
-                      Account
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => openSettings("SECURITY")}
-                      className="focus:bg-zinc-700 focus:text-white"
-                    >
-                      Security
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => openSettings("AFFILIATES")}
-                      className="focus:bg-zinc-700 focus:text-white"
-                    >
-                      Affiliates
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => openSettings("OPTIONS")}
-                      className="focus:bg-zinc-700 focus:text-white"
-                    >
-                      Options
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      onClick={() => openSettings("TRANSACTIONS")}
-                      className="focus:bg-zinc-700 focus:text-white"
-                    >
-                      Transactions
-                    </DropdownMenuItem>
-                    <DropdownMenuItem
-                      className="text-red-500 focus:bg-zinc-700 focus:text-red-500"
-                      onSelect={handleLogout}
-                    >
-                      <LogOut className="mr-2 h-4 w-4" />
-                      <span>Logout</span>
-                    </DropdownMenuItem>
-                  </DropdownMenuContent>
-                </DropdownMenu>
+                      <DropdownMenuItem
+                        onClick={() => openSettings("ACCOUNT")}
+                        className="focus:bg-zinc-700 focus:text-white"
+                      >
+                        Account
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openSettings("SECURITY")}
+                        className="focus:bg-zinc-700 focus:text-white"
+                      >
+                        Security
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openSettings("AFFILIATES")}
+                        className="focus:bg-zinc-700 focus:text-white"
+                      >
+                        Affiliates
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openSettings("OPTIONS")}
+                        className="focus:bg-zinc-700 focus:text-white"
+                      >
+                        Options
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => openSettings("TRANSACTIONS")}
+                        className="focus:bg-zinc-700 focus:text-white"
+                      >
+                        Transactions
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        className="text-red-500 focus:bg-zinc-700 focus:text-red-500"
+                        onSelect={handleLogout}
+                      >
+                        <LogOut className="mr-2 h-4 w-4" />
+                        <span>Logout</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </motion.div>
               ) : (
+                <motion.div
+                  style={
+                    shouldApplyBlur
+                      ? { filter: `blur(${blur}px)`, opacity }
+                      : {}
+                  }
+                >            
                 <Button
                   variant="default"
                   size="sm"
@@ -159,9 +184,16 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   <Check className="h-5 w-5 mr-2" />
                   Verify
-                </Button>
+                </Button></motion.div>    
               )
             ) : (
+                              <motion.div
+                  style={
+                    shouldApplyBlur
+                      ? { filter: `blur(${blur}px)`, opacity }
+                      : {}
+                  }
+                >   
               <Button
                 variant="default"
                 size="sm"
@@ -172,6 +204,7 @@ const Header: React.FC<HeaderProps> = ({
                 <LogIn className="h-5 w-5 mr-2" />
                 Log In
               </Button>
+              </motion.div>
             )}
           </nav>
         </div>

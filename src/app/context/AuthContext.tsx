@@ -67,7 +67,7 @@ interface AuthContextType {
 }
 
 // Interfaces for API responses
-interface LoginSuccessResponse {
+interface LoginSuccessResponse {  
   status: 'success';
   token: string;
   uid: number;

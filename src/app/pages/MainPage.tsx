@@ -23,7 +23,16 @@ import { useAuth } from "@context/AuthContext";
 import { Toaster } from "@components/ui/toaster";
 import { motion } from "framer-motion";
 
-export default function MainPage({ fidelity }: { fidelity: number }) {
+interface MainPageProps {
+  isVerifying: boolean;
+  fidelity: number;
+  shouldApplyBlur: boolean;
+}
+export const MainPage: React.FC<MainPageProps> = ({
+  isVerifying,
+  fidelity,
+  shouldApplyBlur,
+}) => {
   const blur = Math.max(20 - fidelity / 5, 0)
   const opacity = fidelity / 100
   const { isLoggedIn, user, linkSteam } = useAuth();
@@ -248,10 +257,10 @@ export default function MainPage({ fidelity }: { fidelity: number }) {
 
   return (
     <>
-        <motion.div
+    <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen"
+     className="min-h-screen"
     >
       <AuthModal
         isOpen={authModalOpen}
@@ -260,7 +269,6 @@ export default function MainPage({ fidelity }: { fidelity: number }) {
       />
       <Toaster /> {/* Include Toaster component */}
       <MainNavbar />
-      <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
       <Header
         isLoggedIn={isLoggedIn}
         isSteamLinked={user?.isSteamLinked ?? false}
@@ -268,8 +276,10 @@ export default function MainPage({ fidelity }: { fidelity: number }) {
         linkSteam={linkSteam}
         hasCompletedOnboarding={user?.hasCompletedOnboarding}
         onOpenAuthModal={showAuthModal}
+        isVerifying={isVerifying}
+        fidelity={fidelity}
+        shouldApplyBlur={true}
       />
-      </motion.div>
       <AlertBanner
         title="New Challenge Available!"
         description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
@@ -277,8 +287,6 @@ export default function MainPage({ fidelity }: { fidelity: number }) {
       <main className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           <div className="md:col-span-2 space-y-8">
-
-
           <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
             <UserProfileCard
               isLoggedIn={isLoggedIn}
