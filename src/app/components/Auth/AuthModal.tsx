@@ -17,6 +17,8 @@ import { useAuth } from "@context/AuthContext";
 import { Alert, AlertDescription } from "../ui/alert";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@hooks/use-toast";
+import { useFeatureFlags } from "@context/FeatureFlagContext";
+import { FeatureFlagKeys } from "@utils/featureFlags";
 
 const AuthModal: React.FC<{
   isOpen: boolean;
@@ -34,6 +36,7 @@ const AuthModal: React.FC<{
   } = useAuth();
 
   const { toast } = useToast();
+  const { isFeatureEnabled } = useFeatureFlags();
 
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
@@ -45,9 +48,11 @@ const AuthModal: React.FC<{
   useEffect(() => {
     // If logged in and onboarding not completed, navigate to username setup view
     if (isLoggedIn && user && !user.hasCompletedOnboarding) {
-      setCurrentView("setUsername");
+      if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW)) {
+        setCurrentView("setUsername");
+      }
     }
-  }, [isLoggedIn, user, setCurrentView]);
+  }, [isLoggedIn, user, setCurrentView, isFeatureEnabled]);
 
   const handleSubmit = async () => {
     setIsLoading(true);
@@ -55,16 +60,24 @@ const AuthModal: React.FC<{
 
     try {
       if (currentView === "signup") {
+        if (!isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_SIGNUP_VIEW)) {
+          throw new Error("Signup feature is disabled.");
+        }
         await register(email, password);
-        // Show toast notification
-        toast({
-          title: "Registration Successful",
-          description: "Your account has been created. Please log in.",
-        });
+        // Show toast notification if enabled
+        if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS)) {
+          toast({
+            title: "Registration Successful",
+            description: "Your account has been created. Please log in.",
+          });
+        }
         // After showing the toast, redirect to login view
         setCurrentView("login");
         setPassword(""); // Clear password
       } else if (currentView === "login") {
+        if (!isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_LOGIN_VIEW)) {
+          throw new Error("Login feature is disabled.");
+        }
         const updatedUser = await login(email, password);
 
         // Clear password after login
@@ -72,13 +85,17 @@ const AuthModal: React.FC<{
 
         // If the user has completed onboarding, show a toast
         if (updatedUser?.hasCompletedOnboarding) {
-          toast({
-            title: "Logged in successfully",
-            description: `Welcome back, ${updatedUser.userName || "user"}!`,
-          });
+          if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS)) {
+            toast({
+              title: "Logged in successfully",
+              description: `Welcome back, ${updatedUser.userName || "user"}!`,
+            });
+          }
           onClose();
         } else if (updatedUser && !updatedUser.hasCompletedOnboarding) {
-          setCurrentView("setUsername");
+          if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW)) {
+            setCurrentView("setUsername");
+          }
         }
       }
     } catch (error: any) {
@@ -94,7 +111,9 @@ const AuthModal: React.FC<{
     setLocalErrorMessage("");
     setEmail("");
     setPassword("");
-    setCurrentView("welcome");
+    if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_WELCOME_VIEW)) {
+      setCurrentView("welcome");
+    }
   };
 
   const getTitle = () => {
@@ -127,6 +146,11 @@ const AuthModal: React.FC<{
     }
   };
 
+  // If the AuthModal feature flag is disabled, don't render the modal
+  if (!isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL)) {
+    return null;
+  }
+
   return (
     <Dialog
       open={isOpen}
@@ -144,7 +168,7 @@ const AuthModal: React.FC<{
             } border-b border-zinc-800`}
           >
             <div>
-              {currentView !== "welcome" && (
+              {currentView !== "welcome" && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_BACK_BUTTON) && (
                 <div
                   className="flex items-center p-0 hover:cursor-pointer focus:cursor-auto text-white/40 transition duration hover:no-underline hover:opacity-40"
                   onClick={() => {
@@ -177,7 +201,7 @@ const AuthModal: React.FC<{
                 {getTitle()}
               </DialogTitle>
             </div>
-            {currentView !== "welcome" && <div className="w-16" />}
+            {currentView !== "welcome" && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_BACK_BUTTON) && <div className="w-16" />}
           </DialogHeader>
           <div
             className={`flex-grow overflow-y-auto ${
@@ -187,7 +211,7 @@ const AuthModal: React.FC<{
             <DialogDescription className="text-center text-2xl font-bold my-8 text-white">
               {getDescription()}
             </DialogDescription>
-            {contextMessage && (
+            {contextMessage && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_CONTEXT_MESSAGE) && (
               <Alert
                 variant="destructive"
                 className="mb-4 text-sm border border-red-500 bg-red-950/50 text-red-200"
@@ -195,7 +219,7 @@ const AuthModal: React.FC<{
                 <AlertDescription>{contextMessage}</AlertDescription>
               </Alert>
             )}
-            {errorMessage && (
+            {errorMessage && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_ERROR_MESSAGES) && (
               <Alert
                 variant="destructive"
                 className="mb-4 text-sm border border-red-500 bg-red-950/50 text-red-200"
@@ -209,13 +233,38 @@ const AuthModal: React.FC<{
             >
               <motion.div
                 key={currentView}
-                initial={{ opacity: 0, x: isGoingForward ? 100 : -100 }}
+                initial={{
+                  opacity: 0,
+                  x: isGoingForward
+                    ? isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS)
+                      ? 100
+                      : 0
+                    : isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS)
+                    ? -100
+                    : 0,
+                }}
                 onAnimationStart={() => setIsAnimating(true)}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: isGoingForward ? -100 : 100 }}
-                transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                animate={{
+                  opacity: 1,
+                  x: 0,
+                }}
+                exit={{
+                  opacity: 0,
+                  x: isGoingForward
+                    ? isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS)
+                      ? -100
+                      : 0
+                    : isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS)
+                    ? 100
+                    : 0,
+                }}
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 30,
+                }}
               >
-                {currentView === "welcome" && (
+                {currentView === "welcome" && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_WELCOME_VIEW) && (
                   <WelcomeView
                     onSignup={() => {
                       setIsGoingForward(true);
@@ -227,7 +276,7 @@ const AuthModal: React.FC<{
                     }}
                   />
                 )}
-                {currentView === "signup" && (
+                {currentView === "signup" && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_SIGNUP_VIEW) && (
                   <SignupView
                     onBack={() => {
                       setIsGoingForward(false);
@@ -244,7 +293,7 @@ const AuthModal: React.FC<{
                     isLoading={isLoading}
                   />
                 )}
-                {currentView === "login" && (
+                {currentView === "login" && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_LOGIN_VIEW) && (
                   <LoginView
                     onBack={() => {
                       setIsGoingForward(false);
@@ -261,7 +310,7 @@ const AuthModal: React.FC<{
                     isLoading={isLoading}
                   />
                 )}
-                {currentView === "setUsername" && (
+                {currentView === "setUsername" && isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW) && (
                   <SetUsernameView
                     onLogout={() => {
                       logout();
@@ -272,10 +321,12 @@ const AuthModal: React.FC<{
                     isLoading={isLoading}
                     onSuccess={(newUsername) => {
                       onClose();
-                      toast({
-                        title: "Onboarding Complete",
-                        description: `Welcome, ${newUsername}!`,
-                      });
+                      if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS)) {
+                        toast({
+                          title: "Onboarding Complete",
+                          description: `Welcome, ${newUsername}!`,
+                        });
+                      }
                     }}
                   />
                 )}
@@ -283,9 +334,11 @@ const AuthModal: React.FC<{
             </AnimatePresence>
           </div>
 
-          <footer className="text-center pt-4 text-sm text-red-500 border-t border-zinc-800">
-            Powered by Clydent.com☂️
-          </footer>
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_FOOTER) && (
+            <footer className="text-center pt-4 text-sm text-red-500 border-t border-zinc-800">
+              Powered by Clydent.com☂️
+            </footer>
+          )}
         </div>
       </DialogContent>
     </Dialog>

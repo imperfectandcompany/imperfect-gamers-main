@@ -1,21 +1,32 @@
-import React from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card'
-import { Button } from '@components/ui/button'
-import { BookOpen } from 'lucide-react'
+// src/components/BlogPostsCard.tsx
+
+import React from 'react';
+import { Card, CardContent, CardHeader, CardTitle } from '@components/ui/card';
+import { Button } from '@components/ui/button';
+import { BookOpen } from 'lucide-react';
+import { useFeatureFlags } from '@context/FeatureFlagContext';
+import { FeatureFlagKeys } from '@utils/featureFlags';
 
 interface BlogPost {
-  title: string
-  date: string
-  excerpt: string
-  author: string
-  readTime: string
+  title: string;
+  date: string;
+  excerpt: string;
+  author: string;
+  readTime: string;
 }
 
 interface BlogPostsCardProps {
-  blogPosts: BlogPost[]
+  blogPosts: BlogPost[];
 }
 
 const BlogPostsCard: React.FC<BlogPostsCardProps> = ({ blogPosts }) => {
+  const { isFeatureEnabled } = useFeatureFlags();
+
+  // If the BlogPostsCard feature flag is disabled, don't render the card
+  if (!isFeatureEnabled(FeatureFlagKeys.ENABLE_BLOG_POSTS_CARD)) {
+    return null;
+  }
+
   return (
     <Card className="bg-zinc-950 border-zinc-800">
       <CardHeader className="flex flex-row justify-between items-center">
@@ -23,9 +34,11 @@ const BlogPostsCard: React.FC<BlogPostsCardProps> = ({ blogPosts }) => {
           <BookOpen className="mr-2 h-5 w-5 text-blue-500" />
           Blog
         </CardTitle>
-        <Button variant="link" className="text-red-400">
-          View All
-        </Button>
+        {isFeatureEnabled(FeatureFlagKeys.ENABLE_BLOG_POSTS_VIEW_ALL) && (
+          <Button variant="link" className="text-red-400">
+            View All
+          </Button>
+        )}
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
@@ -43,7 +56,7 @@ const BlogPostsCard: React.FC<BlogPostsCardProps> = ({ blogPosts }) => {
         </div>
       </CardContent>
     </Card>
-  )
-}
+  );
+};
 
-export default BlogPostsCard
+export default BlogPostsCard;

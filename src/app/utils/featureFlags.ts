@@ -7,6 +7,19 @@ export enum FeatureFlagKeys {
   // Parent Feature
   ENABLE_SETTINGS = "ENABLE_SETTINGS",
 
+  // Sub-Sections and Features under AuthModal
+  ENABLE_AUTH_MODAL = "ENABLE_AUTH_MODAL",
+  ENABLE_AUTH_MODAL_WELCOME_VIEW = "ENABLE_AUTH_MODAL_WELCOME_VIEW",
+  ENABLE_AUTH_MODAL_SIGNUP_VIEW = "ENABLE_AUTH_MODAL_SIGNUP_VIEW",
+  ENABLE_AUTH_MODAL_LOGIN_VIEW = "ENABLE_AUTH_MODAL_LOGIN_VIEW",
+  ENABLE_AUTH_MODAL_SETUSERNAME_VIEW = "ENABLE_AUTH_MODAL_SETUSERNAME_VIEW",
+  ENABLE_AUTH_MODAL_TOASTS = "ENABLE_AUTH_MODAL_TOASTS",
+  ENABLE_AUTH_MODAL_ANIMATIONS = "ENABLE_AUTH_MODAL_ANIMATIONS",
+  ENABLE_AUTH_MODAL_FOOTER = "ENABLE_AUTH_MODAL_FOOTER",
+  ENABLE_AUTH_MODAL_BACK_BUTTON = "ENABLE_AUTH_MODAL_BACK_BUTTON",
+  ENABLE_AUTH_MODAL_CONTEXT_MESSAGE = "ENABLE_AUTH_MODAL_CONTEXT_MESSAGE",
+  ENABLE_AUTH_MODAL_ERROR_MESSAGES = "ENABLE_AUTH_MODAL_ERROR_MESSAGES",
+
   // Main Tabs under ENABLE_SETTINGS
   ENABLE_SETTINGS_ACCOUNT = "ENABLE_SETTINGS_ACCOUNT",
   ENABLE_SETTINGS_SECURITY = "ENABLE_SETTINGS_SECURITY",
@@ -62,6 +75,82 @@ export enum FeatureFlagKeys {
   ENABLE_SETTINGS_TRANSACTIONS_VIEW_TABLE = "ENABLE_SETTINGS_TRANSACTIONS_VIEW_TABLE",
   ENABLE_SETTINGS_TRANSACTIONS_PAGINATION = "ENABLE_SETTINGS_TRANSACTIONS_PAGINATION",
 
+  // Sub-Sections and Features under MainPage
+  ENABLE_MAINPAGE_USER_PROFILE = "ENABLE_MAINPAGE_USER_PROFILE",
+  ENABLE_MAINPAGE_LIVE_FEED = "ENABLE_MAINPAGE_LIVE_FEED",
+  ENABLE_MAINPAGE_RECENT_POSTS = "ENABLE_MAINPAGE_RECENT_POSTS",
+  ENABLE_MAINPAGE_NEWS = "ENABLE_MAINPAGE_NEWS",
+  ENABLE_MAINPAGE_CHANGELOG = "ENABLE_MAINPAGE_CHANGELOG",
+  ENABLE_MAINPAGE_QUICK_ACTIONS = "ENABLE_MAINPAGE_QUICK_ACTIONS",
+  ENABLE_MAINPAGE_USER_STATS = "ENABLE_MAINPAGE_USER_STATS",
+  ENABLE_MAINPAGE_SERVER_STATUS = "ENABLE_MAINPAGE_SERVER_STATUS",
+  ENABLE_MAINPAGE_BLOG_POSTS = "ENABLE_MAINPAGE_BLOG_POSTS",
+  ENABLE_MAINPAGE_COMMUNITY_FEEDBACK = "ENABLE_MAINPAGE_COMMUNITY_FEEDBACK",
+
+  // Sub-Sections and Features under UserProfileCard
+  ENABLE_USERPROFILE_ACHIEVEMENTS = "ENABLE_USERPROFILE_ACHIEVEMENTS",
+  ENABLE_USERPROFILE_STATS = "ENABLE_USERPROFILE_STATS",
+  ENABLE_USERPROFILE_RANK = "ENABLE_USERPROFILE_RANK",
+
+  // Sub-Sections and Features under UserStatsCard
+  ENABLE_USERSTATS_RATING = "ENABLE_USERSTATS_RATING",
+  ENABLE_USERSTATS_PROGRESS = "ENABLE_USERSTATS_PROGRESS",
+  ENABLE_USERSTATS_TOTAL_JUMPS = "ENABLE_USERSTATS_TOTAL_JUMPS",
+  ENABLE_USERSTATS_AVG_SPEED = "ENABLE_USERSTATS_AVG_SPEED",
+  ENABLE_USERSTATS_FAVORITE_MAP = "ENABLE_USERSTATS_FAVORITE_MAP",
+  ENABLE_USERSTATS_RANK = "ENABLE_USERSTATS_RANK",
+  ENABLE_USERSTATS_XP_LEVEL = "ENABLE_USERSTATS_XP_LEVEL",
+
+  // Sub-Sections and Features under ServerStatusCard
+  ENABLE_SERVERSTATUS_CARD = "ENABLE_SERVERSTATUS_CARD",
+  ENABLE_SERVERSTATUS_JOIN_BUTTON = "ENABLE_SERVERSTATUS_JOIN_BUTTON",
+  ENABLE_SERVERSTATUS_TOOLTIPS = "ENABLE_SERVERSTATUS_TOOLTIPS",
+
+  // Sub-Sections and Features under LiveFeedCard
+  ENABLE_LIVEFEED_CARD = "ENABLE_LIVEFEED_CARD",
+  ENABLE_LIVEFEED_DIALOG = "ENABLE_LIVEFEED_DIALOG",
+
+  // Sub-Sections and Features under NewsCard
+  ENABLE_NEWSCARD = "ENABLE_NEWSCARD",
+  ENABLE_NEWSCARD_VIEW_ALL = "ENABLE_NEWSCARD_VIEW_ALL",
+  ENABLE_NEWSCARD_POST_LIST = "ENABLE_NEWSCARD_POST_LIST",
+  ENABLE_NEWSCARD_REACTIONS = "ENABLE_NEWSCARD_REACTIONS",
+  ENABLE_NEWSCARD_POPOVER = "ENABLE_NEWSCARD_POPOVER",
+
+  // Sub-Sections and Features under RecentPostsCard
+  ENABLE_RECENTPOSTS_CARD = "ENABLE_RECENTPOSTS_CARD",
+  ENABLE_RECENTPOSTS_VIEW_ALL = "ENABLE_RECENTPOSTS_VIEW_ALL",
+  ENABLE_RECENTPOSTS_POST_LIST = "ENABLE_RECENTPOSTS_POST_LIST",
+
+  // Sub-Sections and Features under QuickActionsCard
+  ENABLE_QUICKACTIONS_CARD = "ENABLE_QUICKACTIONS_CARD",
+  ENABLE_QUICKACTIONS_HOVER_OVERLAY = "ENABLE_QUICKACTIONS_HOVER_OVERLAY",
+
+  // Sub-Sections and Features under BlogPostsCard
+  ENABLE_BLOG_POSTS_CARD = "ENABLE_BLOG_POSTS_CARD",
+  ENABLE_BLOG_POSTS_VIEW_ALL = "ENABLE_BLOG_POSTS_VIEW_ALL",
+
+  // Sub-Sections and Features under SteamAuthModal
+  ENABLE_STEAM_AUTH_MODAL = "ENABLE_STEAM_AUTH_MODAL",
+  ENABLE_STEAM_AUTH_MODAL_ANIMATIONS = "ENABLE_STEAM_AUTH_MODAL_ANIMATIONS",
+  ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON = "ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON",
+  ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE = "ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE",
+  ENABLE_STEAM_AUTH_MODAL_FOOTER = "ENABLE_STEAM_AUTH_MODAL_FOOTER",
+  ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES = "ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES",
+  ENABLE_STEAM_AUTH_MODAL_CONTEXT_MESSAGE = "ENABLE_STEAM_AUTH_MODAL_CONTEXT_MESSAGE",
+  ENABLE_STEAM_AUTH_MODAL_TOASTS = "ENABLE_STEAM_AUTH_MODAL_TOASTS",
+
+  // Sub-Sections and Features under CommunityFeedbackCard
+  ENABLE_COMMUNITYFEEDBACK_CARD = "ENABLE_COMMUNITYFEEDBACK_CARD",
+  ENABLE_COMMUNITYFEEDBACK_LEAVE_REVIEW = "ENABLE_COMMUNITYFEEDBACK_LEAVE_REVIEW",
+  ENABLE_COMMUNITYFEEDBACK_MAKE_SUGGESTION = "ENABLE_COMMUNITYFEEDBACK_MAKE_SUGGESTION",
+
+  // Sub-Sections and Features under ChangelogCard
+  ENABLE_CHANGELOG_CARD = "ENABLE_CHANGELOG_CARD",
+  ENABLE_CHANGELOG_VIEW_ALL = "ENABLE_CHANGELOG_VIEW_ALL",
+  ENABLE_CHANGELOG_REACTIONS = "ENABLE_CHANGELOG_REACTIONS",
+  ENABLE_CHANGELOG_REACTIONS_POPOVER = "ENABLE_CHANGELOG_REACTIONS_POPOVER",
+
   // Independent Features
 }
 
@@ -71,6 +160,19 @@ export interface FeatureFlags {
 
   // Parent Feature
   [FeatureFlagKeys.ENABLE_SETTINGS]: boolean;
+
+  // Sub-Sections and Features under AuthModal
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_WELCOME_VIEW]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SIGNUP_VIEW]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_LOGIN_VIEW]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_FOOTER]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_BACK_BUTTON]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_CONTEXT_MESSAGE]: boolean;
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ERROR_MESSAGES]: boolean;
 
   // Main Tabs under ENABLE_SETTINGS
   [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT]: boolean;
@@ -127,6 +229,83 @@ export interface FeatureFlags {
   [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_VIEW_TABLE]: boolean;
   [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_PAGINATION]: boolean;
 
+  // Sub-Sections and Features under MainPage
+  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_LIVE_FEED]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_NEWS]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_CHANGELOG]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_STATS]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_BLOG_POSTS]: boolean;
+  [FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK]: boolean;
+
+  // Sub-Sections and Features under UserProfileCard
+  [FeatureFlagKeys.ENABLE_USERPROFILE_ACHIEVEMENTS]: boolean;
+  [FeatureFlagKeys.ENABLE_USERPROFILE_STATS]: boolean;
+  [FeatureFlagKeys.ENABLE_USERPROFILE_RANK]: boolean;
+
+  // Sub-Sections and Features under UserStatsCard
+  [FeatureFlagKeys.ENABLE_USERSTATS_RATING]: boolean;
+  [FeatureFlagKeys.ENABLE_USERSTATS_PROGRESS]: boolean;
+  [FeatureFlagKeys.ENABLE_USERSTATS_TOTAL_JUMPS]: boolean;
+  [FeatureFlagKeys.ENABLE_USERSTATS_AVG_SPEED]: boolean;
+  [FeatureFlagKeys.ENABLE_USERSTATS_FAVORITE_MAP]: boolean;
+  [FeatureFlagKeys.ENABLE_USERSTATS_RANK]: boolean;
+  [FeatureFlagKeys.ENABLE_USERSTATS_XP_LEVEL]: boolean;
+
+  // Sub-Sections and Features under ServerStatusCard
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_JOIN_BUTTON]: boolean;
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_TOOLTIPS]: boolean;
+
+  // Sub-Sections and Features under LiveFeedCard
+  [FeatureFlagKeys.ENABLE_LIVEFEED_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_LIVEFEED_DIALOG]: boolean;
+
+  // Sub-Sections and Features under NewsCard
+  [FeatureFlagKeys.ENABLE_NEWSCARD]: boolean;
+  [FeatureFlagKeys.ENABLE_NEWSCARD_VIEW_ALL]: boolean;
+  [FeatureFlagKeys.ENABLE_NEWSCARD_POST_LIST]: boolean;
+
+  [FeatureFlagKeys.ENABLE_NEWSCARD_REACTIONS]: boolean;
+  [FeatureFlagKeys.ENABLE_NEWSCARD_POPOVER]: boolean;
+
+  // Sub-Sections and Features under RecentPostsCard
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_VIEW_ALL]: boolean;
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_POST_LIST]: boolean;
+
+  // Sub-Sections and Features under QuickActionsCard
+  [FeatureFlagKeys.ENABLE_QUICKACTIONS_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_QUICKACTIONS_HOVER_OVERLAY]: boolean;
+
+  // Sub-Sections and Features under BlogPostsCard
+  [FeatureFlagKeys.ENABLE_BLOG_POSTS_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_BLOG_POSTS_VIEW_ALL]: boolean;
+
+  // Sub-Sections and Features under SteamAuthModal
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ANIMATIONS]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_FOOTER]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_CONTEXT_MESSAGE]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_TOASTS]: boolean;
+
+  // Sub-Sections and Features under CommunityFeedbackCard
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_LEAVE_REVIEW]: boolean;
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_MAKE_SUGGESTION]: boolean;
+
+  // Sub-Sections and Features under ChangelogCard
+  [FeatureFlagKeys.ENABLE_CHANGELOG_CARD]: boolean;
+  [FeatureFlagKeys.ENABLE_CHANGELOG_VIEW_ALL]: boolean;
+  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS]: boolean;
+  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS_POPOVER]: boolean;
+
   // Independent Features
 }
 
@@ -136,6 +315,19 @@ export const featureFlags: FeatureFlags = {
 
   // Parent Feature
   [FeatureFlagKeys.ENABLE_SETTINGS]: true,
+
+  // Sub-Sections and Features under AuthModal
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_WELCOME_VIEW]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SIGNUP_VIEW]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_LOGIN_VIEW]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_FOOTER]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_BACK_BUTTON]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_CONTEXT_MESSAGE]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ERROR_MESSAGES]: true,
 
   // Main Tabs under ENABLE_SETTINGS
   [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT]: true,
@@ -155,7 +347,7 @@ export const featureFlags: FeatureFlags = {
   // Sub-Sections and Features under ENABLE_SETTINGS_SECURITY
   [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_TWO_FACTOR_AUTH]: true,
   [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_TWO_ACTIVE_SESSIONS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_LOGOUT_EVERYWHERE]: true, // Set to false to disable by default
+  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_LOGOUT_EVERYWHERE]: true,
 
   // Sub-Sections and Features under ENABLE_SETTINGS_AFFILIATES
   [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_REFERRAL_CODE]: true,
@@ -194,6 +386,82 @@ export const featureFlags: FeatureFlags = {
   // Sub-Sections and Features under ENABLE_SETTINGS_TRANSACTIONS
   [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_VIEW_TABLE]: true,
   [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_PAGINATION]: true,
+
+  // Sub-Sections and Features under MainPage
+  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_LIVE_FEED]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_NEWS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_CHANGELOG]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_STATS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_BLOG_POSTS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK]: true,
+
+  // Sub-Sections and Features under UserProfileCard
+  [FeatureFlagKeys.ENABLE_USERPROFILE_ACHIEVEMENTS]: true,
+  [FeatureFlagKeys.ENABLE_USERPROFILE_STATS]: true,
+  [FeatureFlagKeys.ENABLE_USERPROFILE_RANK]: true,
+
+  // Sub-Sections and Features under UserStatsCard
+  [FeatureFlagKeys.ENABLE_USERSTATS_RATING]: true,
+  [FeatureFlagKeys.ENABLE_USERSTATS_PROGRESS]: true,
+  [FeatureFlagKeys.ENABLE_USERSTATS_TOTAL_JUMPS]: true,
+  [FeatureFlagKeys.ENABLE_USERSTATS_AVG_SPEED]: true,
+  [FeatureFlagKeys.ENABLE_USERSTATS_FAVORITE_MAP]: true,
+  [FeatureFlagKeys.ENABLE_USERSTATS_RANK]: true,
+  [FeatureFlagKeys.ENABLE_USERSTATS_XP_LEVEL]: true,
+
+  // Sub-Sections and Features under ServerStatusCard
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_CARD]: true,
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_JOIN_BUTTON]: true,
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_TOOLTIPS]: true,
+
+  // Sub-Sections and Features under LiveFeedCard
+  [FeatureFlagKeys.ENABLE_LIVEFEED_CARD]: true,
+  [FeatureFlagKeys.ENABLE_LIVEFEED_DIALOG]: true,
+
+  // Sub-Sections and Features under NewsCard
+  [FeatureFlagKeys.ENABLE_NEWSCARD]: true,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_VIEW_ALL]: true,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_POST_LIST]: true,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_REACTIONS]: true,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_POPOVER]: true,
+
+  // Sub-Sections and Features under RecentPostsCard
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_CARD]: true,
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_VIEW_ALL]: true,
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_POST_LIST]: true,
+
+  // Sub-Sections and Features under QuickActionsCard
+  [FeatureFlagKeys.ENABLE_QUICKACTIONS_CARD]: true,
+  [FeatureFlagKeys.ENABLE_QUICKACTIONS_HOVER_OVERLAY]: true,
+
+  // Sub-Sections and Features under BlogPostsCard
+  [FeatureFlagKeys.ENABLE_BLOG_POSTS_CARD]: true,
+  [FeatureFlagKeys.ENABLE_BLOG_POSTS_VIEW_ALL]: true,
+
+  // Sub-Sections and Features under SteamAuthModal
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ANIMATIONS]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_FOOTER]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_CONTEXT_MESSAGE]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_TOASTS]: true,
+
+  // Sub-Sections and Features under CommunityFeedbackCard
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_CARD]: true,
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_LEAVE_REVIEW]: true,
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_MAKE_SUGGESTION]: true,
+
+  // Sub-Sections and Features under ChangelogCard
+  [FeatureFlagKeys.ENABLE_CHANGELOG_CARD]: true,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_VIEW_ALL]: true,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS]: true,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS_POPOVER]: true,
 
   // Independent Features
 };

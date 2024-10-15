@@ -1,4 +1,4 @@
-// MainPage.tsx
+// components/MainPage.tsx
 
 import React, { useState } from "react";
 import MainNavbar from "@components/Navbar/MainNavbar";
@@ -22,12 +22,15 @@ import AuthModal from "@components/Auth/AuthModal";
 import { useAuth } from "@context/AuthContext";
 import { Toaster } from "@components/ui/toaster";
 import { motion } from "framer-motion";
+import { useFeatureFlags } from "@context/FeatureFlagContext";
+import { FeatureFlagKeys } from "@utils/featureFlags";
 
 interface MainPageProps {
   isVerifying: boolean;
   fidelity: number;
   shouldApplyBlur: boolean;
 }
+
 export const MainPage: React.FC<MainPageProps> = ({
   isVerifying,
   fidelity,
@@ -36,6 +39,8 @@ export const MainPage: React.FC<MainPageProps> = ({
   const blur = Math.max(20 - fidelity / 5, 0)
   const opacity = fidelity / 100
   const { isLoggedIn, user, linkSteam } = useAuth();
+
+  const { isFeatureEnabled } = useFeatureFlags();
 
   const [recentEvents, setRecentEvents] = useState([
     {
@@ -267,9 +272,9 @@ export const MainPage: React.FC<MainPageProps> = ({
           onClose={() => setAuthModalOpen(false)}
           contextMessage={authContextMessage}
         />
-      <Toaster /> {/* Include Toaster component */}
-      <MainNavbar />
-      <Header
+        <Toaster /> {/* Include Toaster component */}
+        <MainNavbar />
+        <Header
           isLoggedIn={isLoggedIn}
           isSteamLinked={user?.isSteamLinked ?? false}
           steamId={String(user?.steamId ?? 0)}
@@ -280,90 +285,120 @@ export const MainPage: React.FC<MainPageProps> = ({
           fidelity={fidelity}
           shouldApplyBlur={true}
         />
-      <AlertBanner
-        title="New Challenge Available!"
-        description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
-      />
-      <main className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          <div className="md:col-span-2 space-y-8">
-          <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
-            <UserProfileCard  
-              isLoggedIn={isLoggedIn}
-              isSteamLinked={user?.isSteamLinked ?? false}
-              hasServerData={user?.hasServerData ?? false}
-              userName={user?.userName}
-              avatarUrl={user?.avatarUrl ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s'}
-              surfMapsCompleted={user?.surfMapsCompleted}
-              totalPlaytime={user?.totalPlaytime}
-              totalMuteTime={user?.totalMuteTime}
-              totalBans={user?.totalBans}
-              rank={user?.rank}
-              rankPercentage={user?.rankPercentage}
-              achievements={user?.achievements}
-              isVerified={user?.hasCompletedOnboarding}
-            />
-            </motion.div>
-            <LiveFeedCard recentEvents={recentEvents} />
-            <RecentPostsCard recentPosts={recentPosts} />
-            <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
-            <NewsCard
-              newsItems={newsItems}
-              onReact={handleNewsReaction}
-              reactionEmojis={reactionEmojis}
-            />
-            </motion.div>
-            <ChangelogCard
-              changelog={changelog}
-              onReact={handleChangelogReaction}
-              reactionEmojis={reactionEmojis}
-            />
-          </div>
-          <div className="space-y-8">
-            <QuickActionsCard />
-            <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
-            <UserStatsCard
-              isLoggedIn={isLoggedIn}
-              isSteamLinked={user?.isSteamLinked ?? false}
-              hasCompletedOnboarding={user?.hasCompletedOnboarding ?? false}
-              hasServerData={user?.hasServerData ?? false}
-              userStats={
-                user && user.isSteamLinked && user.hasServerData
-                  ? {
-                      rating: user.rating || 0,
-                      pointsToNextRank: user.pointsToNextRank || 0,
-                      progressToNextRank: user.progressToNextRank || 0,
-                      totalJumps: user.totalJumps || 0,
-                      avgSpeed: user.avgSpeed || 0,
-                      favoriteMap: user.favoriteMap || '',
-                      rank: user.rank || 0,
-                      rankPercentage: user.rankPercentage || '',
-                      xp: user.xp || 0,
-                      maxXp: user.maxXp || 0,
-                      level: user.level || 0,
-                    }
-                  : null
-              }
-            />
-            </motion.div>
-            <BlogPostsCard blogPosts={blogPosts} />
-            <ServerStatusCard />
-            <CommunityFeedbackCard
-              onLeaveReview={handleLeaveReview}
-              onMakeSuggestion={handleMakeSuggestion}
-            />
-          </div>
-        </div>
-      </main>
-      <Footer />
-
-      {showCookieBanner && (
-        <CookieBanner
-          onAccept={() => setShowCookieBanner(false)}
-          onReject={() => setShowCookieBanner(false)}
+        <AlertBanner
+          title="New Challenge Available!"
+          description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
         />
-      )}
+        <main className="container mx-auto px-4 py-8">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="md:col-span-2 space-y-8">
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE) && (
+                <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
+                  <UserProfileCard  
+                    isLoggedIn={isLoggedIn}
+                    isSteamLinked={user?.isSteamLinked ?? false}
+                    hasServerData={user?.hasServerData ?? false}
+                    userName={user?.userName}
+                    avatarUrl={user?.avatarUrl ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s'}
+                    surfMapsCompleted={user?.surfMapsCompleted}
+                    totalPlaytime={user?.totalPlaytime}
+                    totalMuteTime={user?.totalMuteTime}
+                    totalBans={user?.totalBans}
+                    rank={user?.rank}
+                    rankPercentage={user?.rankPercentage}
+                    achievements={user?.achievements}
+                    isVerified={user?.hasCompletedOnboarding}
+                  />
+                </motion.div>
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_LIVE_FEED) && (
+                <LiveFeedCard recentEvents={recentEvents} />
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS) && (
+                <RecentPostsCard recentPosts={recentPosts} />
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_NEWS) && (
+                <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
+                  <NewsCard
+                    newsItems={newsItems}
+                    onReact={handleNewsReaction}
+                    reactionEmojis={reactionEmojis}
+                  />
+                </motion.div>
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_CHANGELOG) && (
+                <ChangelogCard
+                  changelog={changelog}
+                  onReact={handleChangelogReaction}
+                  reactionEmojis={reactionEmojis}
+                />
+              )}
+            </div>
+            <div className="space-y-8">
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS) && (
+                <QuickActionsCard />
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_USER_STATS) && (
+                <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
+                  <UserStatsCard
+                    isLoggedIn={isLoggedIn}
+                    isSteamLinked={user?.isSteamLinked ?? false}
+                    hasCompletedOnboarding={user?.hasCompletedOnboarding ?? false}
+                    hasServerData={user?.hasServerData ?? false}
+                    userStats={
+                      user && user.isSteamLinked && user.hasServerData
+                        ? {
+                            rating: user.rating || 0,
+                            pointsToNextRank: user.pointsToNextRank || 0,
+                            progressToNextRank: user.progressToNextRank || 0,
+                            totalJumps: user.totalJumps || 0,
+                            avgSpeed: user.avgSpeed || 0,
+                            favoriteMap: user.favoriteMap || '',
+                            rank: user.rank || 0,
+                            rankPercentage: user.rankPercentage || '',
+                            xp: user.xp || 0,
+                            maxXp: user.maxXp || 0,
+                            level: user.level || 0,
+                          }
+                        : null
+                    }
+                  />
+                </motion.div>
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_BLOG_POSTS) && (
+                <BlogPostsCard blogPosts={blogPosts} />
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS) && (
+                <ServerStatusCard />
+              )}
+
+              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK) && (
+                <CommunityFeedbackCard
+                  onLeaveReview={handleLeaveReview}
+                  onMakeSuggestion={handleMakeSuggestion}
+                />
+              )}
+            </div>
+          </div>
+        </main>
+        <Footer />
+
+        {showCookieBanner && (
+          <CookieBanner
+            onAccept={() => setShowCookieBanner(false)}
+            onReject={() => setShowCookieBanner(false)}
+          />
+        )}
       </motion.div>
     </>
   );
 }
+
+export default MainPage;
