@@ -1,6 +1,6 @@
-// Header.tsx
+// components/Settings/Header.tsx
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { Input } from "@components/ui/input";
 import {
   DropdownMenu,
@@ -10,7 +10,6 @@ import {
 } from "@components/ui/dropdown-menu";
 import { Button } from "@components/ui/button";
 import {
-  Search,
   LogIn,
   Check,
   ChevronDown,
@@ -19,12 +18,13 @@ import {
 import { useAuth } from "@context/AuthContext";
 import { motion } from "framer-motion";
 import { SettingsDialog } from "../Settings";
+import { useFeatureFlags } from '@context/FeatureFlagContext';
+import { FeatureFlagKeys } from "@utils/featureFlags";
 
 interface HeaderProps {
   isLoggedIn: boolean;
   hasCompletedOnboarding: boolean | undefined;
   onOpenAuthModal: (message?: string) => void;
-  // linkSteam: () => void;
   linkSteam: (steamId: string) => void;
   isSteamLinked: boolean;
   steamId: string;
@@ -47,6 +47,18 @@ const Header: React.FC<HeaderProps> = ({
   const { user, logout } = useAuth();
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [selectedTab, setSelectedTab] = useState("ACCOUNT");
+  const [isOpen, setIsOpen] = useState(false);
+
+  const { isFeatureEnabled } = useFeatureFlags();
+
+  // Define available tabs based on feature flags using useMemo
+  const availableTabs = useMemo(() => [
+    { key: 'ACCOUNT', label: 'Account', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT) },
+    { key: 'SECURITY', label: 'Security', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_SECURITY) },
+    { key: 'AFFILIATES', label: 'Affiliates', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES) },
+    { key: 'OPTIONS', label: 'Options', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS) },
+    { key: 'TRANSACTIONS', label: 'Transactions', enabled: isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS) },
+  ], [isFeatureEnabled]);
 
   const handleLoginClick = () => {
     onOpenAuthModal();
@@ -64,8 +76,6 @@ const Header: React.FC<HeaderProps> = ({
     setSelectedTab(tab);
     setIsSettingsOpen(true);
   };
-
-  const [isOpen, setIsOpen] = useState(false);
 
   const blur = Math.max(20 - fidelity / 5, 0);
   const opacity = fidelity / 100;
@@ -85,22 +95,6 @@ const Header: React.FC<HeaderProps> = ({
             </span>
           </div>
           <nav className="flex items-center space-x-4">
-            <div className="relative hidden">
-              <Input
-                type="text"
-                placeholder="Search players..."
-                className="w-64 bg-zinc-900 border-zinc-700 pr-10 text-white"
-                aria-label="Search players"
-              />
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-0 top-0 h-full"
-                aria-label="Search"
-              >
-                <Search className="h-5 w-5 text-zinc-400" />
-              </Button>
-            </div>
             {isLoggedIn ? (
               hasCompletedOnboarding ? (
                 <motion.div
@@ -126,36 +120,15 @@ const Header: React.FC<HeaderProps> = ({
                       alignOffset={-4}
                       className="w-56 bg-zinc-800 text-white border-zinc-700"
                     >
-                      <DropdownMenuItem
-                        onClick={() => openSettings("ACCOUNT")}
-                        className="focus:bg-zinc-700 focus:text-white"
-                      >
-                        Account
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openSettings("SECURITY")}
-                        className="focus:bg-zinc-700 focus:text-white"
-                      >
-                        Security
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openSettings("AFFILIATES")}
-                        className="focus:bg-zinc-700 focus:text-white"
-                      >
-                        Affiliates
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openSettings("OPTIONS")}
-                        className="focus:bg-zinc-700 focus:text-white"
-                      >
-                        Options
-                      </DropdownMenuItem>
-                      <DropdownMenuItem
-                        onClick={() => openSettings("TRANSACTIONS")}
-                        className="focus:bg-zinc-700 focus:text-white"
-                      >
-                        Transactions
-                      </DropdownMenuItem>
+                      {availableTabs.filter(tab => tab.enabled).map(tab => (
+                        <DropdownMenuItem
+                          key={tab.key}
+                          onClick={() => openSettings(tab.key)}
+                          className="focus:bg-zinc-700 focus:text-white"
+                        >
+                          {tab.label}
+                        </DropdownMenuItem>
+                      ))}
                       <DropdownMenuItem
                         className="text-red-500 focus:bg-zinc-700 focus:text-red-500"
                         onSelect={handleLogout}
@@ -174,35 +147,36 @@ const Header: React.FC<HeaderProps> = ({
                       : {}
                   }
                 >            
+                  <Button
+                    variant="default"
+                    size="sm"
+                    className="flex items-center text-white"
+                    onClick={handleVerifyClick}
+                    aria-label="Verify Account"
+                  >
+                    <Check className="h-5 w-5 mr-2" />
+                    Verify
+                  </Button>
+                </motion.div>    
+              )
+            ) : (
+              <motion.div
+                style={
+                  shouldApplyBlur
+                    ? { filter: `blur(${blur}px)`, opacity }
+                    : {}
+                }
+              >   
                 <Button
                   variant="default"
                   size="sm"
                   className="flex items-center text-white"
-                  onClick={handleVerifyClick}
-                  aria-label="Verify Account"
+                  onClick={handleLoginClick}
+                  aria-label="Log In"
                 >
-                  <Check className="h-5 w-5 mr-2" />
-                  Verify
-                </Button></motion.div>    
-              )
-            ) : (
-                              <motion.div
-                  style={
-                    shouldApplyBlur
-                      ? { filter: `blur(${blur}px)`, opacity }
-                      : {}
-                  }
-                >   
-              <Button
-                variant="default"
-                size="sm"
-                className="flex items-center text-white"
-                onClick={handleLoginClick}
-                aria-label="Log In"
-              >
-                <LogIn className="h-5 w-5 mr-2" />
-                Log In
-              </Button>
+                  <LogIn className="h-5 w-5 mr-2" />
+                  Log In
+                </Button>
               </motion.div>
             )}
           </nav>

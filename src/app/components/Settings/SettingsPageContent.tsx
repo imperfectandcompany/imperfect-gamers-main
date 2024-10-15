@@ -39,7 +39,7 @@ const SettingsPageContent: React.FC<{
 
   // Debugging Logs
   useEffect(() => {
-    console.log('Feature Flags:', flags); // Ensure 'flags' is still destructured if needed
+    console.log('Feature Flags:', flags);
     console.log('Available Tabs:', availableTabs);
   }, [availableTabs]);
 

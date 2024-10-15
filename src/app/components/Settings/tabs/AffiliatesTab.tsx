@@ -1,21 +1,37 @@
+// components/Settings/tabs/AffiliatesTab.tsx
+
 import { useState } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../ui/table";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "../../ui/table";
 import { motion } from "framer-motion";
 import { Check, Copy } from "lucide-react";
-import { Button } from "../../ui/button";
+import { Input } from "@components/ui/input";
+import { Button } from "@components/ui/button";
+import { useFeatureFlags } from '@context/FeatureFlagContext';
+import { FeatureFlagKeys } from "@utils/featureFlags";
 
 const AffiliatesTab: React.FC = () => {
-    const [referralCode, setReferralCode] = useState("COOLGUY2025");
-    const [copied, setCopied] = useState(false);
-  
-    const copyToClipboard = () => {
-      navigator.clipboard.writeText(referralCode);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    };
-  
-    return (
-      <div className="space-y-4">
+  const [referralCode, setReferralCode] = useState("COOLGUY2025");
+  const [copied, setCopied] = useState(false);
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(referralCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const { isFeatureEnabled } = useFeatureFlags();
+
+  return (
+    <div className="space-y-4">
+      {/* Your Referral Code Section */}
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_REFERRAL_CODE) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -24,7 +40,7 @@ const AffiliatesTab: React.FC = () => {
         >
           <h3 className="text-lg font-bold text-white">Your Referral Code</h3>
           <div className="flex flex-col sm:flex-row gap-2">
-            <input
+            <Input
               type="text"
               value={referralCode}
               readOnly
@@ -47,7 +63,10 @@ const AffiliatesTab: React.FC = () => {
             Share this code with your friends to earn rewards!
           </p>
         </motion.div>
-  
+      )}
+
+      {/* Affiliate Statistics Section */}
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_AFFILIATE_STATISTICS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -60,6 +79,7 @@ const AffiliatesTab: React.FC = () => {
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.2 }}
+              className="bg-[#2a2a2a] p-4 rounded text-center"
             >
               <p className="text-sm text-gray-400">Total Referrals</p>
               <p className="text-2xl font-bold text-white">23</p>
@@ -68,13 +88,17 @@ const AffiliatesTab: React.FC = () => {
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.3 }}
+              className="bg-[#2a2a2a] p-4 rounded text-center"
             >
               <p className="text-sm text-gray-400">Total Earnings</p>
               <p className="text-2xl font-bold text-white">$156.75</p>
             </motion.div>
           </div>
         </motion.div>
-  
+      )}
+
+      {/* Recent Referrals Section */}
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_RECENT_REFERRALS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -123,7 +147,10 @@ const AffiliatesTab: React.FC = () => {
             </Table>
           </div>
         </motion.div>
-  
+      )}
+
+      {/* Affiliate Terms Section */}
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_AFFILIATE_TERMS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -144,41 +171,41 @@ const AffiliatesTab: React.FC = () => {
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.2 }}
             >
-              You earn 2.5% if they used your referral to register an account
-              (without subscription).
-            </motion.li>
-            <motion.li
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              Maximum earnings per user: 7.5% (5% + 2.5%) if they subscribe.
-            </motion.li>
-            <motion.li
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.3, delay: 0.2 }}
-            >
-              Minimum payout is $10.
+              You earn 2.5% if they used your referral to register an account (without subscription).
             </motion.li>
             <motion.li
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.3 }}
             >
-              Payouts are processed weekly
+              Maximum earnings per user: 7.5% (5% + 2.5%) if they subscribe.
             </motion.li>
             <motion.li
               initial={{ opacity: 0, x: -10 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.3, delay: 0.4 }}
             >
-              Do not spam your referral code or use it in misleading ways
+              Minimum payout is $10.
+            </motion.li>
+            <motion.li
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.5 }}
+            >
+              Payouts are processed weekly.
+            </motion.li>
+            <motion.li
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.3, delay: 0.6 }}
+            >
+              Do not spam your referral code or use it in misleading ways.
             </motion.li>
           </ul>
         </motion.div>
-      </div>
-    );
-  };
+      )}
+    </div>
+  );
+};
 
 export default AffiliatesTab;

@@ -1,4 +1,4 @@
-// components/settings/tabs/OptionsTab.tsx
+// components/Settings/tabs/OptionsTab.tsx
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
@@ -17,6 +17,7 @@ import { FeatureNotAvailable, SteamAuthModal } from '../reusable';
 import { Copy } from 'lucide-react';
 import { useAuth } from '@context/AuthContext';
 import { useFeatureFlags } from '@context/FeatureFlagContext';
+import { FeatureFlagKeys } from '@utils/featureFlags';
 
 interface OptionsTabProps {
   isSteamLinked: boolean;
@@ -49,7 +50,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
   return (
     <div className="space-y-6">
       {/* ACCOUNT Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -58,7 +59,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
         >
           <h3 className="text-lg font-bold text-white">ACCOUNT</h3>
           {/* Steam Trade URL */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL) && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">Steam Trade URL</label>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -81,7 +82,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Display Name */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME) && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">Display Name</label>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -100,7 +101,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Email Address */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_EMAIL_ADDRESS') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_EMAIL_ADDRESS) && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">Email Address</label>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -119,7 +120,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Hide Stats */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS) && (
             <div className="flex items-center justify-between">
               <span>Hide stats from public</span>
               <Switch checked={hideStats} onCheckedChange={setHideStats} />
@@ -129,7 +130,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* BLOCKED USERS Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -145,7 +146,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* CONNECTIONS Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_CONNECTIONS') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -155,7 +156,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
           <h3 className="text-lg font-bold text-white">CONNECTIONS</h3>
           <div className="flex items-center justify-between">
             <span>Discord</span>
-            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD') ? (
+            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD) ? (
               <FeatureNotAvailable
                 title="Discord Connection"
                 description="This feature is not available yet. We're working on it and will notify you when it's ready!"
@@ -190,7 +191,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
               </>
             )}
           </div>
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS) && (
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -207,7 +208,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* USER INTERFACE Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -216,21 +217,21 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
         >
           <h3 className="text-lg font-bold text-white">USER INTERFACE</h3>
           {/* Chat on Right Side */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_CHAT_ON_RIGHT_SIDE') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_CHAT_ON_RIGHT_SIDE) && (
             <div className="flex items-center justify-between">
               <span>CHAT ON RIGHT SIDE</span>
               <Switch checked={chatOnRight} onCheckedChange={setChatOnRight} />
             </div>
           )}
           {/* Streamer Mode */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE) && (
             <div className="flex items-center justify-between">
               <span>STREAMER MODE</span>
               <Switch checked={streamerMode} onCheckedChange={setStreamerMode} />
             </div>
           )}
           {/* Language Selection */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE) && (
             <div className="flex items-center justify-between">
               <span>LANGUAGE</span>
               <Select value={language} onValueChange={setLanguage}>
@@ -249,7 +250,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* AUDIO Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -259,7 +260,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
           <h3 className="text-lg font-bold text-white">AUDIO</h3>
           <div className="space-y-4">
             {/* Main Volume */}
-            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME') && (
+            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME) && (
               <div className="flex items-center justify-between">
                 <span>MAIN VOLUME</span>
                 <div className="w-64">
@@ -273,7 +274,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
               </div>
             )}
             {/* Live Feed Volume */}
-            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME') && (
+            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME) && (
               <div className="flex items-center justify-between">
                 <span>LIVE FEED VOLUME</span>
                 <div className="w-64">
@@ -287,7 +288,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
               </div>
             )}
             {/* Notifications Volume */}
-            {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME') && (
+            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME) && (
               <div className="flex items-center justify-between">
                 <span>NOTIFICATIONS VOLUME</span>
                 <div className="w-64">
@@ -305,7 +306,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* TIPS & TOURS Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -314,7 +315,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
         >
           <h3 className="text-lg font-bold text-white">TIPS & TOURS</h3>
           {/* Disable Help Tours */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_DISABLE_HELP_TOURS') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_DISABLE_HELP_TOURS) && (
             <div className="flex items-center justify-between">
               <span>DISABLE HELP TOURS</span>
               <Switch
@@ -324,7 +325,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Reset All Tours */}
-          {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_RESET_ALL_TOURS') && (
+          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_RESET_ALL_TOURS) && (
             <div className="flex items-center justify-between">
               <span>RESET ALL TOURS</span>
               <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
@@ -338,7 +339,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* DEV MODE Section */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_DEV_MODE') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_DEV_MODE) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -354,7 +355,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* FAIRNESS Section (Future Feature) */}
-      {isFeatureEnabled('ENABLE_SETTINGS_OPTIONS_FAIRNESS') && (
+      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_FAIRNESS) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4 hidden" // Hidden for now
           initial={{ opacity: 0, y: -20 }}
