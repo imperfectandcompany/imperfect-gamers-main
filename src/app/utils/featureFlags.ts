@@ -133,7 +133,7 @@ export enum FeatureFlagKeys {
   // Sub-Sections and Features under SteamAuthModal
   ENABLE_STEAM_AUTH_MODAL = "ENABLE_STEAM_AUTH_MODAL",
   ENABLE_STEAM_AUTH_MODAL_ANIMATIONS = "ENABLE_STEAM_AUTH_MODAL_ANIMATIONS",
-  ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON = "ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON",
+  ENABLE_STEAM_AUTH_MODAL_RELAUNCH_BUTTON = "ENABLE_STEAM_AUTH_MODAL_RELAUNCH_BUTTON",
   ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE = "ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE",
   ENABLE_STEAM_AUTH_MODAL_FOOTER = "ENABLE_STEAM_AUTH_MODAL_FOOTER",
   ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES = "ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES",
@@ -150,6 +150,24 @@ export enum FeatureFlagKeys {
   ENABLE_CHANGELOG_VIEW_ALL = "ENABLE_CHANGELOG_VIEW_ALL",
   ENABLE_CHANGELOG_REACTIONS = "ENABLE_CHANGELOG_REACTIONS",
   ENABLE_CHANGELOG_REACTIONS_POPOVER = "ENABLE_CHANGELOG_REACTIONS_POPOVER",
+
+  // Sub-Sections and Features under Footer
+  ENABLE_FOOTER = "ENABLE_FOOTER",
+  ENABLE_FOOTER_TEXT = "ENABLE_FOOTER_TEXT",
+  ENABLE_FOOTER_ICON = "ENABLE_FOOTER_ICON",
+  ENABLE_FOOTER_ABOUT_US = "ENABLE_FOOTER_ABOUT_US",
+  ENABLE_FOOTER_QUICK_LINKS = "ENABLE_FOOTER_QUICK_LINKS",
+  ENABLE_FOOTER_COMMUNITY = "ENABLE_FOOTER_COMMUNITY",
+  ENABLE_FOOTER_LEGAL_FEEDBACK = "ENABLE_FOOTER_LEGAL_FEEDBACK",
+  ENABLE_FOOTER_SOCIAL_LINKS = "ENABLE_FOOTER_SOCIAL_LINKS",
+  ENABLE_FOOTER_COPYRIGHT = "ENABLE_FOOTER_COPYRIGHT",
+
+  // Sub-Sections and Features under CookieBanner
+  ENABLE_COOKIEBANNER = "ENABLE_COOKIEBANNER",
+  ENABLE_COOKIEBANNER_ACCEPT = "ENABLE_COOKIEBANNER_ACCEPT",
+  ENABLE_COOKIEBANNER_REJECT = "ENABLE_COOKIEBANNER_REJECT",
+  ENABLE_COOKIEBANNER_ICON = "ENABLE_COOKIEBANNER_ICON",
+  ENABLE_COOKIEBANNER_TEXT = "ENABLE_COOKIEBANNER_TEXT",
 
   // Independent Features
 }
@@ -288,7 +306,7 @@ export interface FeatureFlags {
   // Sub-Sections and Features under SteamAuthModal
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL]: boolean;
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ANIMATIONS]: boolean;
-  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON]: boolean;
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELAUNCH_BUTTON]: boolean;
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE]: boolean;
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_FOOTER]: boolean;
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES]: boolean;
@@ -306,6 +324,24 @@ export interface FeatureFlags {
   [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS]: boolean;
   [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS_POPOVER]: boolean;
 
+  // Sub-Sections and Features under Footer
+  [FeatureFlagKeys.ENABLE_FOOTER]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_TEXT]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_ICON]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_ABOUT_US]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_QUICK_LINKS]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_COMMUNITY]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_LEGAL_FEEDBACK]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_SOCIAL_LINKS]: boolean;
+  [FeatureFlagKeys.ENABLE_FOOTER_COPYRIGHT]: boolean;
+
+  // Sub-Sections and Features under CookieBanner
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER]: boolean;
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_ACCEPT]: boolean;
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_REJECT]: boolean;
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_ICON]: boolean;
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_TEXT]: boolean;
+
   // Independent Features
 }
 
@@ -317,151 +353,169 @@ export const featureFlags: FeatureFlags = {
   [FeatureFlagKeys.ENABLE_SETTINGS]: true,
 
   // Sub-Sections and Features under AuthModal
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_WELCOME_VIEW]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SIGNUP_VIEW]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_LOGIN_VIEW]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_FOOTER]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_BACK_BUTTON]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_CONTEXT_MESSAGE]: true,
-  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ERROR_MESSAGES]: true,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_WELCOME_VIEW]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SIGNUP_VIEW]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_LOGIN_VIEW]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_SETUSERNAME_VIEW]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ANIMATIONS]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_FOOTER]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_BACK_BUTTON]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_CONTEXT_MESSAGE]: false,
+  [FeatureFlagKeys.ENABLE_AUTH_MODAL_ERROR_MESSAGES]: false,
 
   // Main Tabs under ENABLE_SETTINGS
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES]: false,
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS]: false,
 
   // Sub-Sections and Features under ENABLE_SETTINGS_ACCOUNT
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_BONUS_XP]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_LEVEL_DISPLAY]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_LEVEL_CASES]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_REDEEM_REFERRAL]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_FREE_REWARDS_STATS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_SELF_LOCK]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_BONUS_XP]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_LEVEL_DISPLAY]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_LEVEL_CASES]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_REDEEM_REFERRAL]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_FREE_REWARDS_STATS]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_ACCOUNT_SELF_LOCK]: false,
 
   // Sub-Sections and Features under ENABLE_SETTINGS_SECURITY
-  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_TWO_FACTOR_AUTH]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_TWO_ACTIVE_SESSIONS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_LOGOUT_EVERYWHERE]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_TWO_FACTOR_AUTH]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_TWO_ACTIVE_SESSIONS]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_SECURITY_LOGOUT_EVERYWHERE]: false,
 
   // Sub-Sections and Features under ENABLE_SETTINGS_AFFILIATES
-  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_REFERRAL_CODE]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_AFFILIATE_STATISTICS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_RECENT_REFERRALS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_AFFILIATE_TERMS]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_REFERRAL_CODE]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_AFFILIATE_STATISTICS]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_RECENT_REFERRALS]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_AFFILIATES_AFFILIATE_TERMS]: false,
 
   // Sub-Sections and Features under ENABLE_SETTINGS_OPTIONS
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS]: false,
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_EMAIL_ADDRESS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS]: false,
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_STEAM]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE]: true,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_STEAM]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE]: false,
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_CHAT_ON_RIGHT_SIDE]:
-    true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS]: true,
+    false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS]: false,
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_DISABLE_HELP_TOURS]:
-    true,
+    false,
   [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_RESET_ALL_TOURS]:
-    true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_DEV_MODE]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_FAIRNESS]: true,
-
-  // Sub-Sections and Features under ENABLE_SETTINGS_TRANSACTIONS
-  [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_VIEW_TABLE]: true,
-  [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_PAGINATION]: true,
-
-  // Sub-Sections and Features under MainPage
-  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_LIVE_FEED]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_NEWS]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_CHANGELOG]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_STATS]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_BLOG_POSTS]: true,
-  [FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK]: true,
-
-  // Sub-Sections and Features under UserProfileCard
-  [FeatureFlagKeys.ENABLE_USERPROFILE_ACHIEVEMENTS]: true,
-  [FeatureFlagKeys.ENABLE_USERPROFILE_STATS]: true,
-  [FeatureFlagKeys.ENABLE_USERPROFILE_RANK]: true,
-
-  // Sub-Sections and Features under UserStatsCard
-  [FeatureFlagKeys.ENABLE_USERSTATS_RATING]: true,
-  [FeatureFlagKeys.ENABLE_USERSTATS_PROGRESS]: true,
-  [FeatureFlagKeys.ENABLE_USERSTATS_TOTAL_JUMPS]: true,
-  [FeatureFlagKeys.ENABLE_USERSTATS_AVG_SPEED]: true,
-  [FeatureFlagKeys.ENABLE_USERSTATS_FAVORITE_MAP]: true,
-  [FeatureFlagKeys.ENABLE_USERSTATS_RANK]: true,
-  [FeatureFlagKeys.ENABLE_USERSTATS_XP_LEVEL]: true,
-
-  // Sub-Sections and Features under ServerStatusCard
-  [FeatureFlagKeys.ENABLE_SERVERSTATUS_CARD]: true,
-  [FeatureFlagKeys.ENABLE_SERVERSTATUS_JOIN_BUTTON]: true,
-  [FeatureFlagKeys.ENABLE_SERVERSTATUS_TOOLTIPS]: true,
-
-  // Sub-Sections and Features under LiveFeedCard
-  [FeatureFlagKeys.ENABLE_LIVEFEED_CARD]: true,
-  [FeatureFlagKeys.ENABLE_LIVEFEED_DIALOG]: true,
-
-  // Sub-Sections and Features under NewsCard
-  [FeatureFlagKeys.ENABLE_NEWSCARD]: true,
-  [FeatureFlagKeys.ENABLE_NEWSCARD_VIEW_ALL]: true,
-  [FeatureFlagKeys.ENABLE_NEWSCARD_POST_LIST]: true,
-  [FeatureFlagKeys.ENABLE_NEWSCARD_REACTIONS]: true,
-  [FeatureFlagKeys.ENABLE_NEWSCARD_POPOVER]: true,
-
-  // Sub-Sections and Features under RecentPostsCard
-  [FeatureFlagKeys.ENABLE_RECENTPOSTS_CARD]: true,
-  [FeatureFlagKeys.ENABLE_RECENTPOSTS_VIEW_ALL]: true,
-  [FeatureFlagKeys.ENABLE_RECENTPOSTS_POST_LIST]: true,
-
-  // Sub-Sections and Features under QuickActionsCard
-  [FeatureFlagKeys.ENABLE_QUICKACTIONS_CARD]: true,
-  [FeatureFlagKeys.ENABLE_QUICKACTIONS_HOVER_OVERLAY]: true,
-
-  // Sub-Sections and Features under BlogPostsCard
-  [FeatureFlagKeys.ENABLE_BLOG_POSTS_CARD]: true,
-  [FeatureFlagKeys.ENABLE_BLOG_POSTS_VIEW_ALL]: true,
+    false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_DEV_MODE]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_FAIRNESS]: false,
 
   // Sub-Sections and Features under SteamAuthModal
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL]: true,
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ANIMATIONS]: true,
-  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON]: true,
+  [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELAUNCH_BUTTON]: true,
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_POPUP_FEATURE]: true,
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_FOOTER]: true,
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES]: true,
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_CONTEXT_MESSAGE]: true,
   [FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_TOASTS]: true,
 
+  // Sub-Sections and Features under ENABLE_SETTINGS_TRANSACTIONS
+  [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_VIEW_TABLE]: false,
+  [FeatureFlagKeys.ENABLE_SETTINGS_TRANSACTIONS_PAGINATION]: false,
+
+  // Sub-Sections and Features under MainPage
+  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_LIVE_FEED]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_NEWS]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_CHANGELOG]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_USER_STATS]: true,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_BLOG_POSTS]: false,
+  [FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK]: false,
+
+  // Sub-Sections and Features under UserProfileCard
+  [FeatureFlagKeys.ENABLE_USERPROFILE_ACHIEVEMENTS]: false,
+  [FeatureFlagKeys.ENABLE_USERPROFILE_STATS]: false,
+  [FeatureFlagKeys.ENABLE_USERPROFILE_RANK]: false,
+
+  // Sub-Sections and Features under UserStatsCard
+  [FeatureFlagKeys.ENABLE_USERSTATS_RATING]: false,
+  [FeatureFlagKeys.ENABLE_USERSTATS_PROGRESS]: false,
+  [FeatureFlagKeys.ENABLE_USERSTATS_TOTAL_JUMPS]: false,
+  [FeatureFlagKeys.ENABLE_USERSTATS_AVG_SPEED]: false,
+  [FeatureFlagKeys.ENABLE_USERSTATS_FAVORITE_MAP]: false,
+  [FeatureFlagKeys.ENABLE_USERSTATS_RANK]: false,
+  [FeatureFlagKeys.ENABLE_USERSTATS_XP_LEVEL]: false,
+
+  // Sub-Sections and Features under ServerStatusCard
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_CARD]: false,
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_JOIN_BUTTON]: false,
+  [FeatureFlagKeys.ENABLE_SERVERSTATUS_TOOLTIPS]: false,
+
+  // Sub-Sections and Features under LiveFeedCard
+  [FeatureFlagKeys.ENABLE_LIVEFEED_CARD]: false,
+  [FeatureFlagKeys.ENABLE_LIVEFEED_DIALOG]: false,
+
+  // Sub-Sections and Features under NewsCard
+  [FeatureFlagKeys.ENABLE_NEWSCARD]: false,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_VIEW_ALL]: false,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_POST_LIST]: false,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_REACTIONS]: false,
+  [FeatureFlagKeys.ENABLE_NEWSCARD_POPOVER]: false,
+
+  // Sub-Sections and Features under RecentPostsCard
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_CARD]: false,
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_VIEW_ALL]: false,
+  [FeatureFlagKeys.ENABLE_RECENTPOSTS_POST_LIST]: false,
+
+  // Sub-Sections and Features under QuickActionsCard
+  [FeatureFlagKeys.ENABLE_QUICKACTIONS_CARD]: false,
+  [FeatureFlagKeys.ENABLE_QUICKACTIONS_HOVER_OVERLAY]: false,
+
+  // Sub-Sections and Features under BlogPostsCard
+  [FeatureFlagKeys.ENABLE_BLOG_POSTS_CARD]: false,
+  [FeatureFlagKeys.ENABLE_BLOG_POSTS_VIEW_ALL]: false,
+
   // Sub-Sections and Features under CommunityFeedbackCard
-  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_CARD]: true,
-  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_LEAVE_REVIEW]: true,
-  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_MAKE_SUGGESTION]: true,
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_CARD]: false,
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_LEAVE_REVIEW]: false,
+  [FeatureFlagKeys.ENABLE_COMMUNITYFEEDBACK_MAKE_SUGGESTION]: false,
 
   // Sub-Sections and Features under ChangelogCard
-  [FeatureFlagKeys.ENABLE_CHANGELOG_CARD]: true,
-  [FeatureFlagKeys.ENABLE_CHANGELOG_VIEW_ALL]: true,
-  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS]: true,
-  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS_POPOVER]: true,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_CARD]: false,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_VIEW_ALL]: false,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS]: false,
+  [FeatureFlagKeys.ENABLE_CHANGELOG_REACTIONS_POPOVER]: false,
+
+  // Sub-Sections and Features under Footer
+  [FeatureFlagKeys.ENABLE_FOOTER]: true,
+  [FeatureFlagKeys.ENABLE_FOOTER_TEXT]: true,
+  [FeatureFlagKeys.ENABLE_FOOTER_ICON]: true,
+  [FeatureFlagKeys.ENABLE_FOOTER_ABOUT_US]: false,
+  [FeatureFlagKeys.ENABLE_FOOTER_QUICK_LINKS]: true,
+  [FeatureFlagKeys.ENABLE_FOOTER_COMMUNITY]: false,
+  [FeatureFlagKeys.ENABLE_FOOTER_LEGAL_FEEDBACK]: false,
+  [FeatureFlagKeys.ENABLE_FOOTER_SOCIAL_LINKS]: false,
+  [FeatureFlagKeys.ENABLE_FOOTER_COPYRIGHT]: true,
+
+  // Sub-Sections and Features under CookieBanner
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER]: false,
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_ACCEPT]: false,
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_REJECT]: false,
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_ICON]: false,
+  [FeatureFlagKeys.ENABLE_COOKIEBANNER_TEXT]: false,
 
   // Independent Features
 };

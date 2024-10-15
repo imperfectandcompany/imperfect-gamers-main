@@ -36,8 +36,8 @@ export const MainPage: React.FC<MainPageProps> = ({
   fidelity,
   shouldApplyBlur,
 }) => {
-  const blur = Math.max(20 - fidelity / 5, 0)
-  const opacity = fidelity / 100
+  const blur = Math.max(20 - fidelity / 5, 0);
+  const opacity = fidelity / 100;
   const { isLoggedIn, user, linkSteam } = useAuth();
 
   const { isFeatureEnabled } = useFeatureFlags();
@@ -197,6 +197,23 @@ export const MainPage: React.FC<MainPageProps> = ({
   const [authModalOpen, setAuthModalOpen] = useState(false);
   const [authContextMessage, setAuthContextMessage] = useState<string>("");
 
+  const [cookieAccepted, setCookieAccepted] = useState(false);
+
+  // Handlers for CookieBanner
+  const handleAcceptCookies = () => {
+    setCookieAccepted(true);
+    // TODO: Implement additional logic, such as setting cookies or making API calls
+    console.log("Cookies accepted");
+    setShowCookieBanner(false);
+  };
+
+  const handleRejectCookies = () => {
+    setCookieAccepted(false);
+    // TODO: Implement additional logic, such as disabling tracking
+    console.log("Cookies rejected");
+    setShowCookieBanner(false);
+  };
+
   const showAuthModal = (message?: string) => {
     setAuthContextMessage(message || "");
     setAuthModalOpen(true);
@@ -218,7 +235,7 @@ export const MainPage: React.FC<MainPageProps> = ({
   };
 
   const handleNewsReaction = (index: number, reactionIndex: number) => {
-    if (!handleRestrictedInteraction("steam")) return;
+    if (!handleRestrictedInteraction("onboard")) return;
 
     // Continue if authorized
     const newNewsItems = [...newsItems];
@@ -292,14 +309,19 @@ export const MainPage: React.FC<MainPageProps> = ({
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-8">
-              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE) && (
+              {isFeatureEnabled(
+                FeatureFlagKeys.ENABLE_MAINPAGE_USER_PROFILE
+              ) && (
                 <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
-                  <UserProfileCard  
+                  <UserProfileCard
                     isLoggedIn={isLoggedIn}
                     isSteamLinked={user?.isSteamLinked ?? false}
                     hasServerData={user?.hasServerData ?? false}
                     userName={user?.userName}
-                    avatarUrl={user?.avatarUrl ?? 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s'}
+                    avatarUrl={
+                      user?.avatarUrl ??
+                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s"
+                    }
                     surfMapsCompleted={user?.surfMapsCompleted}
                     totalPlaytime={user?.totalPlaytime}
                     totalMuteTime={user?.totalMuteTime}
@@ -316,9 +338,9 @@ export const MainPage: React.FC<MainPageProps> = ({
                 <LiveFeedCard recentEvents={recentEvents} />
               )}
 
-              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS) && (
-                <RecentPostsCard recentPosts={recentPosts} />
-              )}
+              {isFeatureEnabled(
+                FeatureFlagKeys.ENABLE_MAINPAGE_RECENT_POSTS
+              ) && <RecentPostsCard recentPosts={recentPosts} />}
 
               {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_NEWS) && (
                 <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
@@ -339,16 +361,18 @@ export const MainPage: React.FC<MainPageProps> = ({
               )}
             </div>
             <div className="space-y-8">
-              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS) && (
-                <QuickActionsCard />
-              )}
+              {isFeatureEnabled(
+                FeatureFlagKeys.ENABLE_MAINPAGE_QUICK_ACTIONS
+              ) && <QuickActionsCard />}
 
               {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_USER_STATS) && (
                 <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
                   <UserStatsCard
                     isLoggedIn={isLoggedIn}
                     isSteamLinked={user?.isSteamLinked ?? false}
-                    hasCompletedOnboarding={user?.hasCompletedOnboarding ?? false}
+                    hasCompletedOnboarding={
+                      user?.hasCompletedOnboarding ?? false
+                    }
                     hasServerData={user?.hasServerData ?? false}
                     userStats={
                       user && user.isSteamLinked && user.hasServerData
@@ -358,9 +382,9 @@ export const MainPage: React.FC<MainPageProps> = ({
                             progressToNextRank: user.progressToNextRank || 0,
                             totalJumps: user.totalJumps || 0,
                             avgSpeed: user.avgSpeed || 0,
-                            favoriteMap: user.favoriteMap || '',
+                            favoriteMap: user.favoriteMap || "",
                             rank: user.rank || 0,
-                            rankPercentage: user.rankPercentage || '',
+                            rankPercentage: user.rankPercentage || "",
                             xp: user.xp || 0,
                             maxXp: user.maxXp || 0,
                             level: user.level || 0,
@@ -375,11 +399,13 @@ export const MainPage: React.FC<MainPageProps> = ({
                 <BlogPostsCard blogPosts={blogPosts} />
               )}
 
-              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS) && (
-                <ServerStatusCard />
-              )}
+              {isFeatureEnabled(
+                FeatureFlagKeys.ENABLE_MAINPAGE_SERVER_STATUS
+              ) && <ServerStatusCard />}
 
-              {isFeatureEnabled(FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK) && (
+              {isFeatureEnabled(
+                FeatureFlagKeys.ENABLE_MAINPAGE_COMMUNITY_FEEDBACK
+              ) && (
                 <CommunityFeedbackCard
                   onLeaveReview={handleLeaveReview}
                   onMakeSuggestion={handleMakeSuggestion}
@@ -389,16 +415,17 @@ export const MainPage: React.FC<MainPageProps> = ({
           </div>
         </main>
         <Footer />
-
-        {showCookieBanner && (
-          <CookieBanner
-            onAccept={() => setShowCookieBanner(false)}
-            onReject={() => setShowCookieBanner(false)}
-          />
-        )}
+        {/* Conditionally render CookieBanner if cookies are not accepted */}
+        {isFeatureEnabled(FeatureFlagKeys.ENABLE_COOKIEBANNER) &&
+          showCookieBanner && (
+            <CookieBanner
+              onAccept={handleAcceptCookies}
+              onReject={handleRejectCookies}
+            />
+          )}
       </motion.div>
     </>
   );
-}
+};
 
 export default MainPage;

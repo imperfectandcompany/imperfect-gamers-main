@@ -257,7 +257,7 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
                 The authentication window was closed.
               </p>
               {isFeatureEnabled(
-                FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELUNCH_BUTTON
+                FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_RELAUNCH_BUTTON
               ) && (
                 <Button
                   onClick={() => {
