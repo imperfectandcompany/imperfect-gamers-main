@@ -1,37 +1,42 @@
 // components/Settings/tabs/OptionsTab.tsx
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Switch } from '@components/ui/switch';
-import { Slider } from '@components/ui/slider';
-import { Input } from '@components/ui/input';
-import { Button } from '@components/ui/button';
+"use client";
+
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { Switch } from "@components/ui/switch";
+import { Input } from "@components/ui/input";
+import { Button } from "@components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@components/ui/select';
-import { FeatureNotAvailable, SteamAuthModal } from '../reusable';
-import { Copy } from 'lucide-react';
-import { useAuth } from '@context/AuthContext';
-import { useFeatureFlags } from '@context/FeatureFlagContext';
-import { FeatureFlagKeys } from '@utils/featureFlags';
+} from "@components/ui/select";
+import { FeatureNotAvailable, SteamAuthModal } from "../reusable";
+import { useAuth } from "@context/AuthContext";
+import { useFeatureFlags } from "@context/FeatureFlagContext";
+import { FeatureFlagKeys } from "@utils/featureFlags";
+import ConfirmActionModal from "../../Reusable/ConfirmActionModal";
+import { Slider } from "@radix-ui/react-slider";
+import { Copy } from "lucide-react";
 
 interface OptionsTabProps {
   isSteamLinked: boolean;
   steamId: string;
-  linkSteam: (steamId: string) => void;
 }
 
-const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLinked }) => {
+const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
   const { isFeatureEnabled } = useFeatureFlags();
-  const { user } = useAuth(); // Ensure AuthContext is correctly used
+  const { unlinkSteam } = useAuth();
   const [isSteamModalOpen, setIsSteamModalOpen] = useState(false);
+  const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
   // State variables
-  const [steamTradeURL, setSteamTradeURL] = useState("https://steamcommunity.com/...");
+  const [steamTradeURL, setSteamTradeURL] = useState(
+    "https://steamcommunity.com/..."
+  );
   const [displayName, setDisplayName] = useState("CoolGuy");
   const [email, setEmail] = useState("admin@sink.gg");
   const [hideStats, setHideStats] = useState(false);
@@ -47,29 +52,40 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
   const [simplifiedBetInterface, setSimplifiedBetInterface] = useState(true);
   const [devMode, setDevMode] = useState(true);
 
+  // Handle Unlink Steam action is now managed within ConfirmActionModal
+
   return (
     <div className="space-y-6">
       {/* ACCOUNT Section */}
       {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT) && (
         <motion.div
-          className="bg-[#1a1a1a] p-4 rounded space-y-4"
+          className="bg-zinc-950/50 p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <h3 className="text-lg font-bold text-white">ACCOUNT</h3>
           {/* Steam Trade URL */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_STEAM_TRADE_URL
+          ) && (
             <div className="space-y-2">
-              <label className="block text-sm font-medium">Steam Trade URL</label>
+              <label className="block text-sm font-medium">
+                Steam Trade URL
+              </label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   value={steamTradeURL}
                   onChange={(e) => setSteamTradeURL(e.target.value)}
                   className="flex-grow bg-[#2a2a2a] border-none text-white"
                 />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">SAVE</Button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
+                    SAVE
+                  </Button>
                 </motion.div>
               </div>
               <p className="text-sm text-gray-400">
@@ -82,7 +98,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Display Name */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_DISPLAY_NAME
+          ) && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">Display Name</label>
               <div className="flex flex-col sm:flex-row gap-2">
@@ -91,8 +109,13 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
                   onChange={(e) => setDisplayName(e.target.value)}
                   className="flex-grow bg-[#2a2a2a] border-none text-white"
                 />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">SAVE</Button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
+                    SAVE
+                  </Button>
                 </motion.div>
               </div>
               <p className="text-sm text-gray-400">
@@ -101,26 +124,36 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Email Address */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_EMAIL_ADDRESS) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_EMAIL_ADDRESS
+          ) && (
             <div className="space-y-2">
               <label className="block text-sm font-medium">Email Address</label>
               <div className="flex flex-col sm:flex-row gap-2">
                 <Input
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-grow bg-[#2a2a2a] border-none text-white"
+                  className="flex-grow bg-zinc-900/35 border-zinc-900 one text-white"
                 />
-                <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                  <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">UPDATE</Button>
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Button className="bg-[#151515] hover:bg-[#202020]">
+                    UPDATE
+                  </Button>
                 </motion.div>
               </div>
               <p className="text-sm text-gray-400">
-                Receive free promo codes, important account updates, and other rewards. We don't spam!
+                Receive free promo codes, important account updates, and other
+                rewards. We don't spam!
               </p>
             </div>
           )}
           {/* Hide Stats */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_ACCOUNT_HIDE_STATS
+          ) && (
             <div className="flex items-center justify-between">
               <span>Hide stats from public</span>
               <Switch checked={hideStats} onCheckedChange={setHideStats} />
@@ -130,7 +163,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* BLOCKED USERS Section */}
-      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS) && (
+      {isFeatureEnabled(
+        FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_BLOCKED_USERS
+      ) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -146,23 +181,29 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* CONNECTIONS Section */}
-      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS) && (
+      {isFeatureEnabled(
+        FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS
+      ) && (
         <motion.div
-          className="bg-[#1a1a1a] p-4 rounded space-y-4"
+          className="bg-zinc-950/50 p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
           <h3 className="text-lg font-bold text-white">CONNECTIONS</h3>
-          <div className="flex items-center justify-between">
-            <span>Discord</span>
-            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD) ? (
+          {/* Discord Connection */}
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_DISCORD
+          ) && (
+            <div className="flex items-center justify-between">
+              <span>Discord</span>
               <FeatureNotAvailable
                 title="Discord Connection"
                 description="This feature is not available yet. We're working on it and will notify you when it's ready!"
               />
-            ) : null}
-          </div>
+            </div>
+          )}
+          {/* Steam Connection */}
           <div className="flex items-center justify-between">
             <div>
               <span className="block">Steam</span>
@@ -173,13 +214,25 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
               )}
             </div>
             {isSteamLinked ? (
-              <Button disabled className="bg-green-500 hover:bg-green-600">
-                Linked
-              </Button>
+              isFeatureEnabled(
+                FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_UNLINK_STEAM
+              ) && (
+                <>
+                  <Button
+                    className="bg-red-600 hover:bg-red-700 text-white"
+                    onClick={() => setIsConfirmModalOpen(true)}
+                  >
+                    Unlink Steam
+                  </Button>
+                </>
+              )
             ) : (
-              <>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button
-                  className="bg-[#3d3d3d] hover:bg-[#4a4a4a]"
+                  className="bg-[#151515] hover:bg-[#202020]"
                   onClick={() => setIsSteamModalOpen(true)}
                 >
                   + LINK ACCOUNT
@@ -188,10 +241,13 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
                   isOpen={isSteamModalOpen}
                   onClose={() => setIsSteamModalOpen(false)}
                 />
-              </>
+              </motion.div>
             )}
           </div>
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS) && (
+          {/* Receive Promos */}
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_CONNECTIONS_RECEIVE_PROMOS
+          ) && (
             <div className="flex items-center">
               <input
                 type="checkbox"
@@ -208,7 +264,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* USER INTERFACE Section */}
-      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE) && (
+      {isFeatureEnabled(
+        FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE
+      ) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -217,21 +275,30 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
         >
           <h3 className="text-lg font-bold text-white">USER INTERFACE</h3>
           {/* Chat on Right Side */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_CHAT_ON_RIGHT_SIDE) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_CHAT_ON_RIGHT_SIDE
+          ) && (
             <div className="flex items-center justify-between">
               <span>CHAT ON RIGHT SIDE</span>
               <Switch checked={chatOnRight} onCheckedChange={setChatOnRight} />
             </div>
           )}
           {/* Streamer Mode */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_STREAMER_MODE
+          ) && (
             <div className="flex items-center justify-between">
               <span>STREAMER MODE</span>
-              <Switch checked={streamerMode} onCheckedChange={setStreamerMode} />
+              <Switch
+                checked={streamerMode}
+                onCheckedChange={setStreamerMode}
+              />
             </div>
           )}
           {/* Language Selection */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_USER_INTERFACE_LANGUAGE
+          ) && (
             <div className="flex items-center justify-between">
               <span>LANGUAGE</span>
               <Select value={language} onValueChange={setLanguage}>
@@ -260,7 +327,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
           <h3 className="text-lg font-bold text-white">AUDIO</h3>
           <div className="space-y-4">
             {/* Main Volume */}
-            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME) && (
+            {isFeatureEnabled(
+              FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_MAIN_VOLUME
+            ) && (
               <div className="flex items-center justify-between">
                 <span>MAIN VOLUME</span>
                 <div className="w-64">
@@ -274,7 +343,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
               </div>
             )}
             {/* Live Feed Volume */}
-            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME) && (
+            {isFeatureEnabled(
+              FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_LIVE_FEED_VOLUME
+            ) && (
               <div className="flex items-center justify-between">
                 <span>LIVE FEED VOLUME</span>
                 <div className="w-64">
@@ -288,7 +359,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
               </div>
             )}
             {/* Notifications Volume */}
-            {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME) && (
+            {isFeatureEnabled(
+              FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_AUDIO_NOTIFICATIONS_VOLUME
+            ) && (
               <div className="flex items-center justify-between">
                 <span>NOTIFICATIONS VOLUME</span>
                 <div className="w-64">
@@ -306,7 +379,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
       )}
 
       {/* TIPS & TOURS Section */}
-      {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS) && (
+      {isFeatureEnabled(
+        FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS
+      ) && (
         <motion.div
           className="bg-[#1a1a1a] p-4 rounded space-y-4"
           initial={{ opacity: 0, y: -20 }}
@@ -315,7 +390,9 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
         >
           <h3 className="text-lg font-bold text-white">TIPS & TOURS</h3>
           {/* Disable Help Tours */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_DISABLE_HELP_TOURS) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_DISABLE_HELP_TOURS
+          ) && (
             <div className="flex items-center justify-between">
               <span>DISABLE HELP TOURS</span>
               <Switch
@@ -325,10 +402,15 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
             </div>
           )}
           {/* Reset All Tours */}
-          {isFeatureEnabled(FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_RESET_ALL_TOURS) && (
+          {isFeatureEnabled(
+            FeatureFlagKeys.ENABLE_SETTINGS_OPTIONS_TIPS_AND_TOURS_RESET_ALL_TOURS
+          ) && (
             <div className="flex items-center justify-between">
               <span>RESET ALL TOURS</span>
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
                   RESET TOURS
                 </Button>
@@ -377,7 +459,10 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
                 readOnly
                 className="flex-grow bg-[#2a2a2a] border-none text-white"
               />
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -394,7 +479,10 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
                 readOnly
                 className="flex-grow bg-[#2a2a2a] border-none text-white"
               />
-              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <motion.div
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
                 <Button className="bg-[#3d3d3d] hover:bg-[#4a4a4a]">
                   <Copy className="w-4 h-4" />
                 </Button>
@@ -403,6 +491,20 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ linkSteam, steamId, isSteamLink
           </div>
         </motion.div>
       )}
+
+      {/* Confirmation Modal for Unlinking Steam */}
+      <ConfirmActionModal
+        isOpen={isConfirmModalOpen}
+        onClose={() => setIsConfirmModalOpen(false)}
+        onConfirm={unlinkSteam}
+        title="Confirm Unlink Steam"
+        description="Are you sure you want to unlink your Steam account? This action cannot be undone."
+        confirmText="Unlink"
+        cancelText="Cancel"
+        successResponse="Steam account unlinked successfully!"
+        pendingResponse="Unlinking Steam..."
+        failResponse="Failed to unlink Steam account."
+      />
     </div>
   );
 };

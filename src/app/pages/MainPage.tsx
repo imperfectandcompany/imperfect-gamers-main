@@ -20,25 +20,23 @@ import Icons from "@components/Shared/Icons";
 import CommunityFeedbackCard from "../components/Cards/CommunityFeedBackCard";
 import AuthModal from "@components/Auth/AuthModal";
 import { useAuth } from "@context/AuthContext";
-import { Toaster } from "@components/ui/toaster";
 import { motion } from "framer-motion";
 import { useFeatureFlags } from "@context/FeatureFlagContext";
 import { FeatureFlagKeys } from "@utils/featureFlags";
+import { Toaster } from "sonner";
 
 interface MainPageProps {
-  isVerifying: boolean;
   fidelity: number;
   shouldApplyBlur: boolean;
 }
 
 export const MainPage: React.FC<MainPageProps> = ({
-  isVerifying,
   fidelity,
   shouldApplyBlur,
 }) => {
   const blur = Math.max(20 - fidelity / 5, 0);
   const opacity = fidelity / 100;
-  const { isLoggedIn, user, linkSteam } = useAuth();
+  const { isLoggedIn, user, unlinkSteam } = useAuth();
 
   const { isFeatureEnabled } = useFeatureFlags();
 
@@ -289,7 +287,6 @@ export const MainPage: React.FC<MainPageProps> = ({
           onClose={() => setAuthModalOpen(false)}
           contextMessage={authContextMessage}
         />
-        <Toaster /> {/* Include Toaster component */}
         <MainNavbar />
         <Header
           isLoggedIn={isLoggedIn}
@@ -297,15 +294,16 @@ export const MainPage: React.FC<MainPageProps> = ({
           steamId={String(user?.steamId ?? 0)}
           hasCompletedOnboarding={user?.hasCompletedOnboarding}
           onOpenAuthModal={showAuthModal}
-          linkSteam={linkSteam} // Add this line
-          isVerifying={isVerifying}
+          unlinkSteam={unlinkSteam}
           fidelity={fidelity}
           shouldApplyBlur={true}
         />
+        <div className="hidden">
         <AlertBanner
           title="New Challenge Available!"
           description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
         />
+          </div>
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-8">

@@ -11,7 +11,6 @@ import { Button } from "@components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@context/AuthContext";
 import { generateSteamLoginURL } from "@lib/steamAuth";
-import { toast } from "@hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import {
   Popover,
@@ -20,6 +19,7 @@ import {
 } from "@components/ui/popover";
 import { useFeatureFlags } from "@context/FeatureFlagContext";
 import { FeatureFlagKeys } from "@utils/featureFlags";
+import { showToast } from "@/app/utils/toastUtils";
 
 const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   isOpen,
@@ -38,10 +38,18 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
 
   useEffect(() => {
     let messageListener: (event: MessageEvent) => void;
+    let checkWindowClosedInterval: NodeJS.Timeout | null = null;
+    let loadingToastId: string | number | undefined = undefined;
 
     if (isOpen) {
       setAuthStatus("loading");
       const timer = setTimeout(() => setShowTrouble(true), 5000);
+      loadingToastId = showToast({
+        type: "loading",
+        message: "Launching Steam authentication...",
+        duration: 3000,
+      });
+
       launchSteamAuthWindow();
 
       messageListener = async (event: MessageEvent) => {
@@ -50,7 +58,7 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
         if (event.data.type === "steam-auth-success") {
           const steamId = event.data.steamId;
           // Proceed with linking the Steam ID
-          handleSteamAuthSuccess(steamId);
+          await handleSteamAuthSuccess(steamId, loadingToastId!);
         } else if (event.data.type === "steam-auth-error") {
           console.error("Steam authentication error:", event.data.error);
           if (
@@ -58,23 +66,49 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
               FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES
             )
           ) {
-            toast({
-              title: "Steam Authentication Error",
-              description:
-                event.data.error ||
-                "An error occurred during Steam authentication.",
-              variant: "destructive",
-            });
+            // showToast({
+            //   type: "error",
+            //   message:
+            //     event.data.error ||
+            //     "An error occurred during Steam authentication.",
+            // });
           }
           setAuthStatus("error");
+          // Update the loading toast to error
+          if (loadingToastId) {
+            // showToast({
+            //   type: "error",
+            //   message:
+            //     event.data.error ||
+            //     "An error occurred during Steam authentication.",
+            //   toastId: loadingToastId,
+            // });
+          }
         }
       };
 
       window.addEventListener("message", messageListener);
 
+      checkWindowClosedInterval = setInterval(() => {
+        if (steamWindowRef.current && steamWindowRef.current.closed) {
+          clearInterval(checkWindowClosedInterval!);
+          setWindowClosed(true);
+          setAuthStatus("idle");
+          // Update the loading toast to error if it exists
+          if (loadingToastId) {
+            showToast({
+              type: "error",
+              message: "Authentication window was closed before completion.",
+              toastId: loadingToastId,
+            });
+          }
+        }
+      }, 500);
+
       return () => {
         clearTimeout(timer);
         window.removeEventListener("message", messageListener);
+        if (checkWindowClosedInterval) clearInterval(checkWindowClosedInterval);
       };
     } else {
       setShowTrouble(false);
@@ -107,7 +141,10 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
     };
   };
 
-  const handleSteamAuthSuccess = async (steamId: string) => {
+  const handleSteamAuthSuccess = async (
+    steamId: string,
+    loadingToastId: string | number | undefined
+  ) => {
     if (steamWindowRef.current) steamWindowRef.current.close();
     try {
       // Check if Steam ID is already linked to another user
@@ -130,7 +167,7 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
         );
       }
 
-      // Call your API to link Steam account
+      // Call API to link Steam account
       const response = await fetch(
         "https://api.imperfectgamers.org/user/linkSteam",
         {
@@ -160,13 +197,20 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       );
 
       setAuthStatus("success");
+
       if (isFeatureEnabled(FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_TOASTS)) {
-        toast({
-          title: "Steam account linked successfully!",
-          description: `Your Steam ID: ${steamId}`,
+        // Update the existing loading toast to success
+        showToast({
+          type: "success",
+          message: `Steam account linked successfully! Your Steam ID: ${steamId}`,
+          toastId: loadingToastId,
         });
       }
-      onClose();
+
+      // Delay closing the modal to ensure the toast is visible
+      setTimeout(() => {
+        onClose();
+      }, 500); // Adjust the delay as needed
     } catch (error: any) {
       console.error("Error linking Steam ID:", error);
       setAuthStatus("error");
@@ -174,17 +218,18 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       const errorMessage =
         error.message || "Failed to link Steam account. Please try again.";
 
-      if (
-        isFeatureEnabled(FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES)
-      ) {
-        toast({
-          title: "Failed to link Steam account",
-          description: errorMessage,
-          variant: "destructive",
-        });
+        if (
+          isFeatureEnabled(FeatureFlagKeys.ENABLE_STEAM_AUTH_MODAL_ERROR_MESSAGES)
+        ) {
+          // Update the existing loading toast to error
+          showToast({
+            type: "error",
+            message: errorMessage,
+            toastId: loadingToastId,
+          });
+        }
       }
-    }
-  };
+    };
 
   const focusSteamWindow = () => {
     if (steamWindowRef.current && !steamWindowRef.current.closed) {

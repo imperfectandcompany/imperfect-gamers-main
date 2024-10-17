@@ -25,10 +25,9 @@ interface HeaderProps {
   isLoggedIn: boolean;
   hasCompletedOnboarding: boolean | undefined;
   onOpenAuthModal: (message?: string) => void;
-  linkSteam: (steamId: string) => void;
+  unlinkSteam: () => Promise<void>;
   isSteamLinked: boolean;
   steamId: string;
-  isVerifying: boolean;
   fidelity: number;
   shouldApplyBlur: boolean;
 }
@@ -39,8 +38,7 @@ const Header: React.FC<HeaderProps> = ({
   isSteamLinked,
   steamId,
   onOpenAuthModal,
-  linkSteam,
-  isVerifying,
+  unlinkSteam,
   fidelity,
   shouldApplyBlur,
 }) => {
@@ -186,7 +184,7 @@ const Header: React.FC<HeaderProps> = ({
       <SettingsDialog
         isSteamLinked={isSteamLinked}
         steamId={steamId}
-        linkSteam={linkSteam}
+        unlinkSteam={unlinkSteam}
         isOpen={isSettingsOpen}
         onOpenChange={setIsSettingsOpen}
         selectedTab={selectedTab}

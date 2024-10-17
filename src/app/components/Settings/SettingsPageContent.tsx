@@ -12,9 +12,8 @@ const SettingsPageContent: React.FC<{
   selectedTab: string;
   isSteamLinked: boolean;
   steamId: string;
-  // linkSteam: () => void;
-  linkSteam: (steamId: string) => void;
-}> = ({ linkSteam, steamId, isSteamLinked, selectedTab }) => {
+  unlinkSteam: () => Promise<void>;
+}> = ({ unlinkSteam, steamId, isSteamLinked, selectedTab }) => {
   const [activeTab, setActiveTab] = useState(selectedTab || "ACCOUNT");
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
@@ -68,7 +67,6 @@ const SettingsPageContent: React.FC<{
         return (
           <OptionsTab
             isSteamLinked={isSteamLinked}
-            linkSteam={linkSteam}
             steamId={steamId}
           />
         );
@@ -123,9 +121,9 @@ const SettingsPageContent: React.FC<{
   );
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-[#151515] text-gray-300 font-sans">
+    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-tr from-zinc-950 to-black/95 text-gray-300 font-sans">
       <motion.header
-        className="bg-[#1a1a1a] p-4 flex items-center justify-between z-10"
+        className="from-zinc-900/5 bg-gradient-to-l to-zinc-950 p-4 flex items-center justify-between z-10"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
@@ -154,7 +152,7 @@ const SettingsPageContent: React.FC<{
       <div className="flex flex-1 overflow-hidden">
         {!isMobile && (
           <motion.nav
-            className="w-64 bg-[#1a1a1a] p-4 overflow-y-auto"
+            className="w-64 k from-zinc-900/5 to-zinc-950 bg-gradient-to-t  p-4 overflow-y-auto"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}

@@ -24,7 +24,7 @@ const TabButton: React.FC<{
         className={`
           absolute inset-y-0 left-0 w-1 rounded-r-md
           transition-colors duration-200 ease-in-out
-          ${activeTab === tab ? "bg-[#c75d38]" : "bg-transparent"}
+          ${activeTab === tab ? "bg-[#c73838]" : "bg-transparent"}
         `}
         initial={false}
         animate={{ height: activeTab === tab ? "100%" : "0%" }}

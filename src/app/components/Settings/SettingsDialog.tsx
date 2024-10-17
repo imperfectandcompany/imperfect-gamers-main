@@ -9,12 +9,12 @@ const SettingsDialog: React.FC<{
   onOpenChange: (isOpen: boolean) => void;
   selectedTab: string;
   // linkSteam: () => void;
-  linkSteam: (steamId: string) => void;
+  unlinkSteam: () => Promise<void>;
 }> = ({
   isOpen,
   onOpenChange,
   selectedTab,
-  linkSteam,
+  unlinkSteam,
   isSteamLinked,
   steamId,
 }) => {
@@ -24,7 +24,7 @@ const SettingsDialog: React.FC<{
         <DialogContent className="flex flex-col max-w-[80vw] md:max-w-[55vw] md:w-[1200px] max-h-[80vh] p-0 focus:outline-none transition duration-200 border-zinc-800 overflow-hidden">
           <SettingsPageContent
             selectedTab={selectedTab}
-            linkSteam={linkSteam}
+            unlinkSteam={unlinkSteam}
             isSteamLinked={isSteamLinked}
             steamId={steamId}
           />
