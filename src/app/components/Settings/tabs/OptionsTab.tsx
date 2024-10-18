@@ -29,7 +29,7 @@ interface OptionsTabProps {
 
 const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
   const { isFeatureEnabled } = useFeatureFlags();
-  const { unlinkSteam } = useAuth();
+  const { unlinkSteam, getEmail } = useAuth();
   const [isSteamModalOpen, setIsSteamModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
 
@@ -38,7 +38,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
     "https://steamcommunity.com/..."
   );
   const [displayName, setDisplayName] = useState("CoolGuy");
-  const [email, setEmail] = useState("admin@sink.gg");
+  const [email, setEmail] = useState(getEmail() ?? 'admin@sink.gg');
   const [hideStats, setHideStats] = useState(false);
   const [receivePromos, setReceivePromos] = useState(true);
   const [chatOnRight, setChatOnRight] = useState(false);
@@ -144,7 +144,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
                   </Button>
                 </motion.div>
               </div>
-              <p className="text-sm text-gray-400">
+              <p className="text-sm text-gray-400 hidden">
                 Receive free promo codes, important account updates, and other
                 rewards. We don't spam!
               </p>

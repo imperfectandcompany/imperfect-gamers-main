@@ -8,6 +8,8 @@ import React, {
   useEffect,
 } from "react";
 import apiClient from "@api/apiClient";
+import { UserTest } from "../interfaces/User";
+import { PlayerRecord, PlayerStageTime } from "../interfaces/server2";
 
 // Achievement Interface
 interface Achievement {
@@ -17,7 +19,7 @@ interface Achievement {
   date: string;
 }
 
-// User Interface
+// Old User Interface (currently using so things dont break but tryna get fetchuserdata to get us data to test hten will update )
 export interface User {
   uid: number;
   email: string;
@@ -56,6 +58,7 @@ interface AuthContextType {
   login: (email: string, password: string) => Promise<User | null>;
   register: (email: string, password: string) => Promise<void>;
   logout: () => void;
+  getEmail: () => string | null;
   completeOnboarding: () => void;
   linkSteam: (steamId: string) => void;
   unlinkSteam: () => Promise<void>;
@@ -110,6 +113,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
+  const getEmail = (): string | null => {
+    return user ? user.email : null;
+  };
+
   // Verifies the token and updates the authentication state
   const verifyToken = async (token: string) => {
     setIsVerifying(true); // Start loading
@@ -137,7 +144,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         });
 
         // Fetch user data
-        await fetchUserData(uid);
+        await fetchUserData(754);
       } else {
         handleLogout();
       }
@@ -181,47 +188,99 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // Fetches user data, including onboarding status and Steam verification
-  const fetchUserData = async (uid: number): Promise<User | null> => {
+  const fetchUserData = async (uid: number) => {
     try {
-      const response = await apiClient.get("/user/onboarded");
-
-      if (response.data.status === "success") {
-        const { onboarded, username, email } = response.data;
-
-        const updatedUser: User = {
-          uid: uid,
-          email: email || "",
-          userName: username || "",
-          hasCompletedOnboarding: onboarded,
-          avatarUrl: user?.avatarUrl,
-          isSteamLinked: user?.isSteamLinked || false,
-          steamId: user?.steamId || null,
-          hasServerData: user?.hasServerData || false,
-          isDiscordLinked: user?.isDiscordLinked || false,
-          // Initialize other properties if needed
-        };
-
-        setUser(updatedUser);
-
-        setCurrentView(onboarded ? "welcome" : "setUsername");
-
-        // Verify if Steam is linked
-        await verifySteamAccount();
-
-        return updatedUser;
-      } else {
-        console.error(
-          "Failed to fetch user onboarding status:",
-          response.data.message
-        );
-        return null;
+      const response = await fetch(`/api/user/${uid}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch user data');
       }
+      const data = await response.json();
+      // Transform data as needed to fit your User interface
+      const aggregatedUser: UserTest = {
+        server1: {
+          ...data,
+          id: data.id,
+          email: data.email,
+          status: data.status,
+          admin: data.admin,
+          verified: false,
+          createdAt: data.createdAt
+        },
+        playerStats: data,
+        playerRecords: data as PlayerRecord[],
+        playerStageTimes: data as PlayerStageTime[],
+        hasServerData: !!data,
+      };
+      setIsLoggedIn(true);
+      console.log(aggregatedUser);
     } catch (error) {
-      console.error("Error fetching user data:", error);
-      return null;
+      console.error('Error in fetchUserData:', error);
+      setIsLoggedIn(false);
+      setUser(null);
     }
   };
+
+  // // Fetches user data, including onboarding status and Steam verification
+  // const fetchUserData = async (uid: number) => {
+  //   try {
+  //     // Fetch Server1 Data
+  //     const [userRows] = await poolServer1.execute<RowDataPacket[]>(
+  //       'SELECT * FROM users WHERE id = ?',
+  //       [uid]
+  //     );
+
+  //     if (!userRows.length) throw new Error('User not found');
+
+  //     const server1User = userRows[0];
+
+  //     // Fetch Profile
+  //     const [profileRows] = await poolServer1.execute<RowDataPacket[]>(
+  //       'SELECT * FROM profiles WHERE user_id = ?',
+  //       [uid]
+  //     );
+  //     const profile = profileRows[0] as Profile;
+  //     // Fetch Server2 Data
+  //     const [playerStatsRows] = await poolServer2.execute<RowDataPacket[]>(
+  //       'SELECT * FROM activity_tracking.PlayerStats WHERE SteamID = (SELECT steam_id_64 FROM profiles WHERE user_id = ?)',
+  //       [uid]
+  //     );
+  //     const playerStats = playerStatsRows[0] as PlayerStats;
+
+  //     const [playerRecordRows] = await poolServer2.execute<RowDataPacket[]>(
+  //       'SELECT * FROM activity_tracking.PlayerRecords WHERE SteamID = (SELECT steam_id_64 FROM profiles WHERE user_id = ?)',
+  //       [uid]
+  //     );
+  //     const playerRecords = playerRecordRows as RowDataPacket[];
+
+  //     const [playerStageTimeRows] = await poolServer2.execute<RowDataPacket[]>(
+  //       'SELECT * FROM activity_tracking.PlayerStageTimes WHERE SteamID = (SELECT steam_id_64 FROM profiles WHERE user_id = ?)',
+  //       [uid]
+  //     );
+
+  //     // Aggregate Data
+  //     const aggregatedUser: UserTest = {
+  //       server1: {
+  //         ...server1User,
+  //         id: server1User.id,
+  //         email: server1User.email,
+  //         status: server1User.status,
+  //         admin: server1User.admin,
+  //         verified: false,
+  //         createdAt: server1User.createdAt
+  //       },
+  //       playerStats: playerStats,
+  //       playerRecords: playerRecords as PlayerRecord[],
+  //       playerStageTimes: playerStageTimeRows as PlayerStageTime[],
+  //       hasServerData: !!playerStats,
+  //     };
+      
+
+  //   } catch (error) {
+  //     console.error('Error fetching user data:', error);
+  //     setIsLoggedIn(false);
+  //     setUser(null);
+  //   }
+  // };
 
   // Verifies if the Steam account is linked
   const verifySteamAccount = async () => {
@@ -296,7 +355,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         });
 
         setIsLoggedIn(true);
-        const updatedUser = await fetchUserData(uid);
+        const updatedUser = await fetchLoginData(uid);
 
         return updatedUser;
       } else {
@@ -319,6 +378,50 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
       throw new Error(errorMessage);
     }
   };
+
+      // Fetches user data, including onboarding status and Steam verification
+      const fetchLoginData = async (uid: number): Promise<User | null> => {
+        try {
+          const response = await apiClient.get("/user/onboarded");
+    
+          if (response.data.status === "success") {
+            const { onboarded, username, email } = response.data;
+    
+            const updatedUser: User = {
+              uid: uid,
+              email: email || "",
+              userName: username || "",
+              hasCompletedOnboarding: onboarded,
+              avatarUrl: user?.avatarUrl,
+              isSteamLinked: user?.isSteamLinked || false,
+              steamId: user?.steamId || null,
+              hasServerData: user?.hasServerData || false,
+              isDiscordLinked: user?.isDiscordLinked || false,
+              // Initialize other properties if needed
+            };
+    
+            setUser(updatedUser);
+    
+            setCurrentView(onboarded ? "welcome" : "setUsername");
+    
+            // Verify if Steam is linked
+            await verifySteamAccount();
+
+            await fetchUserData(Number(uid));
+
+            return updatedUser;
+          } else {
+            console.error(
+              "Failed to fetch user onboarding status:",
+              response.data.message
+            );
+            return null;
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+          return null;
+        }
+      };
 
   // Handles user registration
   const register = async (email: string, password: string): Promise<void> => {
@@ -518,6 +621,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         login,
         register,
         logout,
+        getEmail,
         completeOnboarding,
         linkSteam,
         unlinkSteam,

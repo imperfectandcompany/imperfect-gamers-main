@@ -35,6 +35,7 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
   const modalRef = useRef<HTMLDivElement>(null);
 
   const { isFeatureEnabled } = useFeatureFlags();
+  // todo dont remove toast instance until user leaves modal even if its not in pending (loading) and says something like authentication window was closed etc.
 
   useEffect(() => {
     let messageListener: (event: MessageEvent) => void;
@@ -53,6 +54,8 @@ const SteamAuthModal: React.FC<{ isOpen: boolean; onClose: () => void }> = ({
       launchSteamAuthWindow();
 
       messageListener = async (event: MessageEvent) => {
+        // Check if the message event's origin matches the current window's origin.
+        // If not, exit the function to prevent handling messages from untrusted sources.
         if (event.origin !== window.location.origin) return;
 
         if (event.data.type === "steam-auth-success") {

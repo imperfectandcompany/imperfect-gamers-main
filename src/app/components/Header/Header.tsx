@@ -104,7 +104,7 @@ const Header: React.FC<HeaderProps> = ({
                 >
                   <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                     <DropdownMenuTrigger asChild>
-                      <button className="flex items-center space-x-1 bg-transparent text-white hover:bg-zinc-800 px-2 py-1 rounded">
+                      <button className="flex items-center space-x-1 bg-transparent text-white hover:bg-zinc-900/80 px-2 py-1 rounded">
                         <span>{user?.userName || "User"}</span>
                         <ChevronDown
                           className={`h-4 w-4 transition-transform duration-200 ${
@@ -116,19 +116,19 @@ const Header: React.FC<HeaderProps> = ({
                     <DropdownMenuContent
                       align="end"
                       alignOffset={-4}
-                      className="w-56 bg-zinc-800 text-white border-zinc-700"
+                      className="w-56 bg-zinc-900 text-white border-zinc-950"
                     >
                       {availableTabs.filter(tab => tab.enabled).map(tab => (
                         <DropdownMenuItem
                           key={tab.key}
                           onClick={() => openSettings(tab.key)}
-                          className="focus:bg-zinc-700 focus:text-white"
+                          className="focus:bg-zinc-950/25 focus:text-white"
                         >
                           {tab.label}
                         </DropdownMenuItem>
                       ))}
                       <DropdownMenuItem
-                        className="text-red-500 focus:bg-zinc-700 focus:text-red-500"
+                        className="text-red-500 focus:bg-zinc-950/25 focus:text-red-500"
                         onSelect={handleLogout}
                       >
                         <LogOut className="mr-2 h-4 w-4" />
