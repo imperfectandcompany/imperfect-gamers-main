@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import apiClient from "@api/apiClient";
 import { UserTest } from "../interfaces/User";
-import { PlayerRecord, PlayerStageTime } from "../interfaces/server2";
+import { UserDataResponse } from "../api/user/[uid]/route";
 
 // Achievement Interface
 interface Achievement {
@@ -188,37 +188,60 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const fetchUserData = async (uid: number) => {
+  // const fetchUserData = async (uid: number) => {
+  //   try {
+  //     const response = await fetch(`/api/user/${uid}`);
+  //     if (!response.ok) {
+  //       throw new Error('Failed to fetch user data');
+  //     }
+  //     const data = await response.json();
+  //     // Transform data as needed to fit your User interface
+  //     const aggregatedUser: UserTest = {
+  //       server1: {
+  //         ...data,
+  //         id: data.id,
+  //         email: data.email,
+  //         status: data.status,
+  //         admin: data.admin,
+  //         verified: false,
+  //         createdAt: data.createdAt
+  //       },
+  //       playerStats: data,
+  //       playerRecords: data as PlayerRecord[],
+  //       playerStageTimes: data as PlayerStageTime[],
+  //       hasServerData: !!data,
+  //     };
+  //     setIsLoggedIn(true);
+  //     console.log(aggregatedUser);
+  //   } catch (error) {
+  //     console.error('Error in fetchUserData:', error);
+  //     setIsLoggedIn(false);
+  //     setUser(null);
+  //   }
+  // };
+
+  const fetchUserData = async (uid: number): Promise<UserDataResponse | null> => {
     try {
       const response = await fetch(`/api/user/${uid}`);
       if (!response.ok) {
         throw new Error('Failed to fetch user data');
       }
-      const data = await response.json();
-      // Transform data as needed to fit your User interface
-      const aggregatedUser: UserTest = {
-        server1: {
-          ...data,
-          id: data.id,
-          email: data.email,
-          status: data.status,
-          admin: data.admin,
-          verified: false,
-          createdAt: data.createdAt
-        },
-        playerStats: data,
-        playerRecords: data as PlayerRecord[],
-        playerStageTimes: data as PlayerStageTime[],
-        hasServerData: !!data,
-      };
+      const data: UserDataResponse = await response.json();
+  
+      // Do something with the data
       setIsLoggedIn(true);
-      console.log(aggregatedUser);
+      // Assuming you have a setUser function
+      console.log(data.user);
+  
+      return data;
     } catch (error) {
       console.error('Error in fetchUserData:', error);
       setIsLoggedIn(false);
       setUser(null);
+      return null;
     }
   };
+  
 
   // // Fetches user data, including onboarding status and Steam verification
   // const fetchUserData = async (uid: number) => {

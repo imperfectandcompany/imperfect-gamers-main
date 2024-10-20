@@ -170,9 +170,6 @@ export enum FeatureFlagKeys {
   ENABLE_COOKIEBANNER_ICON = "ENABLE_COOKIEBANNER_ICON",
   ENABLE_COOKIEBANNER_TEXT = "ENABLE_COOKIEBANNER_TEXT",
 
-
-
-
   // Independent Features
 }
 

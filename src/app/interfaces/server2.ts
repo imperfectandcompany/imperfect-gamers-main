@@ -1,39 +1,50 @@
 // interfaces/server2.ts
 
-export interface PlayerStats {
-    SteamID: string;
-    PlayerName?: string;
-    TimesConnected?: number;
-    LastConnected?: number;
-    GlobalPoints?: number;
-    HideTimerHud?: boolean;
-    HideKeys?: boolean;
-    SoundsEnabled?: boolean;
-    IsVip?: boolean;
-    BigGifID?: string;
-    HideJS?: boolean;
-    PlayerFov?: number;
-  }
-  
-  export interface PlayerRecord {
-    MapName: string;
-    SteamID: string;
-    PlayerName?: string;
-    TimerTicks?: number;
-    FormattedTime?: string;
-    UnixStamp?: number;
-    TimesFinished?: number;
-    LastFinished?: number;
-    Style: number;
-  }
-  
-  export interface PlayerStageTime {
-    MapName: string;
-    SteamID: string;
-    PlayerName?: string;
-    Stage: number;
-    TimerTicks?: number;
-    FormattedTime?: string;
-    Velocity?: string;
-  }
-  
+// interface PlayerReplay extends RowDataPacket {
+//     MapName: string;
+//     SteamID: string;
+//     Style: number;
+//     Replay?: string;
+//   }
+export interface GameStats {
+  globalPoints?: number;
+  rank?: number;
+  totalPlayers?: number;
+  timesConnected?: number;
+  averageTimesConnected?: number;
+  mapsCompleted?: number;
+  totalMaps?: number;
+  completionRate?: string;
+  mapsNotCompleted?: string[];
+  userRecords?: UserRecord[];
+}
+
+export interface UserRecord {
+  mapName: string;
+  style: number;
+  timerTicks: number;
+}
+
+export interface AdminData {
+  adminInfo: any[];
+  adminServers: any[];
+  bansIssued: number;
+  mutesIssued: number;
+}
+
+export interface BansData {
+  totalBans: number;
+  banRecords: any[];
+  ipBans: any[];
+  banServers: any[];
+}
+
+export interface MutesData {
+  totalMutes: number;
+  muteRecords: any[];
+  muteServers: any[];
+}
+
+export interface ServersData {
+  connectedServers: any[];
+}
