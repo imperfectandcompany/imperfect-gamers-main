@@ -8,8 +8,9 @@ import React, {
   useEffect,
 } from "react";
 import apiClient from "@api/apiClient";
-import { UserTest } from "../interfaces/User";
 import { UserDataResponse } from "../api/user/[uid]/route";
+import { GameStats } from "../interfaces/server2";
+import { Profile } from "../interfaces/server1";
 
 // Achievement Interface
 interface Achievement {
@@ -19,33 +20,21 @@ interface Achievement {
   date: string;
 }
 
-// Old User Interface (currently using so things dont break but tryna get fetchuserdata to get us data to test hten will update )
 export interface User {
-  uid: number;
-  email: string;
-  userName: string;
-  avatarUrl?: string;
-  isSteamLinked: boolean;
+  id: number;
+  email?: string;
+  status?: "online" | "away" | "offline" | "dnd";
+  admin?: boolean;
+  verified?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
+  hasCompletedOnboarding?: boolean;
+  profile?: Profile | null;
+  hasServerData?: boolean;
+  isSteamLinked?: boolean;
   steamId?: string | null;
-  hasServerData: boolean;
-  surfMapsCompleted?: number;
-  totalPlaytime?: string;
-  totalMuteTime?: string;
-  totalBans?: number;
-  rank?: number;
-  rankPercentage?: string;
-  achievements?: Achievement[];
-  rating?: number;
-  pointsToNextRank?: number;
-  progressToNextRank?: number;
-  totalJumps?: number;
-  avgSpeed?: number;
-  favoriteMap?: string;
-  xp?: number;
-  maxXp?: number;
-  level?: number;
-  isDiscordLinked: boolean;
-  hasCompletedOnboarding: boolean;
+  gameStats?: GameStats;
+  // Add other fields from UserDataResponse if necessary
 }
 
 // Auth Context Interface
@@ -97,6 +86,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 // AuthProvider component that wraps the application
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   children,
+}: {
+  children: ReactNode;
 }) => {
   // State variables
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
@@ -113,8 +104,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   }, []);
 
+  // Helper function to handle logout
+  const handleLogout = () => {
+    setUser(null);
+    setIsLoggedIn(false);
+    setCurrentView("welcome");
+    localStorage.removeItem("token");
+    localStorage.removeItem("uid");
+  };
+
   const getEmail = (): string | null => {
-    return user ? user.email : null;
+    return user && user.email !== undefined ? user.email : null;
   };
 
   // Verifies the token and updates the authentication state
@@ -127,26 +127,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           params: { token },
         }
       );
-
       if (response.data.status === "success" && response.data.uid) {
-        const uid = response.data.uid;
         setIsLoggedIn(true);
-
-        // Set initial user state
+        const id = response.data.uid;
         setUser({
-          uid,
-          email: "", // Will be fetched in fetchUserData
-          userName: "",
-          hasCompletedOnboarding: false,
-          isSteamLinked: false,
-          hasServerData: false,
-          isDiscordLinked: false,
+          id: id,
+          status: "online",
         });
 
-        // Fetch user data
-        await fetchUserData(754);
-      } else {
-        handleLogout();
+        setIsLoggedIn(true);
+        await fetchLoginData(id);
+
       }
     } catch (error) {
       console.error("Error verifying token:", error);
@@ -188,145 +179,96 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // const fetchUserData = async (uid: number) => {
-  //   try {
-  //     const response = await fetch(`/api/user/${uid}`);
-  //     if (!response.ok) {
-  //       throw new Error('Failed to fetch user data');
-  //     }
-  //     const data = await response.json();
-  //     // Transform data as needed to fit your User interface
-  //     const aggregatedUser: UserTest = {
-  //       server1: {
-  //         ...data,
-  //         id: data.id,
-  //         email: data.email,
-  //         status: data.status,
-  //         admin: data.admin,
-  //         verified: false,
-  //         createdAt: data.createdAt
-  //       },
-  //       playerStats: data,
-  //       playerRecords: data as PlayerRecord[],
-  //       playerStageTimes: data as PlayerStageTime[],
-  //       hasServerData: !!data,
-  //     };
-  //     setIsLoggedIn(true);
-  //     console.log(aggregatedUser);
-  //   } catch (error) {
-  //     console.error('Error in fetchUserData:', error);
-  //     setIsLoggedIn(false);
-  //     setUser(null);
-  //   }
-  // };
-
-  const fetchUserData = async (uid: number): Promise<UserDataResponse | null> => {
+  const fetchUserData = async (
+    uid: number
+  ): Promise<UserDataResponse | null> => {
     try {
       const response = await fetch(`/api/user/${uid}`);
       if (!response.ok) {
-        throw new Error('Failed to fetch user data');
+        throw new Error("Failed to fetch user data");
       }
       const data: UserDataResponse = await response.json();
-  
-      // Do something with the data
-      setIsLoggedIn(true);
-      // Assuming you have a setUser function
-      console.log(data.user);
-  
+
       return data;
     } catch (error) {
-      console.error('Error in fetchUserData:', error);
+      console.error("Error in fetchUserData:", error);
       setIsLoggedIn(false);
       setUser(null);
       return null;
     }
   };
-  
 
-  // // Fetches user data, including onboarding status and Steam verification
-  // const fetchUserData = async (uid: number) => {
-  //   try {
-  //     // Fetch Server1 Data
-  //     const [userRows] = await poolServer1.execute<RowDataPacket[]>(
-  //       'SELECT * FROM users WHERE id = ?',
-  //       [uid]
-  //     );
+  // Fetches server data after linking Steam
+  const fetchServerData = async (uid: number) => {
+    if (!uid) return;
+    try {
+      return await fetchUserData(uid);
+    } catch (error) {
+      console.error("Error fetching server data:", error);
+      setUser((prevUser) =>
+        prevUser
+          ? {
+              ...prevUser,
+              hasServerData: false,
+            }
+          : prevUser
+      );
+    }
+  };
 
-  //     if (!userRows.length) throw new Error('User not found');
-
-  //     const server1User = userRows[0];
-
-  //     // Fetch Profile
-  //     const [profileRows] = await poolServer1.execute<RowDataPacket[]>(
-  //       'SELECT * FROM profiles WHERE user_id = ?',
-  //       [uid]
-  //     );
-  //     const profile = profileRows[0] as Profile;
-  //     // Fetch Server2 Data
-  //     const [playerStatsRows] = await poolServer2.execute<RowDataPacket[]>(
-  //       'SELECT * FROM activity_tracking.PlayerStats WHERE SteamID = (SELECT steam_id_64 FROM profiles WHERE user_id = ?)',
-  //       [uid]
-  //     );
-  //     const playerStats = playerStatsRows[0] as PlayerStats;
-
-  //     const [playerRecordRows] = await poolServer2.execute<RowDataPacket[]>(
-  //       'SELECT * FROM activity_tracking.PlayerRecords WHERE SteamID = (SELECT steam_id_64 FROM profiles WHERE user_id = ?)',
-  //       [uid]
-  //     );
-  //     const playerRecords = playerRecordRows as RowDataPacket[];
-
-  //     const [playerStageTimeRows] = await poolServer2.execute<RowDataPacket[]>(
-  //       'SELECT * FROM activity_tracking.PlayerStageTimes WHERE SteamID = (SELECT steam_id_64 FROM profiles WHERE user_id = ?)',
-  //       [uid]
-  //     );
-
-  //     // Aggregate Data
-  //     const aggregatedUser: UserTest = {
-  //       server1: {
-  //         ...server1User,
-  //         id: server1User.id,
-  //         email: server1User.email,
-  //         status: server1User.status,
-  //         admin: server1User.admin,
-  //         verified: false,
-  //         createdAt: server1User.createdAt
-  //       },
-  //       playerStats: playerStats,
-  //       playerRecords: playerRecords as PlayerRecord[],
-  //       playerStageTimes: playerStageTimeRows as PlayerStageTime[],
-  //       hasServerData: !!playerStats,
-  //     };
-      
-
-  //   } catch (error) {
-  //     console.error('Error fetching user data:', error);
-  //     setIsLoggedIn(false);
-  //     setUser(null);
-  //   }
-  // };
-
-  // Verifies if the Steam account is linked
-  const verifySteamAccount = async () => {
+    // Verifies if the Steam account is linked
+  const verifySteamAccount = async (uid: number) => {
     try {
       const response = await apiClient.post("/user/verifySteam");
-
+  
       if (response.data.status === "success") {
-        const { hasSteam, steamId } = response.data;
+        const { steamId } = response.data;
+  
         setUser((prevUser) =>
           prevUser
             ? {
                 ...prevUser,
-                isSteamLinked: hasSteam,
+                isSteamLinked: true,
                 steamId: steamId || null,
               }
             : prevUser
         );
-        if (hasSteam) {
-          // Fetch server data if Steam is linked
-          await fetchServerData(steamId);
+        if (uid) {
+          const userData = await fetchServerData(uid);
+          if (userData) {
+            const updatedUser: User = {
+              ...userData.user,
+              hasServerData: true,
+              profile: userData.user.profile
+                ? {
+                    ...userData.user.profile,
+                    bio_short: userData.user.profile.bio_short,
+                  }
+                : null,
+              gameStats: {
+                globalPoints: userData.gameStats?.globalPoints,
+                rank: userData.gameStats?.rank,
+                totalPlayers: userData.gameStats?.totalPlayers,
+                timesConnected: userData.gameStats?.timesConnected,
+                averageTimesConnected: userData.gameStats?.averageTimesConnected,
+                mapsCompleted: userData.gameStats?.mapsCompleted,
+                totalMaps: userData.gameStats?.totalMaps,
+                completionRate: userData.gameStats?.completionRate,
+              },
+              status: userData.user.status as
+                | "online"
+                | "away"
+                | "offline"
+                | "dnd"
+                | undefined,
+            };
+            setUser(updatedUser);
+          }
+        } else {
+          console.error("User ID not available");
         }
       } else {
-        console.error("Failed to verify Steam account:", response.data.message);
+        console.error("Failed to verify Steam account:", response.data.error);
         setUser((prevUser) =>
           prevUser
             ? {
@@ -368,19 +310,15 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         localStorage.setItem("uid", uid.toString());
 
         setUser({
-          uid,
+          id: uid,
           email,
-          userName: "",
-          hasCompletedOnboarding: false,
-          isSteamLinked: false,
-          hasServerData: false,
-          isDiscordLinked: false,
+          status: "online",
         });
 
         setIsLoggedIn(true);
         const updatedUser = await fetchLoginData(uid);
 
-        return updatedUser;
+        return user;
       } else {
         console.error("Login failed:", response.data.message);
         throw new Error(response.data.message || "Login failed.");
@@ -402,49 +340,45 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-      // Fetches user data, including onboarding status and Steam verification
-      const fetchLoginData = async (uid: number): Promise<User | null> => {
-        try {
-          const response = await apiClient.get("/user/onboarded");
-    
-          if (response.data.status === "success") {
-            const { onboarded, username, email } = response.data;
-    
-            const updatedUser: User = {
-              uid: uid,
-              email: email || "",
-              userName: username || "",
-              hasCompletedOnboarding: onboarded,
-              avatarUrl: user?.avatarUrl,
-              isSteamLinked: user?.isSteamLinked || false,
-              steamId: user?.steamId || null,
-              hasServerData: user?.hasServerData || false,
-              isDiscordLinked: user?.isDiscordLinked || false,
-              // Initialize other properties if needed
-            };
-    
-            setUser(updatedUser);
-    
-            setCurrentView(onboarded ? "welcome" : "setUsername");
-    
-            // Verify if Steam is linked
-            await verifySteamAccount();
+  // Fetches user data, including onboarding status and Steam verification
+  const fetchLoginData = async (uid: number): Promise<User | null> => {
+    try {
+      const response = await apiClient.get("/user/onboarded");
 
-            await fetchUserData(Number(uid));
+      if (response.data.status === "success") {
+        const { onboarded, username, email } = response.data;
+        const updatedUser: User = {
+          id: uid,
+          email: email,
+          status: "online",
+          profile: {
+            ...user?.profile,
+            username: username || "", // Ensure username is a string
+            constructor: { name: "RowDataPacket" }, // Ensure constructor is defined
+          },
+          hasCompletedOnboarding: onboarded,
+        };
 
-            return updatedUser;
-          } else {
-            console.error(
-              "Failed to fetch user onboarding status:",
-              response.data.message
-            );
-            return null;
-          }
-        } catch (error) {
-          console.error("Error fetching user data:", error);
-          return null;
-        }
-      };
+        setUser(updatedUser);
+
+        setCurrentView(onboarded ? "welcome" : "setUsername");
+
+        // Verify if Steam is linked
+        await verifySteamAccount(uid);
+
+        return updatedUser;
+      } else {
+        console.error(
+          "Failed to fetch user onboarding status:",
+          response.data.message
+        );
+        return null;
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      return null;
+    }
+  };
 
   // Handles user registration
   const register = async (email: string, password: string): Promise<void> => {
@@ -534,49 +468,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  // Fetches server data after linking Steam
-  const fetchServerData = async (steamId: string) => {
-    if (!user || !steamId) return;
-    try {
-      const response = await apiClient.get(`/user/serverData/${steamId}`);
-
-      if (response.data.status === "success") {
-        const serverData = response.data.data;
-        setUser((prevUser) =>
-          prevUser
-            ? {
-                ...prevUser,
-                hasServerData: true,
-                totalBans: serverData.totalBans,
-                favoriteMap: serverData.favoriteMap,
-                // Update other server-related properties here
-              }
-            : prevUser
-        );
-      } else {
-        console.error("Failed to fetch server data:", response.data.message);
-        setUser((prevUser) =>
-          prevUser
-            ? {
-                ...prevUser,
-                hasServerData: false,
-              }
-            : prevUser
-        );
-      }
-    } catch (error) {
-      console.error("Error fetching server data:", error);
-      setUser((prevUser) =>
-        prevUser
-          ? {
-              ...prevUser,
-              hasServerData: false,
-            }
-          : prevUser
-      );
-    }
-  };
-
   // Handles linking the Steam account
   const linkSteam = async (steamId: string) => {
     setUser((prevUser) =>
@@ -589,7 +480,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         : prevUser
     );
     // Fetch server data if needed
-    await fetchServerData(steamId);
+    if (!user || !user.id) return;
+    await fetchServerData(user.id);
   };
 
   // Handles linking the Discord account
@@ -609,15 +501,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
   const logout = () => {
     handleLogout();
     // TODO: Call logout endpoint to invalidate token on the server
-  };
-
-  // Helper function to handle logout
-  const handleLogout = () => {
-    setUser(null);
-    setIsLoggedIn(false);
-    setCurrentView("welcome");
-    localStorage.removeItem("token");
-    localStorage.removeItem("uid");
   };
 
   // Marks the onboarding process as complete
@@ -651,10 +534,10 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
         linkDiscord,
         setCurrentView,
         setErrorMessage,
-        checkUsernameExistence,
         changeUsername,
-        isVerifying,
+        checkUsernameExistence,
         setIsVerifying,
+        isVerifying,
       }}
     >
       {children}

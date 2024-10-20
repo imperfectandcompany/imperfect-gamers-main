@@ -13,26 +13,19 @@ export interface User extends RowDataPacket {
   createdAt: string;
 }
 
-// interface PlayerReplay extends RowDataPacket {
-//     MapName: string;
-//     SteamID: string;
-//     Style: number;
-//     Replay?: string;
-//   }
-
 export interface Profile {
-  username: string;
-  bio_short: string;
-  avatar: string;
+  username?: string;
+  bio_short?: string;
+  avatar?: string;
   steam_id?: string;
   steam_id_64?: string;
   steam_id_3?: string;
 }
 
 export interface Profile extends RowDataPacket {
-  username: string;
-  bio_short: string;
-  avatar: string;
+  username?: string;
+  bio_short?: string;
+  avatar?: string;
   steam_id?: string;
   steam_id_64?: string;
   steam_id_3?: string;
