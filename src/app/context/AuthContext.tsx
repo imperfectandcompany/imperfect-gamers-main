@@ -271,7 +271,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                     globalPoints: userData.user.gameStats?.globalPoints ?? 0,
                     timesConnected: userData.user.gameStats?.timesConnected ?? 0,
                     mapsCompleted: userData.user.gameStats?.mapsCompleted ?? 0,
-                    userRecords: userData.user.gameStats?.userRecords ?? [],
+                    mapRecords: userData.user.gameStats?.mapRecords ?? {},
                     totalMaps: userData.user.gameStats?.totalMaps ?? 0,
                     completionRate: userData.user.gameStats?.completionRate ?? 'fw',
                   },

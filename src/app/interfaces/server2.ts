@@ -7,48 +7,8 @@ export interface GameStats extends SharpTimerPlayerStat { // Extend GameStats fr
     mapsCompleted: number;
     totalMaps: number;
     completionRate: string; // e.g., "75.00%"
-    userRecords: UserRecord[];
+    mapRecords: { [mapName: string]: UserRecord[] }; // mapName as key, UserRecord array as value
     playerModelChanger?: PlayerModelChanger;
-}
-
-/**
- * Represents a user's record in a specific map.
- */
-export interface UserRecord {
-    mapName: string;
-    steamId: string;
-    playerName: string;
-    timerTicks: number;
-    formattedTime: string;
-    unixStamp: number;   // Unix timestamp
-    timesFinished: number;
-    lastFinished: number;  // Unix timestamp
-    style: number;
-    stageTimes?: PlayerStageTime[]; // Array of PlayerStageTime associated with this record
-}
-
-/**
- * Represents the time a player spent on a particular stage.
- */
-export interface PlayerStageTime {
-    mapName: string;
-    steamId: string;
-    playerName: string;
-    stage: number;
-    timerTicks: number;
-    formattedTime: string;
-    velocity: string;
-}
-
-/**
- * Represents changes to a player's model in the game.
- */
-export interface PlayerModelChanger {
-    steamId: string;
-    tModel: string;
-    ctModel: string;
-    tPermissionBypass: boolean;
-    ctPermissionBypass: boolean;
 }
 
 /**
@@ -67,7 +27,52 @@ export interface SharpTimerPlayerStat {
     bigGifId: string;
     hideJs: boolean;
     playerFov: number;
+  }
+
+/**
+ * Represents a user's record in a specific map or bonus.
+ */
+export interface UserRecord {
+    mapName: string;         // Name of the map (could be a base map or bonus map)
+    parentMapName?: string;  // Name of the parent map, if this is a bonus map
+    isBonus: boolean;        // Flag to indicate if this record belongs to a bonus map
+    steamId: string;
+    playerName: string;
+    timerTicks: number;
+    formattedTime: string;
+    unixStamp: number;   // Unix timestamp of when the record was set
+    timesFinished: number;
+    lastFinished: number;  // Unix timestamp of the last time the player finished the map
+    style: number;         // Game style used for this record (e.g., Normal, Low Gravity)
+    stageTimes?: PlayerStageTime[]; // Array of PlayerStageTime associated with this record
+  }
+
+/**
+ * Represents the time a player spent on a particular stage.
+ */
+export interface PlayerStageTime {
+    mapName: string;
+    steamId: string;
+    playerName: string;
+    stage: number;           // Stage number within the map
+    timerTicks: number;      // Time spent on this stage
+    formattedTime: string;
+    velocity: string;        // Player's velocity during this stage
+  }
+
+
+/**
+ * Represents changes to a player's model in the game.
+ */
+export interface PlayerModelChanger {
+    steamId: string;
+    tModel: string;
+    ctModel: string;
+    tPermissionBypass: boolean;
+    ctPermissionBypass: boolean;
 }
+
+
 
 /**
  * Represents information about an admin.
@@ -156,7 +161,6 @@ export interface ServerInfo {
     name: string;
     status: string;
     ip: string;
-    // Add other relevant properties as needed
 }
 
 /**

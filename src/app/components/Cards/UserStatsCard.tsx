@@ -154,7 +154,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
           <div className="bg-zinc-900 p-4 rounded-lg">
             <p className="text-sm font-semibold mb-2">User Records:</p>
             <ul className="list-disc list-inside text-zinc-400 max-h-60 overflow-y-auto">
-              {gameStats.userRecords.map(
+              {gameStats.mapRecords.map(
                 (record: UserRecord, index: number) => (
                   <li key={index} className="mb-2">
                     <strong>{record.mapName}</strong> - Style: {record.style} -
