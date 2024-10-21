@@ -9,19 +9,27 @@ import React, {
 } from "react";
 import apiClient from "@api/apiClient";
 import { UserDataResponse } from "../api/user/[uid]/route";
-import { GameStats } from "../interfaces/server2";
-import { Profile } from "../interfaces/server1";
+import {
+  AdminData,
+  BansData,
+  GameStats,
+  MutesData,
+  ServersData,
+} from "../interfaces/server2";
+import {
+  ActivityLog,
+  CheckoutDetail,
+  Device,
+  DeviceUsed,
+  LoginLog,
+  LoginToken,
+  Payment,
+  Profile,
+} from "../interfaces/server1";
 
-// Achievement Interface
-interface Achievement {
-  icon: string;
-  title: string;
-  description: string;
-  date: string;
-}
-
+// User Interface
 export interface User {
-  id: number;
+  id?: number;
   email?: string;
   status?: "online" | "away" | "offline" | "dnd";
   admin?: boolean;
@@ -34,7 +42,20 @@ export interface User {
   isSteamLinked?: boolean;
   steamId?: string | null;
   gameStats?: GameStats;
-  // Add other fields from UserDataResponse if necessary
+  activityLogs?: ActivityLog[];
+  devices?: Device[];
+  loginLogs?: LoginLog[];
+  loginTokens?: LoginToken[];
+  paymentsMade?: Payment[];
+  paymentsReceived?: Payment[];
+  checkoutDetails?: CheckoutDetail[];
+  adminData?: AdminData;
+  bansData?: BansData;
+  mutesData?: MutesData;
+  serversData?: ServersData;
+  potentialAltAccounts?: string[];
+  devicesUsed?: DeviceUsed[];
+  recentActivity?: ActivityLog[];
 }
 
 // Auth Context Interface
@@ -137,7 +158,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
 
         setIsLoggedIn(true);
         await fetchLoginData(id);
-
       }
     } catch (error) {
       console.error("Error verifying token:", error);
@@ -183,7 +203,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     uid: number
   ): Promise<UserDataResponse | null> => {
     try {
-      const response = await fetch(`/api/user/${uid}`);
+      const response = await fetch(`/api/user/754`);
       if (!response.ok) {
         throw new Error("Failed to fetch user data");
       }
@@ -216,28 +236,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-    // Verifies if the Steam account is linked
+  // Verifies if the Steam account is linked
   const verifySteamAccount = async (uid: number) => {
     try {
       const response = await apiClient.post("/user/verifySteam");
-  
+
       if (response.data.status === "success") {
-        const { steamId } = response.data;
-  
-        setUser((prevUser) =>
-          prevUser
-            ? {
-                ...prevUser,
-                isSteamLinked: true,
-                steamId: steamId || null,
-              }
-            : prevUser
-        );
         if (uid) {
           const userData = await fetchServerData(uid);
           if (userData) {
             const updatedUser: User = {
-              ...userData.user,
+              ...user,
+              hasCompletedOnboarding: true,
+              isSteamLinked: true,
+              steamId: userData.user.profile?.steam_id || null,
               hasServerData: true,
               profile: userData.user.profile
                 ? {
@@ -245,17 +257,39 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                     bio_short: userData.user.profile.bio_short,
                   }
                 : null,
-              gameStats: {
-                globalPoints: userData.gameStats?.globalPoints,
-                rank: userData.gameStats?.rank,
-                totalPlayers: userData.gameStats?.totalPlayers,
-                timesConnected: userData.gameStats?.timesConnected,
-                averageTimesConnected: userData.gameStats?.averageTimesConnected,
-                mapsCompleted: userData.gameStats?.mapsCompleted,
-                totalMaps: userData.gameStats?.totalMaps,
-                completionRate: userData.gameStats?.completionRate,
-              },
-              status: userData.user.status as
+              gameStats:  {
+                    steamId: userData.user.gameStats?.steamId ?? '',
+                    playerName: userData.user.gameStats?.playerName ?? '',
+                    lastConnected: userData.user.gameStats?.lastConnected ?? 0,
+                    hideTimerHud: userData.user.gameStats?.hideTimerHud ?? false,
+                    hideJs: userData.user.gameStats?.hideJs ?? false,
+                    playerFov: userData.user.gameStats?.playerFov ?? 0,
+                    hideKeys: userData.user.gameStats?.hideKeys ?? false,
+                    soundsEnabled: userData.user.gameStats?.soundsEnabled ?? false,
+                    isVip: userData.user.gameStats?.isVip ?? false,
+                    bigGifId: userData.user.gameStats?.bigGifId ?? '',
+                    globalPoints: userData.user.gameStats?.globalPoints ?? 0,
+                    timesConnected: userData.user.gameStats?.timesConnected ?? 0,
+                    mapsCompleted: userData.user.gameStats?.mapsCompleted ?? 0,
+                    userRecords: userData.user.gameStats?.userRecords ?? [],
+                    totalMaps: userData.user.gameStats?.totalMaps ?? 0,
+                    completionRate: userData.user.gameStats?.completionRate ?? 'fw',
+                  },
+              activityLogs: userData.activity?.logs || [],
+              devices: userData.activity?.devices || [],
+              loginLogs: userData.activity?.loginLogs || [],
+              loginTokens: userData.activity?.loginTokens || [],
+              paymentsMade: userData.payments?.made || [],
+              paymentsReceived: userData.payments?.received || [],
+              checkoutDetails: userData.payments?.checkoutDetails || [],
+              adminData: userData.adminData,
+              bansData: userData.bans,
+              mutesData: userData.mutes,
+              serversData: userData.servers,
+              potentialAltAccounts: userData.potentialAltAccounts || [],
+              devicesUsed: userData.devicesUsed || [],
+              recentActivity: userData.recentActivity || [],
+              status: userData.user.status as unknown as
                 | "online"
                 | "away"
                 | "offline"
@@ -263,6 +297,27 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                 | undefined,
             };
             setUser(updatedUser);
+          } else {
+            const { steamId } = response.data;
+
+            const updatedUser: User = {
+              ...user,
+              hasCompletedOnboarding: true,
+              isSteamLinked: true,
+              steamId: steamId || null,
+              id: uid,
+            };
+
+            setUser(updatedUser);
+            // setUser((prevUser) =>
+            //   prevUser
+            //     ? {
+            //         ...prevUser,
+            //         isSteamLinked: true,
+            //         steamId: steamId || null,
+            //       }
+            //     : prevUser
+            // );
           }
         } else {
           console.error("User ID not available");
@@ -354,7 +409,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           profile: {
             ...user?.profile,
             username: username || "", // Ensure username is a string
-            constructor: { name: "RowDataPacket" }, // Ensure constructor is defined
           },
           hasCompletedOnboarding: onboarded,
         };

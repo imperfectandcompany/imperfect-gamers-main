@@ -2,27 +2,33 @@ import { NextResponse } from "next/server";
 import poolServer1 from "@/app/lib/dbServer1";
 import { poolServer2 } from "@/app/lib/dbServer2";
 import { RowDataPacket } from "mysql2";
+
 import {
   User,
-  UserProfile,
+  Profile,
   ActivityLog,
   Device,
+  DeviceIP,
   LoginLog,
   LoginToken,
   Payment,
   CheckoutDetail,
   DeviceUsed,
-  Profile,
-  DeviceIP,
-  AdditionalData,
 } from "@/app/interfaces/server1";
 import {
   GameStats,
+  UserRecord,
   AdminData,
   BansData,
   MutesData,
   ServersData,
+  AdminInfo,
+  BanRecord,
+  MuteRecord,
+  ServerInfo,
+  PlayerStageTime,
 } from "@/app/interfaces/server2";
+import { UserProfile } from "@/app/interfaces/UserDataResponse";
 
 export interface UserDataResponse {
   user: UserProfile;
@@ -37,31 +43,30 @@ export interface UserDataResponse {
     received?: Payment[];
     checkoutDetails?: CheckoutDetail[];
   };
-  gameStats?: GameStats;
   adminData?: AdminData;
   bans?: BansData;
   mutes?: MutesData;
   servers?: ServersData;
-  // AdditionalData fields
   potentialAltAccounts?: string[];
   devicesUsed?: DeviceUsed[];
   recentActivity?: ActivityLog[];
 }
+
 // Fetch configuration flags
 const fetchConfig = {
   fetchProfile: true,
-  fetchActivityLog: true,
-  fetchDevices: true,
-  fetchLoginLogs: true,
-  fetchLoginTokens: true,
-  fetchPayments: true,
-  fetchCheckoutDetails: true,
+  fetchActivityLog: false,
+  fetchDevices: false,
+  fetchLoginLogs: false,
+  fetchLoginTokens: false,
+  fetchPayments: false,
+  fetchCheckoutDetails: false,
   fetchGameStats: true,
-  fetchAdminData: true,
-  fetchBansData: true,
-  fetchMutesData: true,
-  fetchServersData: true,
-  fetchAdditionalData: true,
+  fetchAdminData: false,
+  fetchBansData: false,
+  fetchMutesData: false,
+  fetchServersData: false,
+  fetchAdditionalData: false,
 };
 
 // Dependencies between fetchConfig flags
@@ -118,10 +123,10 @@ export async function GET(
     // Fetch user data from Server1
     let user: User;
     try {
-      const [userRows] = await poolServer1.execute<User[]>(
-        "SELECT id, email, status, admin, verified, createdAt, updatedAt FROM users WHERE id = ?",
+      const [userRows] = (await poolServer1.execute<RowDataPacket[]>(
+        "SELECT id, email, status, admin, verified, createdAt FROM users WHERE id = ?",
         [uid]
-      );
+      )) as unknown as [User[]];
 
       if (userRows.length === 0) {
         return NextResponse.json({ error: "User not found" }, { status: 404 });
@@ -131,7 +136,7 @@ export async function GET(
     } catch (error) {
       console.error("Error fetching user data from Server1:", {
         query:
-          "SELECT id, email, status, admin, verified, createdAt, updatedAt FROM users WHERE id = ?",
+          "SELECT id, email, status, admin, verified, createdAt FROM users WHERE id = ?",
         params: [uid],
         error,
       });
@@ -157,10 +162,10 @@ export async function GET(
     if (fetchConfig.fetchProfile) {
       // Fetch profile data
       try {
-        const [profileRows] = await poolServer1.execute<Profile[]>(
+        const [profileRows] = (await poolServer1.execute<RowDataPacket[]>(
           "SELECT username, bio_short, avatar, steam_id, steam_id_64, steam_id_3 FROM profiles WHERE user_id = ?",
           [uid]
-        );
+        )) as unknown as [Profile[]];
 
         profile = profileRows[0] || null;
       } catch (error) {
@@ -177,14 +182,15 @@ export async function GET(
     if (fetchConfig.fetchActivityLog) {
       // Fetch activity_log
       try {
-        const [activityRows] = await poolServer1.execute<ActivityLog[]>(
-          "SELECT * FROM activity_log WHERE user_id = ?",
+        const [activityRows] = (await poolServer1.execute<RowDataPacket[]>(
+          "SELECT id, user_id, action, activity_data, created_at, location FROM activity_log WHERE user_id = ?",
           [uid]
-        );
+        )) as unknown as [ActivityLog[]];
         activityLogRows = activityRows;
       } catch (error) {
         console.error("Error fetching activity log from Server1:", {
-          query: "SELECT * FROM activity_log WHERE user_id = ?",
+          query:
+            "SELECT id, user_id, action, activity_data, created_at, location FROM activity_log WHERE user_id = ?",
           params: [uid],
           error,
         });
@@ -195,19 +201,19 @@ export async function GET(
     if (fetchConfig.fetchDevices) {
       // Fetch devices and associated IPs
       try {
-        const [deviceRows] = await poolServer1.execute<RowDataPacket[]>(
-          "SELECT id, device_name, first_login, last_login, is_logged_in FROM devices WHERE user_id = ?",
+        const [deviceRows] = (await poolServer1.execute<RowDataPacket[]>(
+          "SELECT id, user_id, device_name, first_login, last_login, is_logged_in FROM devices WHERE user_id = ?",
           [uid]
-        );
+        )) as unknown as [Omit<Device, "ips">[]];
 
         // For each device, fetch device_ips
         devicesWithIPs = await Promise.all(
-          deviceRows.map(async (device: Omit<Device, "ips">) => {
+          deviceRows.map(async (device) => {
             try {
-              const [ipRows] = await poolServer1.execute<DeviceIP[]>(
+              const [ipRows] = (await poolServer1.execute<RowDataPacket[]>(
                 "SELECT id, device_id, ip_address, created_at FROM device_ips WHERE device_id = ?",
                 [device.id]
-              );
+              )) as unknown as [DeviceIP[]];
 
               return {
                 ...device,
@@ -238,7 +244,7 @@ export async function GET(
       } catch (error) {
         console.error("Error fetching devices from Server1:", {
           query:
-            "SELECT id, device_name, first_login, last_login, is_logged_in FROM devices WHERE user_id = ?",
+            "SELECT id, user_id, device_name, first_login, last_login, is_logged_in FROM devices WHERE user_id = ?",
           params: [uid],
           error,
         });
@@ -250,15 +256,16 @@ export async function GET(
     if (fetchConfig.fetchLoginLogs) {
       // Also collect IPs from login_logs
       try {
-        const [loginLogs] = await poolServer1.execute<LoginLog[]>(
-          "SELECT * FROM login_logs WHERE user_id = ?",
+        const [loginLogs] = (await poolServer1.execute<RowDataPacket[]>(
+          "SELECT id, user_id, device_id, ip_address, timestamp, success FROM login_logs WHERE user_id = ?",
           [uid]
-        );
+        )) as unknown as [LoginLog[]];
         loginLogRows = loginLogs;
         loginIPs = loginLogRows.map((log) => log.ip_address);
       } catch (error) {
         console.error("Error fetching login logs from Server1:", {
-          query: "SELECT * FROM login_logs WHERE user_id = ?",
+          query:
+            "SELECT id, user_id, device_id, ip_address, timestamp, success FROM login_logs WHERE user_id = ?",
           params: [uid],
           error,
         });
@@ -275,14 +282,15 @@ export async function GET(
     if (fetchConfig.fetchLoginTokens) {
       try {
         // Fetch login_tokens
-        const [tokens] = await poolServer1.execute<LoginToken[]>(
-          "SELECT * FROM login_tokens WHERE user_id = ?",
+        const [tokens] = (await poolServer1.execute<RowDataPacket[]>(
+          "SELECT id, user_id, token, device_id, expiration_time FROM login_tokens WHERE user_id = ?",
           [uid]
-        );
+        )) as unknown as [LoginToken[]];
         loginTokenRows = tokens;
       } catch (error) {
         console.error("Error fetching login tokens from Server1:", {
-          query: "SELECT * FROM login_tokens WHERE user_id = ?",
+          query:
+            "SELECT id, user_id, token, device_id, expiration_time FROM login_tokens WHERE user_id = ?",
           params: [uid],
           error,
         });
@@ -293,15 +301,15 @@ export async function GET(
     if (fetchConfig.fetchPayments) {
       try {
         // Fetch payments where user is payer or recipient
-        const [payments] = await poolServer1.execute<Payment[]>(
-          "SELECT * FROM payments WHERE payer_user_id = ? OR recipient_user_id = ?",
+        const [payments] = (await poolServer1.execute<RowDataPacket[]>(
+          "SELECT id, payer_user_id, recipient_user_id, transaction_email, amount, currency, payment_method, status, created_at, updated_at, payment_data FROM payments WHERE payer_user_id = ? OR recipient_user_id = ?",
           [uid, uid]
-        );
+        )) as unknown as [Payment[]];
         paymentRows = payments;
       } catch (error) {
         console.error("Error fetching payments from Server1:", {
           query:
-            "SELECT * FROM payments WHERE payer_user_id = ? OR recipient_user_id = ?",
+            "SELECT id, payer_user_id, recipient_user_id, transaction_email, amount, currency, payment_method, status, created_at, updated_at, payment_data FROM payments WHERE payer_user_id = ? OR recipient_user_id = ?",
           params: [uid, uid],
           error,
         });
@@ -312,14 +320,15 @@ export async function GET(
     if (fetchConfig.fetchCheckoutDetails) {
       try {
         // Fetch user_checkout_details
-        const [checkouts] = await poolServer1.execute<CheckoutDetail[]>(
-          "SELECT * FROM user_checkout_details WHERE user_id = ?",
+        const [checkouts] = (await poolServer1.execute<RowDataPacket[]>(
+          "SELECT id, user_id, basket_id, package_id, checkout_url, created_at, updated_at FROM user_checkout_details WHERE user_id = ?",
           [uid]
-        );
+        )) as unknown as [CheckoutDetail[]];
         checkoutRows = checkouts;
       } catch (error) {
         console.error("Error fetching checkout details from Server1:", {
-          query: "SELECT * FROM user_checkout_details WHERE user_id = ?",
+          query:
+            "SELECT id, user_id, basket_id, package_id, checkout_url, created_at, updated_at FROM user_checkout_details WHERE user_id = ?",
           params: [uid],
           error,
         });
@@ -328,43 +337,15 @@ export async function GET(
     }
 
     // Prepare data from Server2
-    let additionalData: AdditionalData = {
-      potentialAltAccounts: [],
-      devicesUsed: [],
-      recentActivity: [],
-    };
-    let gameStats: GameStats = {};
-    let adminData: AdminData = {
-      adminInfo: [],
-      adminServers: [],
-      bansIssued: 0,
-      mutesIssued: 0,
-    };
-    let bansData: BansData = {
-      totalBans: 0,
-      banRecords: [],
-      ipBans: [],
-      banServers: [],
-    };
-    let mutesData: MutesData = {
-      totalMutes: 0,
-      muteRecords: [],
-      muteServers: [],
-    };
-    let serversData: ServersData = {
-      connectedServers: [],
-    };
+    let gameStats: GameStats | undefined = undefined;
+    let adminData: AdminData | undefined = undefined;
+    let bansData: BansData | undefined = undefined;
+    let mutesData: MutesData | undefined = undefined;
+    let serversData: ServersData | undefined = undefined;
 
-    // Variables needed outside the scope
-    let playermodelRows: any[] = [];
-    let activityPlayerRecordsRows: any[] = [];
-    let userActivityRows: any[] = [];
-    let ipUserActivityRows: any[] = [];
-
-    let playerStatsRows: any[] = [];
-    let sharptimerPlayerRecordsRows: any[] = [];
-    let playerStageTimesRows: any[] = [];
-    let playerReplaysRows: any[] = [];
+    let potentialAltAccounts: string[] = [];
+    let devicesUsed: DeviceUsed[] = [];
+    let recentActivity: ActivityLog[] = [];
 
     // Fetch Steam IDs if required
     let steamIds: string[] = [];
@@ -403,400 +384,270 @@ export async function GET(
     if (steamIds.length > 0) {
       // Proceed to fetch data from Server2
 
-      let adminRows: any[] = [];
-      let banRows: any[] = [];
-      let adminBanRows: any[] = [];
-      let ipBanRows: any[] = [];
-      let muteRows: any[] = [];
-      let adminMuteRows: any[] = [];
-      let adminServers: any[] = [];
-      let banServers: any[] = [];
-      let muteServers: any[] = [];
-      let userConnectedServers: any[] = [];
-
+      // Fetch game stats
       if (fetchConfig.fetchGameStats) {
         try {
-          // Fetch data from activity_tracking using different SteamIDs
           const placeholdersSteamIds = steamIds.map(() => "?").join(",");
 
-          const playermodelQuery = `SELECT * FROM activity_tracking.playermodelchanger WHERE steamid IN (${placeholdersSteamIds})`;
-          try {
-            const [playermodelRowsResult] = await poolServer2.execute<any[]>(
-              playermodelQuery,
-              steamIds
-            );
-            playermodelRows = playermodelRowsResult;
-          } catch (error) {
-            console.error("Error fetching playermodel data from Server2:", {
-              query: playermodelQuery,
-              params: steamIds,
-              error,
-            });
-            playermodelRows = [];
+          // Fetch PlayerStats
+          const playerStatsQuery = `SELECT SteamID, PlayerName, TimesConnected, LastConnected, GlobalPoints, HideTimerHud, HideKeys, SoundsEnabled, IsVip, BigGifID, HideJS, PlayerFov FROM sharptimer.PlayerStats WHERE SteamID IN (${placeholdersSteamIds})`;
+          const [playerStatsRows] = await poolServer2.execute<RowDataPacket[]>(
+            playerStatsQuery,
+            steamIds
+          );
+
+          // Ensure playerStatsRows is not empty
+          const playerStats = playerStatsRows[0];
+          if (!playerStats) {
+            throw new Error("No player stats found");
           }
 
-          const activityPlayerRecordsQuery = `SELECT * FROM activity_tracking.PlayerRecords WHERE SteamID IN (${placeholdersSteamIds})`;
-          try {
-            const [activityPlayerRecordsRowsResult] = await poolServer2.execute<
-              any[]
-            >(activityPlayerRecordsQuery, steamIds);
-            activityPlayerRecordsRows = activityPlayerRecordsRowsResult;
-          } catch (error) {
-            console.error(
-              "Error fetching activity PlayerRecords from Server2:",
-              {
-                query: activityPlayerRecordsQuery,
-                params: steamIds,
-                error,
-              }
-            );
-            activityPlayerRecordsRows = [];
-          }
-
-          const userActivityQuery = `SELECT * FROM activity_tracking.user_activity WHERE steam_id IN (${placeholdersSteamIds})`;
-          try {
-            const [userActivityRowsResult] = await poolServer2.execute<any[]>(
-              userActivityQuery,
-              steamIds
-            );
-            userActivityRows = userActivityRowsResult;
-          } catch (error) {
-            console.error("Error fetching user activity from Server2:", {
-              query: userActivityQuery,
-              params: steamIds,
-              error,
-            });
-            userActivityRows = [];
-          }
-
-          // Also fetch user_activity where ip_address matches user's IPs
-          if (allUserIPs.length > 0) {
-            const placeholdersIPs = allUserIPs.map(() => "?").join(",");
-            const ipUserActivityQuery = `SELECT * FROM activity_tracking.user_activity WHERE ip_address IN (${placeholdersIPs})`;
-            try {
-              const [ipUserActivityRowsResult] = await poolServer2.execute<
-                any[]
-              >(ipUserActivityQuery, allUserIPs);
-              ipUserActivityRows = ipUserActivityRowsResult;
-            } catch (error) {
-              console.error("Error fetching IP user activity from Server2:", {
-                query: ipUserActivityQuery,
-                params: allUserIPs,
-                error,
-              });
-              ipUserActivityRows = [];
-            }
-          }
-
-          // Fetch PlayerStats from sharptimer
-          const playerStatsQuery = `SELECT * FROM sharptimer.PlayerStats WHERE SteamID IN (${placeholdersSteamIds})`;
-          try {
-            const [playerStatsRowsResult] = await poolServer2.execute<any[]>(
-              playerStatsQuery,
-              steamIds
-            );
-            playerStatsRows = playerStatsRowsResult;
-          } catch (error) {
-            console.error("Error fetching PlayerStats from Server2:", {
-              query: playerStatsQuery,
-              params: steamIds,
-              error,
-            });
-            playerStatsRows = [];
-          }
-
-          // Fetch PlayerRecords from sharptimer
-          const sharptimerPlayerRecordsQuery = `SELECT * FROM sharptimer.PlayerRecords WHERE SteamID IN (${placeholdersSteamIds})`;
-          try {
-            const [sharptimerPlayerRecordsRowsResult] =
-              await poolServer2.execute<any[]>(
-                sharptimerPlayerRecordsQuery,
-                steamIds
-              );
-            sharptimerPlayerRecordsRows = sharptimerPlayerRecordsRowsResult;
-          } catch (error) {
-            console.error(
-              "Error fetching sharptimer PlayerRecords from Server2:",
-              {
-                query: sharptimerPlayerRecordsQuery,
-                params: steamIds,
-                error,
-              }
-            );
-            sharptimerPlayerRecordsRows = [];
-          }
+          // Fetch PlayerRecords
+          const playerRecordsQuery = `SELECT MapName, SteamID, PlayerName, TimerTicks, FormattedTime, UnixStamp, TimesFinished, LastFinished, Style FROM sharptimer.PlayerRecords WHERE SteamID IN (${placeholdersSteamIds})`;
+          const [playerRecordsRows] = await poolServer2.execute<
+            RowDataPacket[]
+          >(playerRecordsQuery, steamIds);
 
           // Fetch PlayerStageTimes
-          const playerStageTimesQuery = `SELECT * FROM sharptimer.PlayerStageTimes WHERE SteamID IN (${placeholdersSteamIds})`;
-          try {
-            const [playerStageTimesRowsResult] = await poolServer2.execute<
-              any[]
-            >(playerStageTimesQuery, steamIds);
-            playerStageTimesRows = playerStageTimesRowsResult;
-          } catch (error) {
-            console.error("Error fetching PlayerStageTimes from Server2:", {
-              query: playerStageTimesQuery,
-              params: steamIds,
-              error,
-            });
-            playerStageTimesRows = [];
-          }
+          const playerStageTimesQuery = `SELECT MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity FROM sharptimer.PlayerStageTimes WHERE SteamID IN (${placeholdersSteamIds})`;
+          const [playerStageTimesRows] = await poolServer2.execute<
+            RowDataPacket[]
+          >(playerStageTimesQuery, steamIds);
 
-          // Fetch PlayerReplays
-          //   const playerReplaysQuery = `SELECT MapName, SteamID, Style, Replay FROM sharptimer.PlayerReplays WHERE SteamID IN (76561198123975074)`;
+          // Calculate mapsCompleted and totalMaps
+          const mapsCompleted = playerRecordsRows.length;
+          const totalMaps = 100; // TODO: Placeholder, replace with actual total maps
+          const completionRate =
+            ((mapsCompleted / totalMaps) * 100).toFixed(2) + "%";
 
-          //     const startTime = Date.now();
-          //     const sanitizedSteamIds = steamIds.map(id => id.toString().trim());
-          //     try {
-          //     const [playerReplaysRowsResult] = await poolServer2.execute<PlayerReplay[]>(
-          //         playerReplaysQuery
-          //     );
-          //     playerReplaysRows = playerReplaysRowsResult;
-          //     const endTime = Date.now();
-          //     console.log(`PlayerReplays query executed in ${endTime - startTime}ms`);
-          //     } catch (error) {
-          //     console.error('Error fetching PlayerReplays from Server2:', {
-          //         query: playerReplaysQuery,
-          //         params: sanitizedSteamIds,
-          //         error,
-          //     });
-          //     playerReplaysRows = [];
-          //     }
-        } catch (error) {
-          console.error("Error fetching game stats data from Server2:", error);
-          playermodelRows = [];
-          activityPlayerRecordsRows = [];
-          userActivityRows = [];
-          ipUserActivityRows = [];
-          playerStatsRows = [];
-          sharptimerPlayerRecordsRows = [];
-          playerStageTimesRows = [];
-          //   playerReplaysRows = [];
-        }
-      }
-
-      if (
-        fetchConfig.fetchAdminData ||
-        fetchConfig.fetchBansData ||
-        fetchConfig.fetchMutesData
-      ) {
-        const placeholdersSteamIds = steamIds.map(() => "?").join(",");
-
-        if (fetchConfig.fetchAdminData) {
-          try {
-            // Fetch sa_admins
-            const adminQuery = `SELECT * FROM simple_admin.sa_admins WHERE player_steamid IN (${placeholdersSteamIds})`;
-            const [adminRowsResult] = await poolServer2.execute<any[]>(
-              adminQuery,
-              steamIds
-            );
-            adminRows = adminRowsResult;
-
-            // Fetch server details for servers where the user is an admin
-            if (adminRows.length > 0) {
-              const serverIds = adminRows
-                .map((admin: any) => admin.server_id)
-                .filter((id: any) => id !== null && id !== undefined);
-
-              const uniqueServerIds = Array.from(new Set(serverIds));
-
-              if (uniqueServerIds.length > 0) {
-                const placeholdersServerIds = uniqueServerIds
-                  .map(() => "?")
-                  .join(",");
-                const adminServersQuery = `SELECT * FROM simple_admin.sa_servers WHERE id IN (${placeholdersServerIds})`;
-                const [serverRows] = await poolServer2.execute<any[]>(
-                  adminServersQuery,
-                  uniqueServerIds
-                );
-
-                adminServers = serverRows;
-              }
-            }
-          } catch (error) {
-            console.error("Error fetching admin data from Server2:", {
-              query:
-                "SELECT * FROM simple_admin.sa_admins WHERE player_steamid IN (?)",
-              params: steamIds,
-              error,
-            });
-            adminRows = [];
-            adminServers = [];
-          }
-        }
-
-        if (fetchConfig.fetchBansData) {
-          try {
-            // Fetch sa_bans where user is the target
-            const banQuery = `SELECT * FROM simple_admin.sa_bans WHERE player_steamid IN (${placeholdersSteamIds})`;
-            const [banRowsResult] = await poolServer2.execute<any[]>(
-              banQuery,
-              steamIds
-            );
-            banRows = banRowsResult;
-
-            // Fetch sa_bans where user is the admin
-            const adminBanQuery = `SELECT * FROM simple_admin.sa_bans WHERE admin_steamid IN (${placeholdersSteamIds})`;
-            const [adminBanRowsResult] = await poolServer2.execute<any[]>(
-              adminBanQuery,
-              steamIds
-            );
-            adminBanRows = adminBanRowsResult;
-
-            // Fetch sa_bans where player_ip matches user's IPs
-            if (allUserIPs.length > 0) {
-              const placeholdersIPs = allUserIPs.map(() => "?").join(",");
-              const ipBanQuery = `SELECT * FROM simple_admin.sa_bans WHERE player_ip IN (${placeholdersIPs})`;
-              const [ipBanRowsResult] = await poolServer2.execute<any[]>(
-                ipBanQuery,
-                allUserIPs
-              );
-              ipBanRows = ipBanRowsResult;
-            }
-          } catch (error) {
-            console.error("Error fetching bans data from Server2:", {
-              query:
-                "SELECT * FROM simple_admin.sa_bans WHERE player_steamid IN (?) OR admin_steamid IN (?) OR player_ip IN (?)",
-              params: [...steamIds, ...steamIds, ...allUserIPs],
-              error,
-            });
-            banRows = [];
-            adminBanRows = [];
-            ipBanRows = [];
-          }
-
-          try {
-            // Fetch server details for bans where user is admin or target or IP matches
-            const banServerIds = [...banRows, ...adminBanRows, ...ipBanRows]
-              .map((ban: any) => ban.server_id)
-              .filter((id: any) => id !== null && id !== undefined);
-
-            const uniqueBanServerIds = Array.from(new Set(banServerIds));
-
-            if (uniqueBanServerIds.length > 0) {
-              const placeholdersServerIds = uniqueBanServerIds
-                .map(() => "?")
-                .join(",");
-              const banServersQuery = `SELECT * FROM simple_admin.sa_servers WHERE id IN (${placeholdersServerIds})`;
-              const [serverRows] = await poolServer2.execute<any[]>(
-                banServersQuery,
-                uniqueBanServerIds
-              );
-              banServers = serverRows;
-            }
-          } catch (error) {
-            console.error("Error fetching ban servers from Server2:", {
-              query: "SELECT * FROM simple_admin.sa_servers WHERE id IN (?)",
-              error,
-            });
-            banServers = [];
-          }
-        }
-
-        if (fetchConfig.fetchMutesData) {
-          try {
-            // Fetch sa_mutes where user is the target
-            const muteQuery = `SELECT * FROM simple_admin.sa_mutes WHERE player_steamid IN (${placeholdersSteamIds})`;
-            const [muteRowsResult] = await poolServer2.execute<any[]>(
-              muteQuery,
-              steamIds
-            );
-            muteRows = muteRowsResult;
-
-            // Fetch sa_mutes where user is the admin
-            const adminMuteQuery = `SELECT * FROM simple_admin.sa_mutes WHERE admin_steamid IN (${placeholdersSteamIds})`;
-            const [adminMuteRowsResult] = await poolServer2.execute<any[]>(
-              adminMuteQuery,
-              steamIds
-            );
-            adminMuteRows = adminMuteRowsResult;
-          } catch (error) {
-            console.error("Error fetching mutes data from Server2:", {
-              query:
-                "SELECT * FROM simple_admin.sa_mutes WHERE player_steamid IN (?) OR admin_steamid IN (?)",
-              params: [...steamIds, ...steamIds],
-              error,
-            });
-            muteRows = [];
-            adminMuteRows = [];
-          }
-
-          try {
-            // Fetch server details for mutes
-            const muteServerIds = [...muteRows, ...adminMuteRows]
-              .map((mute: any) => mute.server_id)
-              .filter((id: any) => id !== null && id !== undefined);
-
-            const uniqueMuteServerIds = Array.from(new Set(muteServerIds));
-
-            if (uniqueMuteServerIds.length > 0) {
-              const placeholdersServerIds = uniqueMuteServerIds
-                .map(() => "?")
-                .join(",");
-              const muteServersQuery = `SELECT * FROM simple_admin.sa_servers WHERE id IN (${placeholdersServerIds})`;
-              const [serverRows] = await poolServer2.execute<any[]>(
-                muteServersQuery,
-                uniqueMuteServerIds
-              );
-              muteServers = serverRows;
-            }
-          } catch (error) {
-            console.error("Error fetching mute servers from Server2:", {
-              query: "SELECT * FROM simple_admin.sa_servers WHERE id IN (?)",
-              error,
-            });
-            muteServers = [];
-          }
-
-          // Construct mutesData without ipMutes
-          mutesData = {
-            totalMutes: muteRows.length + adminMuteRows.length,
-            muteRecords: [...muteRows, ...adminMuteRows],
-            muteServers: muteServers,
+          // Construct gameStats
+          gameStats = {
+            steamId: playerStats.SteamID,
+            playerName: playerStats.PlayerName,
+            timesConnected: playerStats.TimesConnected,
+            lastConnected: playerStats.LastConnected,
+            globalPoints: playerStats.GlobalPoints,
+            hideTimerHud: playerStats.HideTimerHud,
+            hideKeys: playerStats.HideKeys,
+            soundsEnabled: playerStats.SoundsEnabled,
+            isVip: playerStats.IsVip,
+            bigGifId: playerStats.BigGifID,
+            hideJs: playerStats.HideJS,
+            playerFov: playerStats.PlayerFov,
+            mapsCompleted: mapsCompleted,
+            totalMaps: totalMaps,
+            completionRate: completionRate,
+            userRecords: playerRecordsRows.map((record) => ({
+              mapName: record.MapName,
+              steamId: record.SteamID,
+              playerName: record.PlayerName,
+              timerTicks: record.TimerTicks,
+              style: record.Style,
+              formattedTime: record.FormattedTime,
+              unixStamp: record.UnixStamp,
+              timesFinished: record.TimesFinished,
+              lastFinished: record.LastFinished,
+              // Add stage times for this record
+              stageTimes: playerStageTimesRows
+                .filter((stageTime) => stageTime.MapName === record.MapName)
+                .map((stageTime) => ({
+                  mapName: stageTime.MapName,
+                  steamId: stageTime.SteamID,
+                  playerName: stageTime.PlayerName,
+                  stage: stageTime.Stage,
+                  timerTicks: stageTime.TimerTicks,
+                  formattedTime: stageTime.FormattedTime,
+                  velocity: stageTime.Velocity,
+                })),
+            })),
           };
+        } catch (error) {
+          console.error("Error fetching game stats from Server2:", error);
+          gameStats = undefined; // Ensure this variable is defined in the outer scope
         }
       }
 
+      // Fetch admin data
+      if (fetchConfig.fetchAdminData) {
+        try {
+          const placeholdersSteamIds = steamIds.map(() => "?").join(",");
+
+          // Fetch sa_admins
+          const adminQuery = `SELECT * FROM simple_admin.sa_admins WHERE player_steamid IN (${placeholdersSteamIds})`;
+          const [adminRows] = await poolServer2.execute<RowDataPacket[]>(
+            adminQuery,
+            steamIds
+          );
+
+          // Fetch bans issued by the admin
+          const bansIssuedQuery = `SELECT COUNT(*) as bansIssued FROM simple_admin.sa_bans WHERE admin_steamid IN (${placeholdersSteamIds})`;
+          const [bansIssuedRows] = await poolServer2.execute<RowDataPacket[]>(
+            bansIssuedQuery,
+            steamIds
+          );
+
+          // Fetch mutes issued by the admin
+          const mutesIssuedQuery = `SELECT COUNT(*) as mutesIssued FROM simple_admin.sa_mutes WHERE admin_steamid IN (${placeholdersSteamIds})`;
+          const [mutesIssuedRows] = await poolServer2.execute<RowDataPacket[]>(
+            mutesIssuedQuery,
+            steamIds
+          );
+
+          adminData = {
+            adminInfo: adminRows.map((row) => ({
+              id: row.id,
+              player_steamid: row.player_steamid,
+              player_name: row.player_name,
+              flags: row.flags,
+              // Add other properties from AdminInfo as needed
+            })) as AdminInfo[],
+            bansIssued: bansIssuedRows[0]?.bansIssued || 0,
+            mutesIssued: mutesIssuedRows[0]?.mutesIssued || 0,
+            adminServers: [], // Assuming an empty array for 'adminServers' to fix the missing property error
+          };
+        } catch (error) {
+          console.error("Error fetching admin data from Server2:", error);
+          adminData = undefined;
+        }
+      }
+
+      // Fetch bans data
+      if (fetchConfig.fetchBansData) {
+        try {
+          const placeholdersSteamIds = steamIds.map(() => "?").join(",");
+
+          // Fetch bans where user is banned
+          const bansQuery = `SELECT * FROM simple_admin.sa_bans WHERE player_steamid IN (${placeholdersSteamIds})`;
+          const [banRows] = await poolServer2.execute<RowDataPacket[]>(
+            bansQuery,
+            steamIds
+          );
+
+          // Fetch bans where user's IPs are banned
+          let ipBanRows: RowDataPacket[] = [];
+          if (allUserIPs.length > 0) {
+            const placeholdersIPs = allUserIPs.map(() => "?").join(",");
+            const ipBansQuery = `SELECT * FROM simple_admin.sa_bans WHERE player_ip IN (${placeholdersIPs})`;
+            const [ipBanRowsResult] = await poolServer2.execute<
+              RowDataPacket[]
+            >(ipBansQuery, allUserIPs);
+            ipBanRows = ipBanRowsResult;
+          }
+
+          bansData = {
+            totalBans: banRows.length + ipBanRows.length,
+            banRecords: banRows as BanRecord[],
+            ipBans: ipBanRows as BanRecord[],
+            banServers: [], // Assuming an empty array for 'banServers' to fix the missing property error
+          };
+        } catch (error) {
+          console.error("Error fetching bans data from Server2:", error);
+          bansData = undefined;
+        }
+      }
+
+      // Fetch mutes data
+      if (fetchConfig.fetchMutesData) {
+        try {
+          const placeholdersSteamIds = steamIds.map(() => "?").join(",");
+
+          // Fetch mutes where user is muted
+          const mutesQuery = `SELECT * FROM simple_admin.sa_mutes WHERE player_steamid IN (${placeholdersSteamIds})`;
+          const [muteRows] = await poolServer2.execute<RowDataPacket[]>(
+            mutesQuery,
+            steamIds
+          );
+
+          const muteServersQuery = `SELECT DISTINCT server_id FROM simple_admin.sa_mutes WHERE player_steamid IN (${placeholdersSteamIds})`;
+          const [muteServersRows] = await poolServer2.execute<RowDataPacket[]>(
+            muteServersQuery,
+            steamIds
+          );
+
+          mutesData = {
+            totalMutes: muteRows.length,
+            muteRecords: muteRows as MuteRecord[],
+            muteServers: muteServersRows.map((row) => row.server_id),
+          };
+        } catch (error) {
+          console.error("Error fetching mutes data from Server2:", error);
+          mutesData = undefined;
+        }
+      }
+
+      // Fetch servers data
       if (fetchConfig.fetchServersData) {
         try {
-          if (userActivityRows.length > 0) {
-            const serverIPs = userActivityRows
-              .map((activity: any) => activity.ip_address)
-              .filter((ip: any) => ip !== null && ip !== undefined);
+          const placeholdersSteamIds = steamIds.map(() => "?").join(",");
 
-            const uniqueServerIPs = Array.from(new Set(serverIPs));
+          // Fetch user_activity to get servers the user has connected to
+          const userActivityQuery = `SELECT DISTINCT ip_address FROM activity_tracking.user_activity WHERE steam_id IN (${placeholdersSteamIds})`;
+          const [userActivityRows] = await poolServer2.execute<RowDataPacket[]>(
+            userActivityQuery,
+            steamIds
+          );
 
-            if (uniqueServerIPs.length > 0) {
-              const placeholdersServerIPs = uniqueServerIPs
-                .map(() => "?")
-                .join(",");
-              const serversQuery = `SELECT * FROM server_list.servers WHERE ip IN (${placeholdersServerIPs})`;
-              const [serverRows] = await poolServer2.execute<any[]>(
-                serversQuery,
-                uniqueServerIPs
-              );
+          const serverIPs = userActivityRows.map((row) => row.ip_address);
 
-              userConnectedServers = serverRows;
-            }
+          if (serverIPs.length > 0) {
+            const placeholdersServerIPs = serverIPs.map(() => "?").join(",");
+            const serversQuery = `SELECT * FROM server_list.servers WHERE ip IN (${placeholdersServerIPs})`;
+            const [serverRows] = await poolServer2.execute<RowDataPacket[]>(
+              serversQuery,
+              serverIPs
+            );
+            serversData = {
+              connectedServers: serverRows as ServerInfo[],
+            };
+          } else {
+            serversData = {
+              connectedServers: [] as ServerInfo[],
+            };
           }
         } catch (error) {
-          console.error("Error fetching connected servers from Server2:", {
-            query: "SELECT * FROM server_list.servers WHERE ip IN (?)",
-            params: userActivityRows.map(
-              (activity: any) => activity.ip_address
-            ),
-            error,
-          });
-          userConnectedServers = [];
+          console.error("Error fetching servers data from Server2:", error);
+          serversData = undefined;
         }
       }
 
-      // Additional processing for gameStats, adminData, etc.
-      // ...
+      // Fetch potential alt accounts
+      if (fetchConfig.fetchAdditionalData) {
+        try {
+          if (allUserIPs.length > 0) {
+            const placeholdersIPs = allUserIPs.map(() => "?").join(",");
+            const altAccountsQuery = `SELECT DISTINCT user_id FROM device_ips WHERE ip_address IN (${placeholdersIPs}) AND user_id != ?`;
+            const [altAccountRows] = await poolServer1.execute<RowDataPacket[]>(
+              altAccountsQuery,
+              [...allUserIPs, uid]
+            );
+            potentialAltAccounts = altAccountRows.map((row) =>
+              row.user_id.toString()
+            );
+          }
+        } catch (error) {
+          console.error(
+            "Error fetching potential alt accounts from Server1:",
+            error
+          );
+          potentialAltAccounts = [];
+        }
+
+        // Fetch devices used
+        devicesUsed = devicesWithIPs.map((device) => ({
+          deviceName: device.device_name,
+          firstLogin: device.first_login,
+          lastLogin: device.last_login,
+          isLoggedIn: device.is_logged_in,
+          ips: device.ips.map((ip) => ip.ip_address),
+        }));
+
+        // Recent activity (can be subset of activityLogRows)
+        recentActivity = activityLogRows.slice(-10); // Last 10 activities
+      }
     }
 
     // Construct the ultimate response structure
-    const responseData: any = {
+    const responseData: UserDataResponse = {
       user: {
         ...user,
         profile: profile,
@@ -834,40 +685,35 @@ export async function GET(
     }
 
     // Include gameStats if fetched
-    if (fetchConfig.fetchGameStats) {
-      responseData.gameStats = {
-        ...gameStats,
-        playermodelChanger: playermodelRows[0] || null,
-        sharptimerPlayerStats: playerStatsRows,
-        sharptimerPlayerRecords: sharptimerPlayerRecordsRows,
-        playerStageTimes: playerStageTimesRows,
-        playerReplays: playerReplaysRows,
-      };
+    if (fetchConfig.fetchGameStats && gameStats) {
+      responseData.user.gameStats = gameStats;
     }
 
     // Include adminData if fetched
-    if (fetchConfig.fetchAdminData) {
+    if (fetchConfig.fetchAdminData && adminData) {
       responseData.adminData = adminData;
     }
 
     // Include bans data if fetched
-    if (fetchConfig.fetchBansData) {
+    if (fetchConfig.fetchBansData && bansData) {
       responseData.bans = bansData;
     }
 
     // Include mutes data if fetched
-    if (fetchConfig.fetchMutesData) {
+    if (fetchConfig.fetchMutesData && mutesData) {
       responseData.mutes = mutesData;
     }
 
     // Include servers data if fetched
-    if (fetchConfig.fetchServersData) {
+    if (fetchConfig.fetchServersData && serversData) {
       responseData.servers = serversData;
     }
 
     // Include additionalData if fetched
     if (fetchConfig.fetchAdditionalData) {
-      Object.assign(responseData, additionalData);
+      responseData.potentialAltAccounts = potentialAltAccounts;
+      responseData.devicesUsed = devicesUsed;
+      responseData.recentActivity = recentActivity;
     }
 
     return NextResponse.json(responseData, { status: 200 });

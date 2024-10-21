@@ -1,90 +1,102 @@
-// interfaces/server1.ts
+// src/app/interfaces/server1.ts
 
-import { RowDataPacket } from "mysql2";
-
-// Define TypeScript interfaces for the data structures
-
-export interface User extends RowDataPacket {
+/**
+ * Represents a user's basic information.
+ */
+export interface User {
   id: number;
   email: string;
-  status: 'online' | 'away' | 'offline' | 'dnd';
+  status: UserStatus;
   admin: boolean;
   verified: boolean;
-  createdAt: string;
+  createdAt: string; // ISO 8601 format
+  updatedAt: string; // ISO 8601 format
 }
 
+/**
+* Enum representing possible user statuses.
+*/
+export enum UserStatus {
+  Active = "active",
+  Inactive = "inactive",
+  Banned = "banned",
+  Suspended = "suspended",
+  // Add other statuses as needed
+}
+
+/**
+* Represents a user's profile information.
+*/
 export interface Profile {
   username?: string;
-  bio_short?: string;
+  bio_short?: string | null;
   avatar?: string;
-  steam_id?: string;
-  steam_id_64?: string;
-  steam_id_3?: string;
+  steam_id?: string | null;
+  steam_id_64?: string | null;
+  steam_id_3?: string | null;
 }
 
-export interface Profile extends RowDataPacket {
-  username?: string;
-  bio_short?: string;
-  avatar?: string;
-  steam_id?: string;
-  steam_id_64?: string;
-  steam_id_3?: string;
-}
-
-export interface UserProfile {
-  id: number;
-  email: string;
-  status: string;
-  admin: boolean;
-  verified: boolean;
-  createdAt: string;
-  updatedAt: string;
-  profile: Profile | null;
-}
-
-export interface ActivityLog extends RowDataPacket {
+/**
+* Represents a single activity log entry.
+*/
+export interface ActivityLog {
   id: number;
   user_id: number;
   action: string;
-  created_at: string;
-  [key: string]: any; // If there are additional fields
+  activity_data: string | null | Record<string, unknown>;
+  created_at: string; // ISO 8601 format
+  location: string | null;
 }
 
-export interface Device extends RowDataPacket {
+/**
+* Represents an IP address associated with a device.
+*/
+export interface DeviceIP {
   id: number;
-  user_id: number;
+  device_id: number;
+  ip_address: string;
+  created_at: string; // ISO 8601 format
+}
+
+/**
+* Represents a device used by a user.
+*/
+export interface Device {
+  id: number;
   device_name: string;
-  first_login: string;
-  last_login: string;
+  first_login: string; // ISO 8601 format
+  last_login: string; // ISO 8601 format
   is_logged_in: boolean;
   ips: DeviceIP[];
 }
 
-export interface DeviceIP extends RowDataPacket {
-  id: number;
-  device_id: number;
-  ip_address: string;
-  created_at: string;
-}
-
-export interface LoginLog extends RowDataPacket {
+/**
+* Represents a login attempt.
+*/
+export interface LoginLog {
   id: number;
   user_id: number;
   device_id: number;
   ip_address: string;
-  timestamp: string;
+  timestamp: string; // ISO 8601 format
   success: boolean;
 }
 
-export interface LoginToken extends RowDataPacket {
+/**
+* Represents a login token issued to a user.
+*/
+export interface LoginToken {
   id: number;
-  user_id: number;
   token: string;
+  user_id: number;
   device_id: number;
-  expiration_time: string;
+  expiration_time: string; // ISO 8601 format
 }
 
-export interface Payment extends RowDataPacket {
+/**
+* Represents a payment transaction.
+*/
+export interface Payment {
   id: number;
   payer_user_id: number;
   recipient_user_id: number;
@@ -93,42 +105,31 @@ export interface Payment extends RowDataPacket {
   currency: string;
   payment_method: string;
   status: string;
-  created_at: string;
-  updated_at: string;
-  payment_data: any;
+  created_at: string; // ISO 8601 format
+  updated_at: string; // ISO 8601 format
+  payment_data: Record<string, unknown>;
 }
 
-export interface CheckoutDetail extends RowDataPacket {
+/**
+* Represents details of a checkout process.
+*/
+export interface CheckoutDetail {
   id: number;
   user_id: number;
-  basket_id: string;
-  package_id: string;
+  basket_id: number;
+  package_id: number;
   checkout_url: string;
-  created_at: string;
-  updated_at: string;
+  created_at: string; // ISO 8601 format
+  updated_at: string; // ISO 8601 format
 }
 
-export interface AdditionalData {
-  potentialAltAccounts: string[];
-  devicesUsed: DeviceUsed[];
-  recentActivity: ActivityLog[];
-}
-
+/**
+* Represents a device used by a user with simplified properties.
+*/
 export interface DeviceUsed {
   deviceName: string;
-  firstLogin: string;
-  lastLogin: string;
+  firstLogin: string; // ISO 8601 format
+  lastLogin: string; // ISO 8601 format
   isLoggedIn: boolean;
   ips: string[];
-}
-
-export interface UserProfile {
-  id: number;
-  email: string;
-  status: string;
-  admin: boolean;
-  verified: boolean;
-  createdAt: string;
-  updatedAt: string;
-  profile: Profile | null;
 }

@@ -299,11 +299,11 @@ export const MainPage: React.FC<MainPageProps> = ({
           shouldApplyBlur={true}
         />
         <div className="hidden">
-        <AlertBanner
-          title="New Challenge Available!"
-          description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
-        />
-          </div>
+          <AlertBanner
+            title="New Challenge Available!"
+            description="The 'Surf Master' event has started. Complete 10 maps in 24 hours to earn exclusive rewards!"
+          />
+        </div>
         <main className="container mx-auto px-4 py-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="md:col-span-2 space-y-8">
@@ -313,21 +313,19 @@ export const MainPage: React.FC<MainPageProps> = ({
                 <motion.div style={{ filter: `blur(${blur}px)`, opacity }}>
                   <UserProfileCard
                     isLoggedIn={isLoggedIn}
+                    userName={user?.profile?.username}
+                    avatarUrl={
+                      user?.profile?.avatar
+                        ? `https://cdn.postogon.com/assets/img/profile_pictures/${user.profile.avatar}`
+                        : undefined
+                    }
+                    isVerified={user?.verified}
+                    isVip={user?.gameStats?.isVip}
+                    email={user?.email}
+                    timesConnected={user?.gameStats?.timesConnected}
+                    lastConnected={user?.gameStats?.lastConnected}
                     isSteamLinked={user?.isSteamLinked ?? false}
                     hasServerData={user?.hasServerData ?? false}
-                    userName={user?.userName}
-                    avatarUrl={
-                      user?.avatarUrl ??
-                      "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSSyq7MRokEaKKx1eKBxOp15WH2JhzyutGO9w&s"
-                    }
-                    surfMapsCompleted={user?.surfMapsCompleted}
-                    totalPlaytime={user?.totalPlaytime}
-                    totalMuteTime={user?.totalMuteTime}
-                    totalBans={user?.totalBans}
-                    rank={user?.rank}
-                    rankPercentage={user?.rankPercentage}
-                    achievements={user?.achievements}
-                    isVerified={user?.hasCompletedOnboarding}
                   />
                 </motion.div>
               )}
@@ -372,23 +370,7 @@ export const MainPage: React.FC<MainPageProps> = ({
                       user?.hasCompletedOnboarding ?? false
                     }
                     hasServerData={user?.hasServerData ?? false}
-                    userStats={
-                      user && user.isSteamLinked && user.hasServerData
-                        ? {
-                            rating: user.rating || 0,
-                            pointsToNextRank: user.pointsToNextRank || 0,
-                            progressToNextRank: user.progressToNextRank || 0,
-                            totalJumps: user.totalJumps || 0,
-                            avgSpeed: user.avgSpeed || 0,
-                            favoriteMap: user.favoriteMap || "",
-                            rank: user.rank || 0,
-                            rankPercentage: user.rankPercentage || "",
-                            xp: user.xp || 0,
-                            maxXp: user.maxXp || 0,
-                            level: user.level || 0,
-                          }
-                        : null
-                    }
+                    gameStats={user?.gameStats ?? null}
                   />
                 </motion.div>
               )}

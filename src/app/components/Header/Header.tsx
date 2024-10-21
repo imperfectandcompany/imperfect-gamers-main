@@ -105,7 +105,7 @@ const Header: React.FC<HeaderProps> = ({
                   <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
                     <DropdownMenuTrigger asChild>
                       <button className="flex items-center space-x-1 bg-transparent text-white hover:bg-zinc-900/80 px-2 py-1 rounded">
-                        <span>{user?.userName || "User"}</span>
+                        <span>{user?.profile?.username || "User"}</span>
                         <ChevronDown
                           className={`h-4 w-4 transition-transform duration-200 ${
                             isOpen ? "rotate-180" : ""

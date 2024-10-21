@@ -88,7 +88,7 @@ const AuthModal: React.FC<{
           if (isFeatureEnabled(FeatureFlagKeys.ENABLE_AUTH_MODAL_TOASTS)) {
             toast({
               title: "Logged in successfully",
-              description: `Welcome back, ${updatedUser.userName || "user"}!`,
+              description: `Welcome back, ${updatedUser.profile?.username || "user"}!`,
             });
           }
           onClose();

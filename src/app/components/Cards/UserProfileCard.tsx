@@ -1,17 +1,8 @@
-// components/Cards/UserProfileCard.tsx
-
 import React from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@components/ui/card";
 import { Button } from "@components/ui/button";
 import { useFeatureFlags } from "@context/FeatureFlagContext";
 import { FeatureFlagKeys } from "@utils/featureFlags";
-
-interface Achievement {
-  icon: string;
-  title: string;
-  description: string;
-  date: string;
-}
 
 interface UserProfileProps {
   isLoggedIn: boolean;
@@ -19,14 +10,11 @@ interface UserProfileProps {
   hasServerData: boolean;
   userName?: string;
   avatarUrl?: string;
-  surfMapsCompleted?: number;
-  totalPlaytime?: string;
-  totalMuteTime?: string;
-  totalBans?: number;
-  rank?: number;
-  rankPercentage?: string;
-  achievements?: Achievement[];
   isVerified?: boolean;
+  isVip?: boolean;
+  email?: string;
+  timesConnected?: number;
+  lastConnected?: number; // Unix timestamp
 }
 
 const UserProfileCard: React.FC<UserProfileProps> = ({
@@ -35,14 +23,11 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
   hasServerData,
   userName,
   avatarUrl,
-  surfMapsCompleted,
-  totalPlaytime,
-  totalMuteTime,
-  totalBans,
-  rank,
-  rankPercentage,
-  achievements,
   isVerified,
+  isVip,
+  email,
+  timesConnected,
+  lastConnected,
 }) => {
   const { isFeatureEnabled } = useFeatureFlags();
 
@@ -88,15 +73,25 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
   return (
     <Card className="bg-zinc-950 border-zinc-800">
       <CardHeader className="flex flex-row justify-between items-center">
-        <CardTitle className="text-white">
+        <CardTitle className="text-white flex items-center">
           <span>User Profile</span>
-          {!isVerified && (
-            <span className="px-2 py-1 text-xs font-semibold text-yellow-500 bg-zinc-700 rounded-full">
-              Not Verified
-            </span>
-          )}
+          {!isVerified &&
+            (!isVip ? (
+              <>
+                <span className="ml-2 px-2 py-1 text-xs font-semibold text-yellow-500 bg-zinc-700 rounded-full">
+                  Not Premium
+                </span>
+              </>
+            ) : (
+              <span className="ml-2 px-2 py-1 text-xs font-semibold text-green-500 bg-zinc-700 rounded-full">
+                Premium
+              </span>
+            ))}
         </CardTitle>
-        <Button variant="default">
+        <Button
+          variant="default"
+          className="hidden (hidden until we get to this point)"
+        >
           View Profile
         </Button>
       </CardHeader>
@@ -115,96 +110,26 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
               </p>
             ) : hasServerData ? (
               <>
-                <div className="flex justify-between items-center">
-                  <div>
-                    <p className="text-zinc-400">
-                      <span className="font-semibold text-zinc-300">
-                        Surf Maps Completed:
-                      </span>{" "}
-                      <span className="text-red-400">
-                        {surfMapsCompleted}/100
-                      </span>
-                    </p>
-                    <p className="text-zinc-400">
-                      <span className="font-semibold text-zinc-300">
-                        Total Playtime:
-                      </span>{" "}
-                      <span className="text-red-400">{totalPlaytime}</span>
-                    </p>
-                    <p className="text-zinc-400">
-                      <span className="font-semibold text-zinc-300">
-                        Total Mute Time:
-                      </span>{" "}
-                      <span className="text-yellow-400">{totalMuteTime}</span>
-                    </p>
-                    <p className="text-zinc-400">
-                      <span className="font-semibold text-zinc-300">
-                        Total Bans:
-                      </span>{" "}
-                      <span className="text-red-400">{totalBans}</span>
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    {isFeatureEnabled(FeatureFlagKeys.ENABLE_USERPROFILE_RANK) && (
-                      <>
-                        <p className="text-zinc-300 font-semibold">
-                          Rank: <span className="text-red-400">#{rank}</span>
-                        </p>
-                        <p className="text-zinc-400 text-sm">
-                          Top {rankPercentage}%
-                        </p>
-                      </>
+                <div className="flex flex-col md:flex-row items-center space-y-4 md:space-y-0 md:space-x-6">
+                  <div className="flex-grow">
+                    {email && (
+                      <p className="text-zinc-400 mb-2">
+                        <strong>Email:</strong> {email}
+                      </p>
+                    )}
+                    {timesConnected !== undefined && (
+                      <p className="text-zinc-400 mb-2">
+                        <strong>Times Connected:</strong> {timesConnected}
+                      </p>
+                    )}
+                    {lastConnected !== undefined && (
+                      <p className="text-zinc-400">
+                        <strong>Last Connected:</strong>{" "}
+                        {new Date(lastConnected * 1000).toLocaleString()}
+                      </p>
                     )}
                   </div>
                 </div>
-
-                {isFeatureEnabled(FeatureFlagKeys.ENABLE_USERPROFILE_STATS) && (
-                  <div className="mt-4">
-                    <p className="text-zinc-400">
-                      <span className="font-semibold text-zinc-300">
-                        Achievements:
-                      </span>{" "}
-                      {achievements?.length || 0}
-                    </p>
-                    <p className="text-zinc-400">
-                      <span className="font-semibold text-zinc-300">
-                        Playtime:
-                      </span>{" "}
-                      {totalPlaytime}
-                    </p>
-                  </div>
-                )}
-
-                {isFeatureEnabled(FeatureFlagKeys.ENABLE_USERPROFILE_ACHIEVEMENTS) && achievements && achievements.length > 0 && (
-                  <div className="mt-6">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-lg font-semibold text-white">
-                        Recent Achievements
-                      </h3>
-                      <Button variant="link" className="text-red-400 text-sm p-0">
-                        All Achievements
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-3 gap-3">
-                      {achievements.slice(0, 3).map((achievement, index) => (
-                        <div
-                          key={index}
-                          className="bg-zinc-900 p-3 rounded-lg flex items-center space-x-3"
-                        >
-                          <div className="text-3xl">{achievement.icon}</div>
-                          <div>
-                            <p className="font-semibold text-sm text-white">
-                              {achievement.title}
-                            </p>
-                            <p className="text-xs text-zinc-400">
-                              {achievement.date}
-                            </p>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
               </>
             ) : (
               <p className="text-yellow-500">
