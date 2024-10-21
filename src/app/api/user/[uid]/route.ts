@@ -25,6 +25,8 @@ import {
   BanRecord,
   MuteRecord,
   ServerInfo,
+  UserRecord,
+  styleMapping,
 } from "@/app/interfaces/server2";
 import { UserProfile } from "@/app/interfaces/UserDataResponse";
 
@@ -416,9 +418,9 @@ if (fetchConfig.fetchGameStats) {
   
       // Helper function to check if a map is a bonus
       const isBonusMap = (mapName: string) => mapName.includes("_bonus");
-  
-      // Map to hold parent maps and their associated bonuses
-      const mapToBonusRecords: { [parentMap: string]: UserRecord[] } = {};
+
+      // Map to hold parent maps and their associated bonuses, grouped by styles
+      const mapToBonusRecords: { [parentMap: string]: { [style: string]: UserRecord[] } } = {};
   
       // Process PlayerRecords and categorize them as base maps or bonuses
       playerRecordsRows.forEach((record) => {
@@ -426,20 +428,25 @@ if (fetchConfig.fetchGameStats) {
           ? record.MapName.split("_bonus")[0]  // Extract base map name
           : record.MapName;                    // Base map
   
-        // Initialize array if parent map doesn't exist yet
+        const styleName = styleMapping[record.Style] || "Unknown"; // Map style number to name
+  
+        // Initialize the parent map and style category if not present
         if (!mapToBonusRecords[parentMap]) {
-          mapToBonusRecords[parentMap] = [];
+          mapToBonusRecords[parentMap] = {};
+        }
+        if (!mapToBonusRecords[parentMap][styleName]) {
+          mapToBonusRecords[parentMap][styleName] = [];
         }
   
-        // Add record to its parent map's array (whether base map or bonus)
-        mapToBonusRecords[parentMap].push({
+        // Add record to its parent map's style array (whether base map or bonus)
+        mapToBonusRecords[parentMap][styleName].push({
           mapName: record.MapName,
           parentMapName: isBonusMap(record.MapName) ? parentMap : undefined,
           isBonus: isBonusMap(record.MapName),
           steamId: record.SteamID,
           playerName: record.PlayerName,
           timerTicks: record.TimerTicks,
-          style: record.Style,
+          style: record.Style,  // Keep style number if needed for internal use
           formattedTime: record.FormattedTime,
           unixStamp: record.UnixStamp,
           timesFinished: record.TimesFinished,
