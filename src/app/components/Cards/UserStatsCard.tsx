@@ -11,6 +11,7 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Shield,
 } from "lucide-react";
 import { GameStats, UserRecord } from "../../interfaces/server2";
 import { Progress } from "@components/ui/progress";
@@ -46,6 +47,106 @@ interface UserStatsProps {
   hasCompletedOnboarding: boolean;
   gameStats: GameStats | null;
 }
+
+interface Rank {
+  title: string;
+  minPoints: number;
+  color: string;
+  icon: JSX.Element;
+}
+
+const rankDefinitions: Rank[] = [
+  {
+    title: "[God III]",
+    minPoints: 1000000,
+    color: "text-yellow-500",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[God II]",
+    minPoints: 800000,
+    color: "text-yellow-400",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[God I]",
+    minPoints: 600000,
+    color: "text-yellow-300",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Diamond III]",
+    minPoints: 500000,
+    color: "text-blue-500",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Diamond II]",
+    minPoints: 400000,
+    color: "text-blue-400",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Diamond I]",
+    minPoints: 300000,
+    color: "text-blue-300",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Gold III]",
+    minPoints: 200000,
+    color: "text-orange-500",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Gold II]",
+    minPoints: 150000,
+    color: "text-orange-400",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Gold I]",
+    minPoints: 100000,
+    color: "text-orange-300",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Silver III]",
+    minPoints: 50000,
+    color: "text-gray-500",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Silver II]",
+    minPoints: 25000,
+    color: "text-gray-400",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Silver I]",
+    minPoints: 10000,
+    color: "text-gray-300",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Bronze III]",
+    minPoints: 5000,
+    color: "text-yellow-700",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Bronze II]",
+    minPoints: 1000,
+    color: "text-yellow-800",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+  {
+    title: "[Bronze I]",
+    minPoints: 0,
+    color: "text-yellow-900",
+    icon: <Shield className="w-5 h-5 mr-1" />,
+  },
+];
 
 const UserStatsCard: React.FC<UserStatsProps> = ({
   isLoggedIn,
@@ -166,7 +267,26 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     );
   }
 
-  const { globalPoints, timesConnected, lastConnected, mapRecords } = gameStats;
+  const {
+    globalPoints,
+    timesConnected,
+    lastConnected,
+    mapRecords,
+    playerName,
+  } = gameStats;
+
+  // Calculate player rank
+  const getPlayerRank = (points: number): Rank => {
+    for (const rank of rankDefinitions) {
+      if (points >= rank.minPoints) {
+        return rank;
+      }
+    }
+    // Default to the lowest rank if none match
+    return rankDefinitions[rankDefinitions.length - 1];
+  };
+
+  const playerRank = getPlayerRank(globalPoints);
 
   // Ensure totalMaps and totalBonuses are valid numbers
   const totalMaps = mapsAndBonuses.totalMaps || 0;
@@ -325,6 +445,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     }
   });
 
+
   return (
     <Card className="bg-zinc-950 border-zinc-800">
       <CardHeader>
@@ -335,6 +456,24 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
       </CardHeader>
       <CardContent>
         <div className="space-y-6 text-zinc-300">
+          {/* Player Name and Rank */}
+          <div className="flex justify-between items-center">
+            <div className="flex items-center space-x-2">
+              <span className="text-base font-semibold">Player:</span>
+              <span className="text-base font-bold text-zinc-100">
+                {playerName}
+              </span>
+            </div>
+            <div className="flex items-center">
+              {playerRank.icon}
+              <span
+                className={`text-base font-bold ${playerRank.color} ml-1`}
+              >
+                {playerRank.title}
+              </span>
+            </div>
+          </div>
+
           {/* Global Points */}
           <div className="flex justify-between items-center">
             <span className="text-base font-semibold">Global Points:</span>
@@ -371,7 +510,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
           </div>
 
           {/* Completion Stats */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <TourStatItem
               label="Maps"
               completed={mapsCompleted}
@@ -382,9 +521,9 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
               completed={bonusesCompleted}
               total={totalBonuses}
             />
-            <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-2">
-              <span className="text-xs text-zinc-400">Total Completions</span>
-              <span className="text-xl font-bold text-red-400">
+            <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-4">
+              <span className="text-sm text-zinc-400">Total Completions</span>
+              <span className="text-2xl font-bold text-red-400">
                 {totalCompletions}
               </span>
             </div>
@@ -409,12 +548,12 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
 
           {/* User Records */}
           <div>
-            <div className="flex flex-wrap justify-between items-center mb-4">
-              <h2 className="text-2xl font-bold text-red-400 flex items-center">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
+              <h2 className="text-2xl font-bold text-red-400 flex items-center mb-2 sm:mb-0">
                 <Trophy className="w-6 h-6 mr-2" />
                 User Records
               </h2>
-              <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
                 {/* Quick Search */}
                 <div className="relative">
                   <input
@@ -422,9 +561,9 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                     placeholder="Search maps..."
-                    className="bg-zinc-700 text-zinc-100 p-1 pl-8 rounded text-xs w-28 sm:w-auto"
+                    className="bg-zinc-700 text-zinc-100 p-2 pl-10 rounded text-sm w-full sm:w-auto"
                   />
-                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
                 </div>
                 {/* Sort By */}
                 <div>
@@ -438,7 +577,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                         e.target.value as "Default" | "Last Finished" | "Tier"
                       )
                     }
-                    className="bg-zinc-700 text-zinc-100 p-1 rounded text-xs"
+                    className="bg-zinc-700 text-zinc-100 p-2 rounded text-sm w-full sm:w-auto"
                   >
                     <option value="Default">Default</option>
                     <option value="Last Finished">Last Finished</option>
@@ -447,8 +586,12 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                 </div>
                 <Popover>
                   <PopoverTrigger asChild>
-                    <Button variant="ghost" size="icon">
-                      <Filter className="w-6 h-6 text-zinc-400" />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="mt-2 sm:mt-0 text-zinc-400 hover:text-zinc-100"
+                    >
+                      <Filter className="w-6 h-6" />
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-64 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl">
@@ -530,7 +673,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
               Showing {displayedMaps.length} out of{" "}
               {allMapsWithCompletionStatus.length} maps
             </p>
-            <ScrollArea className="h-64">
+            <ScrollArea className="h-96">
               <div className="space-y-4 pr-4">
                 {displayedMaps.map((map) => (
                   <motion.div
@@ -552,178 +695,177 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <span
-                          className={`text-xs font-semibold ${
-                            map.status === "Completed"
-                              ? "text-green-500"
-                              : map.status === "In Progress"
-                              ? "text-yellow-500"
-                              : "text-red-500"
-                          }`}
-                        >
-                          {map.status}
-                        </span>
-                        <motion.div
-                          animate={{
-                            rotate: expandedMaps.includes(map.name) ? 180 : 0,
-                          }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          {expandedMaps.includes(map.name) ? (
-                            <ChevronUp className="w-5 h-5 text-zinc-400" />
-                          ) : (
-                            <ChevronDown className="w-5 h-5 text-zinc-400" />
-                          )}
-                        </motion.div>
-                      </div>
-                    </div>
-                    <AnimatePresence>
-                      {expandedMaps.includes(map.name) && (
-                        <motion.div
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: "auto" }}
-                          exit={{ opacity: 0, height: 0 }}
-                          transition={{ duration: 0.3 }}
-                          className="mt-3 space-y-3 overflow-hidden"
-                        >
-                          {map.status !== "Not Started" ? (
-                            <>
-                              {/* Display user's records */}
-                              {Object.entries(mapRecords[map.name] || {}).map(
-                                ([styleName, records]) => (
-                                  <div
-                                    key={styleName}
-                                    className="pl-3 border-l-2 border-zinc-500"
-                                  >
-                                    <p className="text-xs font-semibold text-emerald-400 flex items-center mb-2">
-                                      <Zap className="w-3 h-3 mr-1" />
-                                      {styleName}
-                                    </p>
-                                    {records.length > 0 ? (
-                                      records.map(
-                                        (record: UserRecord, index: number) => (
-                                          <div key={index} className="mb-2">
-                                            <p className="text-xs mb-1">
-                                              <span className="text-zinc-400 font-semibold">
-                                                {record.isBonus
-                                                  ? formatBonusName(
-                                                      record.mapName,
-                                                      map.name
+                      <span
+                              className={`text-xs font-semibold ${
+                                map.status === "Completed"
+                                  ? "text-green-500"
+                                  : map.status === "In Progress"
+                                  ? "text-yellow-500"
+                                  : "text-red-500"
+                              }`}
+                            >
+                              {map.status}
+                            </span>
+                            <motion.div
+                              animate={{
+                                rotate: expandedMaps.includes(map.name) ? 180 : 0,
+                              }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              {expandedMaps.includes(map.name) ? (
+                                <ChevronUp className="w-5 h-5 text-zinc-400" />
+                              ) : (
+                                <ChevronDown className="w-5 h-5 text-zinc-400" />
+                              )}
+                            </motion.div>
+                          </div>
+                        </div>
+                        <AnimatePresence>
+                          {expandedMaps.includes(map.name) && (
+                            <motion.div
+                              initial={{ opacity: 0, height: 0 }}
+                              animate={{ opacity: 1, height: "auto" }}
+                              exit={{ opacity: 0, height: 0 }}
+                              transition={{ duration: 0.3 }}
+                              className="mt-3 space-y-3 overflow-hidden"
+                            >
+                              {map.status !== "Not Started" ? (
+                                <>
+                                  {/* Display user's records */}
+                                  {Object.entries(mapRecords[map.name] || {}).map(
+                                    ([styleName, records]) => (
+                                      <div
+                                        key={styleName}
+                                        className="pl-3 border-l-2 border-zinc-500"
+                                      >
+                                        <p className="text-xs font-semibold text-emerald-400 flex items-center mb-2">
+                                          <Zap className="w-3 h-3 mr-1" />
+                                          {styleName}
+                                        </p>
+                                        {records.length > 0 ? (
+                                          records.map(
+                                            (record: UserRecord, index: number) => (
+                                              <div key={index} className="mb-2">
+                                                <p className="text-xs mb-1">
+                                                  <span className="text-zinc-400 font-semibold">
+                                                    {record.isBonus
+                                                      ? formatBonusName(
+                                                          record.mapName,
+                                                          map.name
+                                                        )
+                                                      : record.mapName}
+                                                    :
+                                                  </span>{" "}
+                                                  <span className="text-yellow-300 font-bold">
+                                                    {record.formattedTime}
+                                                  </span>
+                                                  <span className="text-zinc-500 ml-1">
+                                                    (
+                                                    {record.isStaged
+                                                      ? "Staged"
+                                                      : "Linear"}
                                                     )
-                                                  : record.mapName}
-                                                :
-                                              </span>{" "}
-                                              <span className="text-yellow-300 font-bold">
-                                                {record.formattedTime}
-                                              </span>
-                                              <span className="text-zinc-500 ml-1">
-                                                (
-                                                {record.isStaged
-                                                  ? "Staged"
-                                                  : "Linear"}
-                                                )
-                                              </span>
-                                            </p>
-                                            <p className="text-xs text-zinc-400">
-                                              Last Finished:{" "}
-                                              {formatTimestamp(
-                                                record.unixStamp
-                                              )}
-                                            </p>
-                                            {record.stageTimes && (
-                                              <div className="grid grid-cols-3 gap-1 mt-1">
-                                                {record.stageTimes.map(
-                                                  (stage, stageIndex) => (
-                                                    <p
-                                                      key={stageIndex}
-                                                      className="text-xs"
-                                                    >
-                                                      <span className="text-zinc-500">
-                                                        S{stage.stage}:
-                                                      </span>{" "}
-                                                      <span className="text-cyan-300">
-                                                        {stage.formattedTime}
-                                                      </span>
-                                                    </p>
-                                                  )
+                                                  </span>
+                                                </p>
+                                                <p className="text-xs text-zinc-400">
+                                                  Last Finished:{" "}
+                                                  {formatTimestamp(record.unixStamp)}
+                                                </p>
+                                                {record.stageTimes && (
+                                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 mt-1">
+                                                    {record.stageTimes.map(
+                                                      (stage, stageIndex) => (
+                                                        <p
+                                                          key={stageIndex}
+                                                          className="text-xs"
+                                                        >
+                                                          <span className="text-zinc-500">
+                                                            S{stage.stage}:
+                                                          </span>{" "}
+                                                          <span className="text-cyan-300">
+                                                            {stage.formattedTime}
+                                                          </span>
+                                                        </p>
+                                                      )
+                                                    )}
+                                                  </div>
                                                 )}
                                               </div>
-                                            )}
-                                          </div>
-                                        )
-                                      )
-                                    ) : (
-                                      <p className="text-xs text-zinc-400">
-                                        No records found
+                                            )
+                                          )
+                                        ) : (
+                                          <p className="text-xs text-zinc-400">
+                                            No records found
+                                          </p>
+                                        )}
+                                      </div>
+                                    )
+                                  )}
+                                  {/* Display remaining bonuses if any */}
+                                  {map.status === "In Progress" && (
+                                    <div className="pl-3 border-l-2 border-zinc-500">
+                                      <p className="text-xs font-semibold text-yellow-400 mb-2">
+                                        Remaining to Complete:
                                       </p>
-                                    )}
-                                  </div>
-                                )
-                              )}
-                              {/* Display remaining bonuses if any */}
-                              {map.status === "In Progress" && (
-                                <div className="pl-3 border-l-2 border-zinc-500">
-                                  <p className="text-xs font-semibold text-yellow-400 mb-2">
-                                    Remaining to Complete:
-                                  </p>
-                                  <ul className="list-disc list-inside text-xs text-zinc-400">
-                                    {!completedMapsSet.has(map.name) && (
-                                      <li>Main Map</li>
-                                    )}
-                                    {map.bonuses
-                                      .filter((bonus) => {
-                                        const formattedBonusName =
-                                          formatBonusName(bonus, map.name);
-                                        const records =
-                                          mapRecords[map.name] || {};
-                                        const bonusCompletedInRecords =
-                                          Object.values(records).some(
-                                            (recordArray: UserRecord[]) =>
-                                              recordArray.some(
-                                                (record) =>
-                                                  record.isBonus &&
-                                                  formatBonusName(
-                                                    record.mapName,
-                                                    map.name
-                                                  ) === formattedBonusName
-                                              )
-                                          );
-                                        return (
-                                          !userCompletedBonusesMap[
-                                            map.name
-                                          ]?.has(bonus) &&
-                                          !bonusCompletedInRecords
-                                        );
-                                      })
-                                      .map((bonus, index) => (
-                                        <li key={index}>
-                                          {formatBonusName(bonus, map.name)}
-                                        </li>
-                                      ))}
-                                  </ul>
+                                      <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
+                                        {!completedMapsSet.has(map.name) && (
+                                          <li>Main Map</li>
+                                        )}
+                                        {map.bonuses
+                                          .filter((bonus) => {
+                                            const formattedBonusName =
+                                              formatBonusName(bonus, map.name);
+                                            const records =
+                                              mapRecords[map.name] || {};
+                                            const bonusCompletedInRecords =
+                                              Object.values(records).some(
+                                                (recordArray: UserRecord[]) =>
+                                                  recordArray.some(
+                                                    (record) =>
+                                                      record.isBonus &&
+                                                      formatBonusName(
+                                                        record.mapName,
+                                                        map.name
+                                                      ) === formattedBonusName
+                                                  )
+                                              );
+                                            return (
+                                              !userCompletedBonusesMap[
+                                                map.name
+                                              ]?.has(bonus) &&
+                                              !bonusCompletedInRecords
+                                            );
+                                          })
+                                          .map((bonus, index) => (
+                                            <li key={index}>
+                                              {formatBonusName(bonus, map.name)}
+                                            </li>
+                                          ))}
+                                      </ul>
+                                    </div>
+                                  )}
+                                </>
+                              ) : (
+                                <div className="text-xs text-zinc-400">
+                                  <p>You haven't completed this map yet.</p>
+                                  <p>Bonuses: {map.bonuses.length}</p>
                                 </div>
                               )}
-                            </>
-                          ) : (
-                            <div className="text-xs text-zinc-400">
-                              <p>You haven't completed this map yet.</p>
-                              <p>Bonuses: {map.bonuses.length}</p>
-                            </div>
+                            </motion.div>
                           )}
-                        </motion.div>
-                      )}
-                    </AnimatePresence>
-                  </motion.div>
-                ))}
+                        </AnimatePresence>
+                      </motion.div>
+                    ))}
+                  </div>
+                </ScrollArea>
               </div>
-            </ScrollArea>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
 
+// Helper function component
 function TourStatItem({
   label,
   completed,
@@ -736,15 +878,15 @@ function TourStatItem({
   const percentage = total > 0 ? (completed / total) * 100 : 0;
 
   return (
-    <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-2">
-      <span className="text-xs text-zinc-400">{label}</span>
-      <div className="flex items-center space-x-2">
-        <span className="text-xl font-bold text-zinc-100">{completed}</span>
-        <span className="text-xs text-zinc-400">/ {total}</span>
+    <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-4">
+      <span className="text-sm text-zinc-400">{label}</span>
+      <div className="flex items-baseline space-x-2">
+        <span className="text-2xl font-bold text-zinc-100">{completed}</span>
+        <span className="text-sm text-zinc-400">/ {total}</span>
       </div>
-      <Progress value={percentage} className="w-full h-1 mt-1" />
+      <Progress value={percentage} className="w-full h-2 mt-2" />
     </div>
   );
 }
 
-export default UserStatsCard;
+      export default UserStatsCard;
