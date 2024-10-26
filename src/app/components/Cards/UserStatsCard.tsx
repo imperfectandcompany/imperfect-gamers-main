@@ -1,12 +1,7 @@
 // components/Cards/UserStatsCard.tsx
 
 import React, { useState } from "react";
-import {
-  Card,
-  CardHeader,
-  CardTitle,
-  CardContent,
-} from "@components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@components/ui/card";
 import {
   Flame,
   Trophy,
@@ -15,6 +10,7 @@ import {
   Filter,
   ChevronDown,
   ChevronUp,
+  Search,
 } from "lucide-react";
 import { GameStats, UserRecord } from "../../interfaces/server2";
 import { Progress } from "@components/ui/progress";
@@ -41,6 +37,7 @@ import { mapsTypesAndTiers } from "../../data/mapsTypesAndTiers"; // Import the 
 type MapType = "Staged" | "Linear" | "Hybrid" | "All";
 type StyleType = string | "All";
 type CompletionStatus = "Completed" | "In Progress" | "Not Started" | "All";
+type TierType = string | "All"; // Tiers are strings (e.g., "1", "2", "3")
 
 interface UserStatsProps {
   isLoggedIn: boolean;
@@ -60,10 +57,14 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
   const [expandedMaps, setExpandedMaps] = useState<string[]>([]);
   const [filters, setFilters] = useState({
     mapType: "All" as MapType,
+    tier: "All" as TierType,
     style: "All" as StyleType,
     completionStatus: "All" as CompletionStatus,
   });
-  const [sortBy, setSortBy] = useState<"Default" | "Last Finished">("Default");
+  const [sortBy, setSortBy] = useState<"Default" | "Last Finished" | "Tier">(
+    "Default"
+  );
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Handle map expansion/collapse
   const toggleExpand = (mapName: string) => {
@@ -184,7 +185,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
   // Calculate completed maps and bonuses
   Object.entries(mapRecords).forEach(([mapName, styles]) => {
     Object.values(styles).forEach((records) => {
-      records.forEach((record) => {
+      records.forEach((record: any) => {
         const parentMapName = record.parentMapName || mapName;
 
         // Record last finished time
@@ -200,6 +201,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
           if (!userCompletedBonusesMap[parentMapName]) {
             userCompletedBonusesMap[parentMapName] = new Set<string>();
           }
+          // Store the full bonus map name
           userCompletedBonusesMap[parentMapName].add(record.mapName);
           completedBonusesSet.add(`${parentMapName}:${record.mapName}`);
         } else {
@@ -220,10 +222,23 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
       ? (totalCompletions / (totalMaps + totalBonuses)) * 100
       : 0;
 
-
   // Helper function to format Unix timestamp
   const formatTimestamp = (unixStamp: number) => {
     return formatDistanceToNow(new Date(unixStamp * 1000), { addSuffix: true });
+  };
+
+  // Helper function to format bonus names
+  const formatBonusName = (
+    bonusMapName: string,
+    parentMapName: string
+  ): string => {
+    const regex = new RegExp(`${parentMapName}_bonus(\\d+)`);
+    const match = regex.exec(bonusMapName);
+    if (match && match[1]) {
+      return `Bonus ${match[1]}`;
+    } else {
+      return bonusMapName; // return as is if not matching the pattern
+    }
   };
 
   // Prepare a list of all maps with completion status
@@ -261,15 +276,32 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     };
   });
 
+  // Get unique tiers from maps
+  const allTiers = Array.from(
+    new Set(
+      allMapsWithCompletionStatus
+        .map((map) => (map.tier ? map.tier.toString() : null))
+        .filter(Boolean)
+    )
+  ).sort((a, b) => parseInt(a!) - parseInt(b!)) as string[];
+
   // Filter maps based on filters
   let displayedMaps = allMapsWithCompletionStatus.filter((map) => {
     const mapTypeMatch =
       filters.mapType === "All" || filters.mapType === map.type;
 
-    const completionMatch =
-      filters.completionStatus === "All" || filters.completionStatus === map.status;
+    const tierMatch =
+      filters.tier === "All" || filters.tier === map.tier?.toString();
 
-    return mapTypeMatch && completionMatch;
+    const completionMatch =
+      filters.completionStatus === "All" ||
+      filters.completionStatus === map.status;
+
+    const nameMatch = map.name
+      .toLowerCase()
+      .includes(searchQuery.toLowerCase());
+
+    return mapTypeMatch && tierMatch && completionMatch && nameMatch;
   });
 
   // Sort maps
@@ -278,6 +310,10 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
       const aTime = a.lastFinished || 0;
       const bTime = b.lastFinished || 0;
       return bTime - aTime;
+    } else if (sortBy === "Tier") {
+      const aTier = parseInt(a.tier?.toString() || "0");
+      const bTier = parseInt(b.tier?.toString() || "0");
+      return aTier - bTier;
     } else {
       const statusOrder = { Completed: 0, "In Progress": 1, "Not Started": 2 };
       const statusCompare = statusOrder[a.status] - statusOrder[b.status];
@@ -373,12 +409,23 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
 
           {/* User Records */}
           <div>
-            <div className="flex justify-between items-center mb-4">
+            <div className="flex flex-wrap justify-between items-center mb-4">
               <h2 className="text-2xl font-bold text-red-400 flex items-center">
                 <Trophy className="w-6 h-6 mr-2" />
                 User Records
               </h2>
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 mt-2 sm:mt-0">
+                {/* Quick Search */}
+                <div className="relative">
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="Search maps..."
+                    className="bg-zinc-700 text-zinc-100 p-1 pl-8 rounded text-xs w-28 sm:w-auto"
+                  />
+                  <Search className="absolute left-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-zinc-400" />
+                </div>
                 {/* Sort By */}
                 <div>
                   <label className="block text-xs text-zinc-400 mb-1">
@@ -387,12 +434,15 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                   <select
                     value={sortBy}
                     onChange={(e) =>
-                      setSortBy(e.target.value as "Default" | "Last Finished")
+                      setSortBy(
+                        e.target.value as "Default" | "Last Finished" | "Tier"
+                      )
                     }
                     className="bg-zinc-700 text-zinc-100 p-1 rounded text-xs"
                   >
                     <option value="Default">Default</option>
                     <option value="Last Finished">Last Finished</option>
+                    <option value="Tier">Tier</option>
                   </select>
                 </div>
                 <Popover>
@@ -401,7 +451,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                       <Filter className="w-6 h-6 text-zinc-400" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-80 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl">
+                  <PopoverContent className="w-64 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl">
                     <h3 className="text-lg font-semibold mb-2 text-zinc-100">
                       Filters
                     </h3>
@@ -427,6 +477,27 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                           <option value="Hybrid">Hybrid</option>
                         </select>
                       </div>
+                      {/* Tier Filter */}
+                      <div>
+                        <label className="block text-zinc-300 mb-1">Tier</label>
+                        <select
+                          value={filters.tier}
+                          onChange={(e) =>
+                            setFilters({
+                              ...filters,
+                              tier: e.target.value as TierType,
+                            })
+                          }
+                          className="w-full bg-zinc-700 text-zinc-100 p-2 rounded"
+                        >
+                          <option value="All">All</option>
+                          {allTiers.map((tier, index) => (
+                            <option key={index} value={tier}>
+                              Tier {tier}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
                       {/* Completion Status Filter */}
                       <div>
                         <label className="block text-zinc-300 mb-1">
@@ -437,8 +508,8 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                           onChange={(e) =>
                             setFilters({
                               ...filters,
-                              completionStatus:
-                                e.target.value as CompletionStatus,
+                              completionStatus: e.target
+                                .value as CompletionStatus,
                             })
                           }
                           className="w-full bg-zinc-700 text-zinc-100 p-2 rounded"
@@ -454,6 +525,11 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                 </Popover>
               </div>
             </div>
+            {/* Displayed Maps Count */}
+            <p className="text-sm text-zinc-400 mb-2">
+              Showing {displayedMaps.length} out of{" "}
+              {allMapsWithCompletionStatus.length} maps
+            </p>
             <ScrollArea className="h-64">
               <div className="space-y-4 pr-4">
                 {displayedMaps.map((map) => (
@@ -472,7 +548,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                           {map.name}
                         </h4>
                         <p className="text-xs text-zinc-400">
-                          Tier {map.tier} - {map.type}
+                          Tier {map.tier || "N/A"} - {map.type || "N/A"}
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
@@ -529,13 +605,20 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                                           <div key={index} className="mb-2">
                                             <p className="text-xs mb-1">
                                               <span className="text-zinc-400 font-semibold">
-                                                {record.mapName}:
+                                                {record.isBonus
+                                                  ? formatBonusName(
+                                                      record.mapName,
+                                                      map.name
+                                                    )
+                                                  : record.mapName}
+                                                :
                                               </span>{" "}
                                               <span className="text-yellow-300 font-bold">
                                                 {record.formattedTime}
                                               </span>
                                               <span className="text-zinc-500 ml-1">
-                                                ({record.isStaged
+                                                (
+                                                {record.isStaged
                                                   ? "Staged"
                                                   : "Linear"}
                                                 )
@@ -543,7 +626,9 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                                             </p>
                                             <p className="text-xs text-zinc-400">
                                               Last Finished:{" "}
-                                              {formatTimestamp(record.unixStamp)}
+                                              {formatTimestamp(
+                                                record.unixStamp
+                                              )}
                                             </p>
                                             {record.stageTimes && (
                                               <div className="grid grid-cols-3 gap-1 mt-1">
@@ -586,18 +671,33 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                                       <li>Main Map</li>
                                     )}
                                     {map.bonuses
-                                      .filter(
-                                        (bonus) =>
+                                      .filter((bonus) => {
+                                        const formattedBonusName =
+                                          formatBonusName(bonus, map.name);
+                                        const records =
+                                          mapRecords[map.name] || {};
+                                        const bonusCompletedInRecords =
+                                          Object.values(records).some(
+                                            (recordArray: UserRecord[]) =>
+                                              recordArray.some(
+                                                (record) =>
+                                                  record.isBonus &&
+                                                  formatBonusName(
+                                                    record.mapName,
+                                                    map.name
+                                                  ) === formattedBonusName
+                                              )
+                                          );
+                                        return (
                                           !userCompletedBonusesMap[
                                             map.name
-                                          ]?.has(bonus)
-                                      )
+                                          ]?.has(bonus) &&
+                                          !bonusCompletedInRecords
+                                        );
+                                      })
                                       .map((bonus, index) => (
                                         <li key={index}>
-                                          {bonus.replace(
-                                            `${map.name}_`,
-                                            ""
-                                          )}
+                                          {formatBonusName(bonus, map.name)}
                                         </li>
                                       ))}
                                   </ul>
@@ -607,8 +707,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                           ) : (
                             <div className="text-xs text-zinc-400">
                               <p>You haven't completed this map yet.</p>
-                              <p>Tier: {map.tier}</p>
-                              <p>Type: {map.type}</p>
                               <p>Bonuses: {map.bonuses.length}</p>
                             </div>
                           )}
