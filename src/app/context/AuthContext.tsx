@@ -8,7 +8,6 @@ import React, {
   useEffect,
 } from "react";
 import apiClient from "@api/apiClient";
-import { UserDataResponse } from "../api/user/[uid]/route";
 import {
   AdminData,
   BansData,
@@ -26,6 +25,7 @@ import {
   Payment,
   Profile,
 } from "../interfaces/server1";
+import { UserDataResponse } from "../interfaces/UserDataResponse";
 
 // User Interface
 export interface User {
@@ -247,6 +247,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
           if (userData) {
             const updatedUser: User = {
               ...user,
+              email: userData.user.email,
               hasCompletedOnboarding: true,
               isSteamLinked: true,
               steamId: userData.user.profile?.steam_id || null,
@@ -279,12 +280,12 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
               devices: userData.activity?.devices || [],
               loginLogs: userData.activity?.loginLogs || [],
               loginTokens: userData.activity?.loginTokens || [],
-              paymentsMade: userData.payments?.made || [],
-              paymentsReceived: userData.payments?.received || [],
-              checkoutDetails: userData.payments?.checkoutDetails || [],
+              paymentsMade: userData.user.payments?.made || [],
+              paymentsReceived: userData.user.payments?.received || [],
+              checkoutDetails: userData.user.payments?.checkoutDetails || [],
               adminData: userData.adminData,
-              bansData: userData.bans,
-              mutesData: userData.mutes,
+              bansData: userData.user.bans,
+              mutesData: userData.user.mutes,
               serversData: userData.servers,
               potentialAltAccounts: userData.potentialAltAccounts || [],
               devicesUsed: userData.devicesUsed || [],

@@ -28,29 +28,7 @@ import {
   UserRecord,
   styleMapping,
 } from "@/app/interfaces/server2";
-import { UserProfile } from "@/app/interfaces/UserDataResponse";
-
-export interface UserDataResponse {
-  user: UserProfile;
-  activity?: {
-    logs?: ActivityLog[];
-    devices?: Device[];
-    loginLogs?: LoginLog[];
-    loginTokens?: LoginToken[];
-  };
-  payments?: {
-    made?: Payment[];
-    received?: Payment[];
-    checkoutDetails?: CheckoutDetail[];
-  };
-  adminData?: AdminData;
-  bans?: BansData;
-  mutes?: MutesData;
-  servers?: ServersData;
-  potentialAltAccounts?: string[];
-  devicesUsed?: DeviceUsed[];
-  recentActivity?: ActivityLog[];
-}
+import { UserDataResponse } from "@/app/interfaces/UserDataResponse";
 
 // Fetch configuration flags
 const fetchConfig = {
@@ -59,12 +37,12 @@ const fetchConfig = {
   fetchDevices: false,
   fetchLoginLogs: false,
   fetchLoginTokens: false,
-  fetchPayments: false,
+  fetchPayments: true,
   fetchCheckoutDetails: false,
   fetchGameStats: true,
   fetchAdminData: false,
-  fetchBansData: false,
-  fetchMutesData: false,
+  fetchBansData: true,
+  fetchMutesData: true,
   fetchServersData: false,
   fetchAdditionalData: false,
 };
@@ -384,118 +362,127 @@ export async function GET(
     if (steamIds.length > 0) {
       // Proceed to fetch data from Server2
 
-// Fetch game stats
-if (fetchConfig.fetchGameStats) {
-    try {
-      const placeholdersSteamIds = steamIds.map(() => "?").join(",");
-  
-      // Fetch PlayerStats
-      const playerStatsQuery = `SELECT SteamID, PlayerName, TimesConnected, LastConnected, GlobalPoints, HideTimerHud, HideKeys, SoundsEnabled, IsVip, BigGifID, HideJS, PlayerFov FROM sharptimer.PlayerStats WHERE SteamID IN (${placeholdersSteamIds})`;
-      const [playerStatsRows] = await poolServer2.execute<RowDataPacket[]>(
-        playerStatsQuery,
-        steamIds
-      );
-  
-      // Ensure playerStatsRows is not empty
-      const playerStats = playerStatsRows[0];
-      if (!playerStats) {
-        throw new Error("No player stats found");
-      }
-  
-      // Fetch PlayerRecords
-      const playerRecordsQuery = `SELECT MapName, SteamID, PlayerName, TimerTicks, FormattedTime, UnixStamp, TimesFinished, LastFinished, Style FROM sharptimer.PlayerRecords WHERE SteamID IN (${placeholdersSteamIds})`;
-      const [playerRecordsRows] = await poolServer2.execute<RowDataPacket[]>(
-        playerRecordsQuery,
-        steamIds
-      );
-  
-      // Fetch PlayerStageTimes
-      const playerStageTimesQuery = `SELECT MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity FROM sharptimer.PlayerStageTimes WHERE SteamID IN (${placeholdersSteamIds})`;
-      const [playerStageTimesRows] = await poolServer2.execute<RowDataPacket[]>(
-        playerStageTimesQuery,
-        steamIds
-      );
-  
-      // Helper function to check if a map is a bonus
-      const isBonusMap = (mapName: string) => mapName.includes("_bonus");
+      // Fetch game stats
+      if (fetchConfig.fetchGameStats) {
+        try {
+          const placeholdersSteamIds = steamIds.map(() => "?").join(",");
 
-      // Map to hold parent maps and their associated bonuses, grouped by styles
-      const mapToBonusRecords: { [parentMap: string]: { [style: string]: UserRecord[] } } = {};
-  
-      // Process PlayerRecords and categorize them as base maps or bonuses
-      playerRecordsRows.forEach((record) => {
-        const parentMap = isBonusMap(record.MapName)
-          ? record.MapName.split("_bonus")[0]  // Extract base map name
-          : record.MapName;                    // Base map
-  
-        const styleName = styleMapping[record.Style] || "Unknown"; // Map style number to name
-  
-        // Initialize the parent map and style category if not present
-        if (!mapToBonusRecords[parentMap]) {
-          mapToBonusRecords[parentMap] = {};
+          // Fetch PlayerStats
+          const playerStatsQuery = `SELECT SteamID, PlayerName, TimesConnected, LastConnected, GlobalPoints, HideTimerHud, HideKeys, SoundsEnabled, IsVip, BigGifID, HideJS, PlayerFov FROM sharptimer.PlayerStats WHERE SteamID IN (${placeholdersSteamIds})`;
+          const [playerStatsRows] = await poolServer2.execute<RowDataPacket[]>(
+            playerStatsQuery,
+            steamIds
+          );
+
+          // Ensure playerStatsRows is not empty
+          const playerStats = playerStatsRows[0];
+          if (!playerStats) {
+            throw new Error("No player stats found");
+          }
+
+          // Fetch PlayerRecords
+          const playerRecordsQuery = `SELECT MapName, SteamID, PlayerName, TimerTicks, FormattedTime, UnixStamp, TimesFinished, LastFinished, Style FROM sharptimer.PlayerRecords WHERE SteamID IN (${placeholdersSteamIds})`;
+          const [playerRecordsRows] = await poolServer2.execute<
+            RowDataPacket[]
+          >(playerRecordsQuery, steamIds);
+
+          // Fetch PlayerStageTimes
+          const playerStageTimesQuery = `SELECT MapName, SteamID, PlayerName, Stage, TimerTicks, FormattedTime, Velocity FROM sharptimer.PlayerStageTimes WHERE SteamID IN (${placeholdersSteamIds})`;
+          const [playerStageTimesRows] = await poolServer2.execute<
+            RowDataPacket[]
+          >(playerStageTimesQuery, steamIds);
+
+          // Helper function to check if a map is a bonus
+          const isBonusMap = (mapName: string) => mapName.includes("_bonus");
+
+          // Helper function to check if a map is staged
+          const isStagedMap = (mapName: string) =>
+            playerStageTimesRows.some(
+              (stageTime) => stageTime.MapName === mapName
+            );
+
+          // Map to hold parent maps and their associated bonuses, grouped by styles
+          const mapToBonusRecords: {
+            [parentMap: string]: { [style: string]: UserRecord[] };
+          } = {};
+
+          // Process PlayerRecords and categorize them as base maps or bonuses
+          playerRecordsRows.forEach((record) => {
+            const parentMap = isBonusMap(record.MapName)
+              ? record.MapName.split("_bonus")[0] // Extract base map name
+              : record.MapName; // Base map
+
+            const styleName = styleMapping[record.Style] || "Unknown"; // Map style number to name
+
+            // Initialize the parent map and style category if not present
+            if (!mapToBonusRecords[parentMap]) {
+              mapToBonusRecords[parentMap] = {};
+            }
+            if (!mapToBonusRecords[parentMap][styleName]) {
+              mapToBonusRecords[parentMap][styleName] = [];
+            }
+
+            // Add record to its parent map's style array (whether base map or bonus)
+            mapToBonusRecords[parentMap][styleName].push({
+              mapName: isBonusMap(record.MapName)
+                ? "Bonus " + parseInt(record.MapName.split("_bonus")[1])
+                : record.MapName,
+              parentMapName: isBonusMap(record.MapName) ? parentMap : undefined,
+              isBonus: isBonusMap(record.MapName),
+              isStaged: isStagedMap(record.MapName), // New property to indicate if it's a staged map
+              steamId: record.SteamID,
+              playerName: record.PlayerName,
+              timerTicks: record.TimerTicks,
+              style: record.Style, // Keep style number if needed for internal use
+              formattedTime: record.FormattedTime,
+              unixStamp: record.UnixStamp,
+              timesFinished: record.TimesFinished,
+              lastFinished: record.LastFinished,
+              stageTimes: playerStageTimesRows
+                .filter((stageTime) => stageTime.MapName === record.MapName)
+                .map((stageTime) => ({
+                  mapName: stageTime.MapName,
+                  steamId: stageTime.SteamID,
+                  playerName: stageTime.PlayerName,
+                  stage: stageTime.Stage,
+                  timerTicks: stageTime.TimerTicks,
+                  formattedTime: stageTime.FormattedTime,
+                  velocity: stageTime.Velocity,
+                })),
+            });
+          });
+
+          // Now process the categorized data to calculate stats or display it
+          const mapsCompleted = Object.keys(mapToBonusRecords).length;
+          const totalMaps = 100; // TODO: Replace with actual total maps
+
+          const completionRate =
+            ((mapsCompleted / totalMaps) * 100).toFixed(2) + "%";
+
+          // Construct gameStats with the categorized data
+          gameStats = {
+            steamId: playerStats.SteamID,
+            playerName: playerStats.PlayerName,
+            timesConnected: playerStats.TimesConnected,
+            lastConnected: playerStats.LastConnected,
+            globalPoints: playerStats.GlobalPoints,
+            hideTimerHud: playerStats.HideTimerHud,
+            hideKeys: playerStats.HideKeys,
+            soundsEnabled: playerStats.SoundsEnabled,
+            isVip: playerStats.IsVip,
+            bigGifId: playerStats.BigGifID,
+            hideJs: playerStats.HideJS,
+            playerFov: playerStats.PlayerFov,
+            mapsCompleted: mapsCompleted,
+            totalMaps: totalMaps,
+            completionRate: completionRate,
+            mapRecords: mapToBonusRecords,
+          };
+        } catch (error) {
+          console.error("Error fetching game stats from Server2:", error);
+          gameStats = undefined; // Ensure this variable is defined in the outer scope
         }
-        if (!mapToBonusRecords[parentMap][styleName]) {
-          mapToBonusRecords[parentMap][styleName] = [];
-        }
-  
-        // Add record to its parent map's style array (whether base map or bonus)
-        mapToBonusRecords[parentMap][styleName].push({
-          mapName: record.MapName,
-          parentMapName: isBonusMap(record.MapName) ? parentMap : undefined,
-          isBonus: isBonusMap(record.MapName),
-          steamId: record.SteamID,
-          playerName: record.PlayerName,
-          timerTicks: record.TimerTicks,
-          style: record.Style,  // Keep style number if needed for internal use
-          formattedTime: record.FormattedTime,
-          unixStamp: record.UnixStamp,
-          timesFinished: record.TimesFinished,
-          lastFinished: record.LastFinished,
-          // Add stage times for this record
-          stageTimes: playerStageTimesRows
-            .filter((stageTime) => stageTime.MapName === record.MapName)
-            .map((stageTime) => ({
-              mapName: stageTime.MapName,
-              steamId: stageTime.SteamID,
-              playerName: stageTime.PlayerName,
-              stage: stageTime.Stage,
-              timerTicks: stageTime.TimerTicks,
-              formattedTime: stageTime.FormattedTime,
-              velocity: stageTime.Velocity,
-            })),
-        });
-      });
-  
-      // Now process the categorized data to calculate stats or display it
-      const mapsCompleted = Object.keys(mapToBonusRecords).length;
-      const totalMaps = 100; // TODO: Replace with actual total maps
-  
-      const completionRate = ((mapsCompleted / totalMaps) * 100).toFixed(2) + "%";
-  
-      // Construct gameStats with the categorized data
-      gameStats = {
-        steamId: playerStats.SteamID,
-        playerName: playerStats.PlayerName,
-        timesConnected: playerStats.TimesConnected,
-        lastConnected: playerStats.LastConnected,
-        globalPoints: playerStats.GlobalPoints,
-        hideTimerHud: playerStats.HideTimerHud,
-        hideKeys: playerStats.HideKeys,
-        soundsEnabled: playerStats.SoundsEnabled,
-        isVip: playerStats.IsVip,
-        bigGifId: playerStats.BigGifID,
-        hideJs: playerStats.HideJS,
-        playerFov: playerStats.PlayerFov,
-        mapsCompleted: mapsCompleted,
-        totalMaps: totalMaps,
-        completionRate: completionRate,
-        mapRecords: mapToBonusRecords,
-      };
-    } catch (error) {
-      console.error("Error fetching game stats from Server2:", error);
-      gameStats = undefined; // Ensure this variable is defined in the outer scope
-    }
-  }
+      }
 
       // Fetch admin data
       if (fetchConfig.fetchAdminData) {
@@ -701,7 +688,7 @@ if (fetchConfig.fetchGameStats) {
 
     // Include payments data if fetched
     if (fetchConfig.fetchPayments || fetchConfig.fetchCheckoutDetails) {
-      responseData.payments = {
+      responseData.user.payments = {
         made: fetchConfig.fetchPayments
           ? paymentRows.filter((payment) => payment.payer_user_id == +uid)
           : undefined,
@@ -726,12 +713,12 @@ if (fetchConfig.fetchGameStats) {
 
     // Include bans data if fetched
     if (fetchConfig.fetchBansData && bansData) {
-      responseData.bans = bansData;
+      responseData.user.bans = bansData;
     }
 
     // Include mutes data if fetched
     if (fetchConfig.fetchMutesData && mutesData) {
-      responseData.mutes = mutesData;
+      responseData.user.mutes = mutesData;
     }
 
     // Include servers data if fetched

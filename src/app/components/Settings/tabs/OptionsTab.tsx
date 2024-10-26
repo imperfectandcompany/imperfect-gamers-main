@@ -32,13 +32,22 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
   const { unlinkSteam, getEmail } = useAuth();
   const [isSteamModalOpen, setIsSteamModalOpen] = useState(false);
   const [isConfirmModalOpen, setIsConfirmModalOpen] = useState(false);
+  const {
+    isLoggedIn,
+    user,
+    login,
+    register,
+    logout,
+    currentView,
+    setCurrentView,
+  } = useAuth();
 
   // State variables
   const [steamTradeURL, setSteamTradeURL] = useState(
     "https://steamcommunity.com/..."
   );
   const [displayName, setDisplayName] = useState("CoolGuy");
-  const [email, setEmail] = useState(getEmail() ?? 'admin@sink.gg');
+  const [email, setEmail] = useState(user?.email ?? 'admin@sink.gg');
   const [hideStats, setHideStats] = useState(false);
   const [receivePromos, setReceivePromos] = useState(true);
   const [chatOnRight, setChatOnRight] = useState(false);
@@ -134,12 +143,13 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="flex-grow bg-zinc-900/35 border-zinc-900 one text-white"
+                  disabled
                 />
                 <motion.div
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  <Button className="bg-[#151515] hover:bg-[#202020]">
+                  <Button className="bg-[#151515] hover:bg-[#202020] hidden">
                     UPDATE
                   </Button>
                 </motion.div>
@@ -209,7 +219,7 @@ const OptionsTab: React.FC<OptionsTabProps> = ({ isSteamLinked, steamId }) => {
               <span className="block">Steam</span>
               {isSteamLinked && steamId && (
                 <span className="text-sm text-gray-500">
-                  Steam ID: {steamId}
+                  {steamId}
                 </span>
               )}
             </div>

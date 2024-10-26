@@ -1,4 +1,4 @@
-// Home.tsx
+// Page.tsx
 
 "use client";
 

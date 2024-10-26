@@ -46,6 +46,7 @@ export interface UserRecord {
   mapName: string; // Name of the map (could be a base map or bonus map)
   parentMapName?: string; // Name of the parent map, if this is a bonus map
   isBonus: boolean; // Flag to indicate if this record belongs to a bonus map
+  isStaged: boolean; // Flag to indicate if this record belongs to a staged map
   steamId: string;
   playerName: string;
   timerTicks: number;

@@ -14,15 +14,8 @@ export interface UserDataResponse {
         loginLogs?: LoginLog[];
         loginTokens?: LoginToken[];
     };
-    payments?: {
-        made?: Payment[];
-        received?: Payment[];
-        checkoutDetails?: CheckoutDetail[];
-    };
-    gameStats?: GameStats;
     adminData?: AdminData;
-    bans?: BansData;
-    mutes?: MutesData;
+
     servers?: ServersData;
     // AdditionalData fields
     potentialAltAccounts?: string[];
@@ -36,4 +29,11 @@ export interface UserDataResponse {
 export interface UserProfile extends User {
     profile: Profile | null;
     gameStats?: GameStats; // Include gameStats here
+    payments?: {
+        made?: Payment[];
+        received?: Payment[];
+        checkoutDetails?: CheckoutDetail[];
+    };
+    bans?: BansData;
+    mutes?: MutesData;
 }

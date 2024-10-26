@@ -117,17 +117,6 @@ const UserProfileCard: React.FC<UserProfileProps> = ({
                         <strong>Email:</strong> {email}
                       </p>
                     )}
-                    {timesConnected !== undefined && (
-                      <p className="text-zinc-400 mb-2">
-                        <strong>Times Connected:</strong> {timesConnected}
-                      </p>
-                    )}
-                    {lastConnected !== undefined && (
-                      <p className="text-zinc-400">
-                        <strong>Last Connected:</strong>{" "}
-                        {new Date(lastConnected * 1000).toLocaleString()}
-                      </p>
-                    )}
                   </div>
                 </div>
               </>
