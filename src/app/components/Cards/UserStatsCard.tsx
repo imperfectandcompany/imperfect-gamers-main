@@ -13,7 +13,6 @@ import {
   Search,
   Shield,
 } from "lucide-react";
-import { GameStats, UserRecord } from "../../interfaces/server2";
 import { Progress } from "@components/ui/progress";
 import { ScrollArea } from "@components/ui/scroll-area";
 import {
@@ -31,14 +30,14 @@ import {
   TooltipTrigger,
 } from "@components/ui/tooltip";
 
-import { mapsAndBonuses } from "../../data/mapsAndBonuses"; // Import the maps and bonuses data
-import { mapsTypesAndTiers } from "../../data/mapsTypesAndTiers"; // Import the map types and tiers data
+import { mapsAndBonuses } from "../../data/mapsAndBonuses";
+import { mapsTypesAndTiers } from "../../data/mapsTypesAndTiers";
+import { GameStats, UserRecord } from "@/app/interfaces/server2";
 
-// Define types for filtering
 type MapType = "Staged" | "Linear" | "Hybrid" | "All";
 type StyleType = string | "All";
 type CompletionStatus = "Completed" | "In Progress" | "Not Started" | "All";
-type TierType = string | "All"; // Tiers are strings (e.g., "1", "2", "3")
+type TierType = string | "All";
 
 interface UserStatsProps {
   isLoggedIn: boolean;
@@ -50,100 +49,44 @@ interface UserStatsProps {
 
 interface Rank {
   title: string;
-  minPoints: number;
   color: string;
   icon: JSX.Element;
 }
 
 const rankDefinitions: Rank[] = [
   {
-    title: "[God III]",
-    minPoints: 1000000,
+    title: "[God]",
     color: "text-yellow-500",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
   {
-    title: "[God II]",
-    minPoints: 800000,
-    color: "text-yellow-400",
+    title: "[Master]",
+    color: "text-purple-500",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
   {
-    title: "[God I]",
-    minPoints: 600000,
-    color: "text-yellow-300",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Diamond III]",
-    minPoints: 500000,
+    title: "[Diamond]",
     color: "text-blue-500",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
   {
-    title: "[Diamond II]",
-    minPoints: 400000,
-    color: "text-blue-400",
+    title: "[Platinum]",
+    color: "text-green-500",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
   {
-    title: "[Diamond I]",
-    minPoints: 300000,
-    color: "text-blue-300",
+    title: "[Gold]",
+    color: "text-yellow-400",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
   {
-    title: "[Gold III]",
-    minPoints: 200000,
-    color: "text-orange-500",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Gold II]",
-    minPoints: 150000,
-    color: "text-orange-400",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Gold I]",
-    minPoints: 100000,
-    color: "text-orange-300",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Silver III]",
-    minPoints: 50000,
-    color: "text-gray-500",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Silver II]",
-    minPoints: 25000,
+    title: "[Silver]",
     color: "text-gray-400",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
   {
-    title: "[Silver I]",
-    minPoints: 10000,
-    color: "text-gray-300",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Bronze III]",
-    minPoints: 5000,
-    color: "text-yellow-700",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Bronze II]",
-    minPoints: 1000,
+    title: "[Bronze]",
     color: "text-yellow-800",
-    icon: <Shield className="w-5 h-5 mr-1" />,
-  },
-  {
-    title: "[Bronze I]",
-    minPoints: 0,
-    color: "text-yellow-900",
     icon: <Shield className="w-5 h-5 mr-1" />,
   },
 ];
@@ -167,7 +110,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
   );
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Handle map expansion/collapse
   const toggleExpand = (mapName: string) => {
     setExpandedMaps((prev) =>
       prev.includes(mapName)
@@ -275,40 +217,34 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     playerName,
   } = gameStats;
 
-  // Calculate player rank
   const getPlayerRank = (points: number): Rank => {
-    for (const rank of rankDefinitions) {
-      if (points >= rank.minPoints) {
-        return rank;
-      }
-    }
-    // Default to the lowest rank if none match
-    return rankDefinitions[rankDefinitions.length - 1];
+    // Assuming globalPoints ranges and totalPlayers are known
+    // For this example, we'll just map points to ranks approximately
+    if (points >= 90000) return rankDefinitions[0]; // God
+    if (points >= 70000) return rankDefinitions[1]; // Master
+    if (points >= 50000) return rankDefinitions[2]; // Diamond
+    if (points >= 30000) return rankDefinitions[3]; // Platinum
+    if (points >= 20000) return rankDefinitions[4]; // Gold
+    if (points >= 10000) return rankDefinitions[5]; // Silver
+    return rankDefinitions[6]; // Bronze
   };
 
   const playerRank = getPlayerRank(globalPoints);
 
-  // Ensure totalMaps and totalBonuses are valid numbers
   const totalMaps = mapsAndBonuses.totalMaps || 0;
   const totalBonuses = mapsAndBonuses.totalBonuses || 0;
 
-  // Initialize sets to keep track of completed maps and bonuses
   const completedMapsSet = new Set<string>();
   const completedBonusesSet = new Set<string>();
 
-  // Map to keep track of user's completed bonuses per map
   const userCompletedBonusesMap: { [mapName: string]: Set<string> } = {};
-
-  // Map to keep track of user's last finished time per map
   const userLastFinishedMap: { [mapName: string]: number } = {};
 
-  // Calculate completed maps and bonuses
   Object.entries(mapRecords).forEach(([mapName, styles]) => {
     Object.values(styles).forEach((records) => {
-      records.forEach((record: any) => {
+      records.forEach((record: UserRecord) => {
         const parentMapName = record.parentMapName || mapName;
 
-        // Record last finished time
         if (
           !userLastFinishedMap[parentMapName] ||
           userLastFinishedMap[parentMapName] < record.unixStamp
@@ -317,16 +253,13 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
         }
 
         if (record.isBonus) {
-          // Identify bonuses by parentMapName and mapName
           if (!userCompletedBonusesMap[parentMapName]) {
             userCompletedBonusesMap[parentMapName] = new Set<string>();
           }
-          // Store the full bonus map name
           userCompletedBonusesMap[parentMapName].add(record.mapName);
           completedBonusesSet.add(`${parentMapName}:${record.mapName}`);
         } else {
-          // Base map
-          completedMapsSet.add(mapName);
+          completedMapsSet.add(parentMapName);
         }
       });
     });
@@ -342,26 +275,14 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
       ? (totalCompletions / (totalMaps + totalBonuses)) * 100
       : 0;
 
-  // Helper function to format Unix timestamp
   const formatTimestamp = (unixStamp: number) => {
     return formatDistanceToNow(new Date(unixStamp * 1000), { addSuffix: true });
   };
 
-  // Helper function to format bonus names
-  const formatBonusName = (
-    bonusMapName: string,
-    parentMapName: string
-  ): string => {
-    const regex = new RegExp(`${parentMapName}_bonus(\\d+)`);
-    const match = regex.exec(bonusMapName);
-    if (match && match[1]) {
-      return `Bonus ${match[1]}`;
-    } else {
-      return bonusMapName; // return as is if not matching the pattern
-    }
+  const formatBonusName = (bonusMapName: string): string => {
+    return bonusMapName;
   };
 
-  // Prepare a list of all maps with completion status
   const allMapsWithCompletionStatus = mapsAndBonuses.maps.map((map) => {
     const isMapCompleted = completedMapsSet.has(map.name);
     const userCompletedBonuses =
@@ -396,7 +317,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     };
   });
 
-  // Get unique tiers from maps
   const allTiers = Array.from(
     new Set(
       allMapsWithCompletionStatus
@@ -405,7 +325,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     )
   ).sort((a, b) => parseInt(a!) - parseInt(b!)) as string[];
 
-  // Filter maps based on filters
   let displayedMaps = allMapsWithCompletionStatus.filter((map) => {
     const mapTypeMatch =
       filters.mapType === "All" || filters.mapType === map.type;
@@ -424,7 +343,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     return mapTypeMatch && tierMatch && completionMatch && nameMatch;
   });
 
-  // Sort maps
   displayedMaps.sort((a, b) => {
     if (sortBy === "Last Finished") {
       const aTime = a.lastFinished || 0;
@@ -444,7 +362,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
       }
     }
   });
-
 
   return (
     <Card className="bg-zinc-950 border-zinc-800">
@@ -466,9 +383,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
             </div>
             <div className="flex items-center">
               {playerRank.icon}
-              <span
-                className={`text-base font-bold ${playerRank.color} ml-1`}
-              >
+              <span className={`text-base font-bold ${playerRank.color} ml-1`}>
                 {playerRank.title}
               </span>
             </div>
@@ -695,175 +610,151 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                         </p>
                       </div>
                       <div className="flex items-center space-x-2">
-                      <span
-                              className={`text-xs font-semibold ${
-                                map.status === "Completed"
-                                  ? "text-green-500"
-                                  : map.status === "In Progress"
-                                  ? "text-yellow-500"
-                                  : "text-red-500"
-                              }`}
-                            >
-                              {map.status}
-                            </span>
-                            <motion.div
-                              animate={{
-                                rotate: expandedMaps.includes(map.name) ? 180 : 0,
-                              }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              {expandedMaps.includes(map.name) ? (
-                                <ChevronUp className="w-5 h-5 text-zinc-400" />
-                              ) : (
-                                <ChevronDown className="w-5 h-5 text-zinc-400" />
-                              )}
-                            </motion.div>
-                          </div>
-                        </div>
-                        <AnimatePresence>
-                          {expandedMaps.includes(map.name) && (
-                            <motion.div
-                              initial={{ opacity: 0, height: 0 }}
-                              animate={{ opacity: 1, height: "auto" }}
-                              exit={{ opacity: 0, height: 0 }}
-                              transition={{ duration: 0.3 }}
-                              className="mt-3 space-y-3 overflow-hidden"
-                            >
-                              {map.status !== "Not Started" ? (
-                                <>
-                                  {/* Display user's records */}
-                                  {Object.entries(mapRecords[map.name] || {}).map(
-                                    ([styleName, records]) => (
-                                      <div
-                                        key={styleName}
-                                        className="pl-3 border-l-2 border-zinc-500"
-                                      >
-                                        <p className="text-xs font-semibold text-emerald-400 flex items-center mb-2">
-                                          <Zap className="w-3 h-3 mr-1" />
-                                          {styleName}
-                                        </p>
-                                        {records.length > 0 ? (
-                                          records.map(
-                                            (record: UserRecord, index: number) => (
-                                              <div key={index} className="mb-2">
-                                                <p className="text-xs mb-1">
-                                                  <span className="text-zinc-400 font-semibold">
-                                                    {record.isBonus
-                                                      ? formatBonusName(
-                                                          record.mapName,
-                                                          map.name
-                                                        )
-                                                      : record.mapName}
-                                                    :
-                                                  </span>{" "}
-                                                  <span className="text-yellow-300 font-bold">
-                                                    {record.formattedTime}
-                                                  </span>
-                                                  <span className="text-zinc-500 ml-1">
-                                                    (
-                                                    {record.isStaged
-                                                      ? "Staged"
-                                                      : "Linear"}
-                                                    )
-                                                  </span>
-                                                </p>
-                                                <p className="text-xs text-zinc-400">
-                                                  Last Finished:{" "}
-                                                  {formatTimestamp(record.unixStamp)}
-                                                </p>
-                                                {record.stageTimes && (
-                                                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 mt-1">
-                                                    {record.stageTimes.map(
-                                                      (stage, stageIndex) => (
-                                                        <p
-                                                          key={stageIndex}
-                                                          className="text-xs"
-                                                        >
-                                                          <span className="text-zinc-500">
-                                                            S{stage.stage}:
-                                                          </span>{" "}
-                                                          <span className="text-cyan-300">
-                                                            {stage.formattedTime}
-                                                          </span>
-                                                        </p>
-                                                      )
-                                                    )}
-                                                  </div>
+                        <span
+                          className={`text-xs font-semibold ${
+                            map.status === "Completed"
+                              ? "text-green-500"
+                              : map.status === "In Progress"
+                              ? "text-yellow-500"
+                              : "text-red-500"
+                          }`}
+                        >
+                          {map.status}
+                        </span>
+                        <motion.div
+                          animate={{
+                            rotate: expandedMaps.includes(map.name) ? 180 : 0,
+                          }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          {expandedMaps.includes(map.name) ? (
+                            <ChevronUp className="w-5 h-5 text-zinc-400" />
+                          ) : (
+                            <ChevronDown className="w-5 h-5 text-zinc-400" />
+                          )}
+                        </motion.div>
+                      </div>
+                    </div>
+                    <AnimatePresence>
+                      {expandedMaps.includes(map.name) && (
+                        <motion.div
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: "auto" }}
+                          exit={{ opacity: 0, height: 0 }}
+                          transition={{ duration: 0.3 }}
+                          className="mt-3 space-y-3 overflow-hidden"
+                        >
+                          {map.status !== "Not Started" ? (
+                            <>
+                              {/* Display user's records */}
+                              {Object.entries(mapRecords[map.name] || {}).map(
+                                ([styleName, records]) => (
+                                  <div
+                                    key={styleName}
+                                    className="pl-3 border-l-2 border-zinc-500"
+                                  >
+                                    <p className="text-xs font-semibold text-emerald-400 flex items-center mb-2">
+                                      <Zap className="w-3 h-3 mr-1" />
+                                      {styleName}
+                                    </p>
+                                    {records.length > 0 ? (
+                                      records.map(
+                                        (record: UserRecord, index: number) => (
+                                          <div key={index} className="mb-2">
+                                            <p className="text-xs mb-1">
+                                              <span className="text-zinc-400 font-semibold">
+                                                {record.isBonus
+                                                  ? record.mapName
+                                                  : record.mapName}
+                                                :
+                                              </span>{" "}
+                                              <span className="text-yellow-300 font-bold">
+                                                {record.formattedTime}
+                                              </span>
+                                              <span className="text-zinc-500 ml-1">
+                                                (
+                                                {record.isStaged
+                                                  ? "Staged"
+                                                  : "Linear"}
+                                                )
+                                              </span>
+                                            </p>
+                                            <p className="text-xs text-zinc-400">
+                                              Last Finished:{" "}
+                                              {formatTimestamp(record.unixStamp)}
+                                            </p>
+                                            {record.stageTimes && (
+                                              <div className="grid grid-cols-2 sm:grid-cols-3 gap-1 mt-1">
+                                                {record.stageTimes.map(
+                                                  (stage, stageIndex) => (
+                                                    <p
+                                                      key={stageIndex}
+                                                      className="text-xs"
+                                                    >
+                                                      <span className="text-zinc-500">
+                                                        S{stage.stage}:
+                                                      </span>{" "}
+                                                      <span className="text-cyan-300">
+                                                        {stage.formattedTime}
+                                                      </span>
+                                                    </p>
+                                                  )
                                                 )}
                                               </div>
-                                            )
-                                          )
-                                        ) : (
-                                          <p className="text-xs text-zinc-400">
-                                            No records found
-                                          </p>
-                                        )}
-                                      </div>
-                                    )
-                                  )}
-                                  {/* Display remaining bonuses if any */}
-                                  {map.status === "In Progress" && (
-                                    <div className="pl-3 border-l-2 border-zinc-500">
-                                      <p className="text-xs font-semibold text-yellow-400 mb-2">
-                                        Remaining to Complete:
+                                            )}
+                                          </div>
+                                        )
+                                      )
+                                    ) : (
+                                      <p className="text-xs text-zinc-400">
+                                        No records found
                                       </p>
-                                      <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
-                                        {!completedMapsSet.has(map.name) && (
-                                          <li>Main Map</li>
-                                        )}
-                                        {map.bonuses
-                                          .filter((bonus) => {
-                                            const formattedBonusName =
-                                              formatBonusName(bonus, map.name);
-                                            const records =
-                                              mapRecords[map.name] || {};
-                                            const bonusCompletedInRecords =
-                                              Object.values(records).some(
-                                                (recordArray: UserRecord[]) =>
-                                                  recordArray.some(
-                                                    (record) =>
-                                                      record.isBonus &&
-                                                      formatBonusName(
-                                                        record.mapName,
-                                                        map.name
-                                                      ) === formattedBonusName
-                                                  )
-                                              );
-                                            return (
-                                              !userCompletedBonusesMap[
-                                                map.name
-                                              ]?.has(bonus) &&
-                                              !bonusCompletedInRecords
-                                            );
-                                          })
-                                          .map((bonus, index) => (
-                                            <li key={index}>
-                                              {formatBonusName(bonus, map.name)}
-                                            </li>
-                                          ))}
-                                      </ul>
-                                    </div>
-                                  )}
-                                </>
-                              ) : (
-                                <div className="text-xs text-zinc-400">
-                                  <p>You haven't completed this map yet.</p>
-                                  <p>Bonuses: {map.bonuses.length}</p>
+                                    )}
+                                  </div>
+                                )
+                              )}
+                              {/* Display remaining bonuses if any */}
+                              {map.status === "In Progress" && (
+                                <div className="pl-3 border-l-2 border-zinc-500">
+                                  <p className="text-xs font-semibold text-yellow-400 mb-2">
+                                    Remaining to Complete:
+                                  </p>
+                                  <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
+                                    {!completedMapsSet.has(map.name) && (
+                                      <li>Main Map</li>
+                                    )}
+                                    {map.bonuses
+                                      .filter((bonus) => {
+                                        return !userCompletedBonusesMap[
+                                          map.name
+                                        ]?.has(bonus);
+                                      })
+                                      .map((bonus, index) => (
+                                        <li key={index}>{bonus}</li>
+                                      ))}
+                                  </ul>
                                 </div>
                               )}
-                            </motion.div>
+                            </>
+                          ) : (
+                            <div className="text-xs text-zinc-400">
+                              <p>You haven't completed this map yet.</p>
+                              <p>Bonuses: {map.bonuses.length}</p>
+                            </div>
                           )}
-                        </AnimatePresence>
-                      </motion.div>
-                    ))}
-                  </div>
-                </ScrollArea>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </motion.div>
+                ))}
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
+            </ScrollArea>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 // Helper function component
 function TourStatItem({
@@ -889,4 +780,4 @@ function TourStatItem({
   );
 }
 
-      export default UserStatsCard;
+export default UserStatsCard;

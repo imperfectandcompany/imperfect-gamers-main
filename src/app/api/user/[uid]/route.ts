@@ -30,6 +30,60 @@ import {
 } from "@/app/interfaces/server2";
 import { UserDataResponse } from "@/app/interfaces/UserDataResponse";
 
+// Helper function to format time from timer ticks
+const formatTime = (timerTicks: number): string => {
+  const ticksPerSecond = 128; // Assuming 128 ticks per second
+  const totalSeconds = timerTicks / ticksPerSecond;
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = Math.floor(totalSeconds % 60);
+  const milliseconds = Math.floor((totalSeconds - Math.floor(totalSeconds)) * 1000);
+
+  return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}.${milliseconds}`;
+};
+
+export interface MapRecord {
+  MapName: string;
+}
+
+export interface BonusRecord {
+  MapName: string;
+}
+
+export interface TopPlayer {
+  steamId: string;
+  playerName: string;
+  globalPoints: number;
+}
+
+export interface MapRecordData {
+  mapName: string;
+  steamId: string;
+  playerName: string;
+  timerTicks: number;
+  formattedTime: string;
+}
+
+export interface MapsAndBonuses {
+  totalMaps: number;
+  totalLinearMaps: number;
+  totalStagedMaps: number;
+  totalBonuses: number;
+  totalPlayers: number;
+  topPlayers: TopPlayer[];
+  maps: {
+    name: string;
+    isStaged: boolean;
+    bonuses: string[];
+    bonusCount: number;
+    mapRecord?: {
+      steamId: string;
+      playerName: string;
+      timerTicks: number;
+      formattedTime: string;
+    };
+  }[];
+}
+
 // Fetch configuration flags
 const fetchConfig = {
   fetchProfile: true,
@@ -401,6 +455,13 @@ export async function GET(
               (stageTime) => stageTime.MapName === mapName
             );
 
+            // Function to fetch total number of players
+  const fetchTotalPlayersquery = `
+    SELECT COUNT(DISTINCT SteamID) AS totalPlayers FROM sharptimer.PlayerStats;
+  `;
+    const [rows] = await poolServer2.execute<RowDataPacket[]>(fetchTotalPlayersquery);
+    const totalPlayers = rows[0].totalPlayers as number;
+
           // Map to hold parent maps and their associated bonuses, grouped by styles
           const mapToBonusRecords: {
             [parentMap: string]: { [style: string]: UserRecord[] };
@@ -421,6 +482,8 @@ export async function GET(
             if (!mapToBonusRecords[parentMap][styleName]) {
               mapToBonusRecords[parentMap][styleName] = [];
             }
+
+
 
             // Add record to its parent map's style array (whether base map or bonus)
             mapToBonusRecords[parentMap][styleName].push({
@@ -449,40 +512,139 @@ export async function GET(
                   formattedTime: stageTime.FormattedTime,
                   velocity: stageTime.Velocity,
                 })),
+              // Initialize placement fields
+              mapPlacement: undefined,
+              totalMapPlayers: undefined,
             });
           });
 
-          // Now process the categorized data to calculate stats or display it
-          const mapsCompleted = Object.keys(mapToBonusRecords).length;
-          const totalMaps = 100; // TODO: Replace with actual total maps
 
-          const completionRate =
-            ((mapsCompleted / totalMaps) * 100).toFixed(2) + "%";
+        // First, get unique MapNames and Styles from playerRecordsRows
+        const uniqueMapStylePairs = new Set(
+          playerRecordsRows.map((record) => `${record.MapName}-${record.Style}`)
+        );
 
-          // Construct gameStats with the categorized data
-          gameStats = {
-            steamId: playerStats.SteamID,
-            playerName: playerStats.PlayerName,
-            timesConnected: playerStats.TimesConnected,
-            lastConnected: playerStats.LastConnected,
-            globalPoints: playerStats.GlobalPoints,
-            hideTimerHud: playerStats.HideTimerHud,
-            hideKeys: playerStats.HideKeys,
-            soundsEnabled: playerStats.SoundsEnabled,
-            isVip: playerStats.IsVip,
-            bigGifId: playerStats.BigGifID,
-            hideJs: playerStats.HideJS,
-            playerFov: playerStats.PlayerFov,
-            mapsCompleted: mapsCompleted,
-            totalMaps: totalMaps,
-            completionRate: completionRate,
-            mapRecords: mapToBonusRecords,
+        // Prepare dynamic placeholders for MapName and Style
+        const mapStylePlaceholders = Array.from(uniqueMapStylePairs)
+          .map(() => "(?, ?)")
+          .join(", ");
+
+        const mapStyleParams: any[] = [];
+        uniqueMapStylePairs.forEach((pair) => {
+          const [mapName, style] = pair.split("-");
+          mapStyleParams.push(mapName, parseInt(style));
+        });
+
+
+
+          const mapPlacementQuery = `
+          SELECT
+              r.SteamID,
+              r.MapName,
+              (SELECT COUNT(*) + 1 
+               FROM sharptimer.PlayerRecords pr 
+               WHERE pr.MapName = r.MapName 
+                 AND pr.Style = r.Style 
+                 AND pr.TimerTicks < r.TimerTicks) AS MapPlacement,
+              (SELECT COUNT(*) 
+               FROM sharptimer.PlayerRecords pr 
+               WHERE pr.MapName = r.MapName 
+                 AND pr.Style = r.Style) AS TotalMapPlayers
+          FROM sharptimer.PlayerRecords r
+          WHERE (r.MapName, r.Style) IN (${mapStylePlaceholders})
+            AND r.SteamID IN (${placeholdersSteamIds})
+        `;
+        const [mapPlacementRows] = await poolServer2.execute<RowDataPacket[]>(
+          mapPlacementQuery,
+          [...mapStyleParams, ...steamIds]
+        );
+
+                // Assign MapPlacement and TotalMapPlayers from mapPlacementRows
+                mapPlacementRows.forEach((placement) => {
+                  const steamId = placement.SteamID;
+                  const mapName = placement.MapName;
+                  const mapPlacement = placement.MapPlacement;
+                  const totalMapPlayers = placement.TotalMapPlayers;
+        
+                  // Find the corresponding UserRecord and assign placement
+                  for (const parentMap in mapToBonusRecords) {
+                    for (const style in mapToBonusRecords[parentMap]) {
+                      mapToBonusRecords[parentMap][style].forEach((record) => {
+                        if (
+                          record.steamId === steamId &&
+                          record.mapName === (isBonusMap(mapName) ? "Bonus " + parseInt(mapName.split("_bonus")[1]) : mapName)
+                        ) {
+                          record.mapPlacement = mapPlacement;
+                          record.totalMapPlayers = totalMapPlayers;
+                        }
+                      });
+                    }
+                  }
+                });
+
+
+        const globalPlacementQuery = `
+        SELECT
+            ps.SteamID,
+            (SELECT COUNT(*) + 1 FROM sharptimer.PlayerStats WHERE GlobalPoints > ps.GlobalPoints) AS GlobalPlacement,
+            (SELECT COUNT(*) FROM sharptimer.PlayerStats) AS TotalGlobalPlayers
+        FROM sharptimer.PlayerStats ps
+        WHERE ps.SteamID IN (${placeholdersSteamIds})
+      `;
+      const [globalPlacementRows] = await poolServer2.execute<RowDataPacket[]>(
+        globalPlacementQuery,
+        steamIds
+      );
+
+        const globalPlacementMap: { [steamId: string]: { GlobalPlacement: number; TotalGlobalPlayers: number } } = {};
+        globalPlacementRows.forEach((gp) => {
+          globalPlacementMap[gp.SteamID] = {
+            GlobalPlacement: gp.GlobalPlacement,
+            TotalGlobalPlayers: gp.TotalGlobalPlayers,
           };
-        } catch (error) {
-          console.error("Error fetching game stats from Server2:", error);
-          gameStats = undefined; // Ensure this variable is defined in the outer scope
+        });
+
+          // // Now process the categorized data to calculate stats or display it
+          // const mapsCompleted = Object.keys(mapToBonusRecords).length;
+          // const totalMaps = 100; // TODO: Replace with actual total maps
+
+          // const completionRate =
+          //   ((mapsCompleted / totalMaps) * 100).toFixed(2) + "%";
+
+                    // 8. Construct gameStats with the categorized data
+        const mapsCompleted = Object.keys(mapToBonusRecords).length;
+        const totalMaps = 100; // TODO: Replace with actual total maps or fetch dynamically
+
+        const completionRate =
+          ((mapsCompleted / totalMaps) * 100).toFixed(2) + "%";
+
+            gameStats = {
+              steamId: playerStats.SteamID,
+              playerName: playerStats.PlayerName,
+              timesConnected: playerStats.TimesConnected,
+              lastConnected: playerStats.LastConnected,
+              globalPoints: playerStats.GlobalPoints,
+              hideTimerHud: playerStats.HideTimerHud,
+              hideKeys: playerStats.HideKeys,
+              soundsEnabled: playerStats.SoundsEnabled,
+              isVip: playerStats.IsVip,
+              bigGifId: playerStats.BigGifID,
+              hideJs: playerStats.HideJS,
+              playerFov: playerStats.PlayerFov,
+              mapsCompleted: mapsCompleted,
+              totalPlayers: totalPlayers,
+              totalMaps: totalMaps,
+              completionRate: completionRate,
+              mapRecords: mapToBonusRecords,
+              // Assign global placement if available
+              globalPlacement: globalPlacementMap[playerStats.SteamID]?.GlobalPlacement,
+              totalGlobalPlayers: globalPlacementMap[playerStats.SteamID]?.TotalGlobalPlayers,
+            };
+          } catch (error) {
+            console.error("Error fetching game stats from Server2:", error);
+            gameStats = undefined; // Ensure this variable is defined in the outer scope
+          }
         }
-      }
 
       // Fetch admin data
       if (fetchConfig.fetchAdminData) {

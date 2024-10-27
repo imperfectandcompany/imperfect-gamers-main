@@ -4,11 +4,13 @@
  * Represents game-related statistics for a user.
  */
 export interface GameStats extends SharpTimerPlayerStat {
-  // Extend GameStats from SharpTimerPlayerStat
   mapsCompleted: number;
   totalMaps: number;
-  completionRate: string; // e.g., "75.00%"
-  mapRecords: { [mapName: string]: { [style: string]: UserRecord[] } }; // Categorized by map and style (using style name)
+  globalPlacement?: any;
+  totalGlobalPlayers?: any;
+  totalPlayers: number;
+  completionRate: string;
+  mapRecords: { [mapName: string]: { [style: string]: UserRecord[] } };
   playerModelChanger?: PlayerModelChanger;
 }
 
@@ -19,7 +21,7 @@ export interface SharpTimerPlayerStat {
   steamId: string;
   playerName: string;
   timesConnected: number;
-  lastConnected: number; // Unix timestamp
+  lastConnected: number;
   globalPoints: number;
   hideTimerHud: boolean;
   hideKeys: boolean;
@@ -43,19 +45,21 @@ export const styleMapping: { [key: number]: string } = {
  * Represents a user's record in a specific map or bonus, categorized by style.
  */
 export interface UserRecord {
-  mapName: string; // Name of the map (could be a base map or bonus map)
-  parentMapName?: string; // Name of the parent map, if this is a bonus map
-  isBonus: boolean; // Flag to indicate if this record belongs to a bonus map
-  isStaged: boolean; // Flag to indicate if this record belongs to a staged map
+  mapName: string;
+  parentMapName?: string;
+  isBonus: boolean;
+  isStaged: boolean;
   steamId: string;
   playerName: string;
   timerTicks: number;
   formattedTime: string;
-  unixStamp: number; // Unix timestamp of when the record was set
+  unixStamp: number;
   timesFinished: number;
-  lastFinished: number; // Unix timestamp of the last time the player finished the map
-  style: number; // Game style used for this record (e.g., Normal, Low Gravity)
-  stageTimes?: PlayerStageTime[]; // Array of PlayerStageTime associated with this record
+  lastFinished: number;
+  style: number;
+  stageTimes?: PlayerStageTime[];
+  mapPlacement?: any;
+  totalMapPlayers?: any;
 }
 
 /**
@@ -65,10 +69,10 @@ export interface PlayerStageTime {
   mapName: string;
   steamId: string;
   playerName: string;
-  stage: number; // Stage number within the map
-  timerTicks: number; // Time spent on this stage
+  stage: number;
+  timerTicks: number;
   formattedTime: string;
-  velocity: string; // Player's velocity during this stage
+  velocity: string;
 }
 
 /**
@@ -90,7 +94,6 @@ export interface AdminInfo {
   player_steamid: string;
   player_name: string;
   flags: string[];
-  // Add other relevant properties as needed
 }
 
 /**
@@ -100,7 +103,6 @@ export interface AdminServer {
   id: number;
   server_id: number;
   server_name: string;
-  // Add other relevant properties as needed
 }
 
 /**
@@ -122,10 +124,9 @@ export interface BanRecord {
   admin_steamid: string;
   player_ip: string | null;
   reason: string;
-  issued_at: string; // ISO 8601 format
-  expires_at: string | null; // ISO 8601 format or null for permanent bans
+  issued_at: string;
+  expires_at: string | null;
   server_id: number | null;
-  // Add other relevant properties as needed
 }
 
 /**
@@ -146,10 +147,9 @@ export interface MuteRecord {
   player_steamid: string;
   admin_steamid: string;
   reason: string;
-  issued_at: string; // ISO 8601 format
-  expires_at: string | null; // ISO 8601 format or null for permanent mutes
+  issued_at: string;
+  expires_at: string | null;
   server_id: number | null;
-  // Add other relevant properties as needed
 }
 
 /**

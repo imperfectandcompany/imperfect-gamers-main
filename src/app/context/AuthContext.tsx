@@ -259,6 +259,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
                   }
                 : null,
               gameStats:  {
+                    totalPlayers: userData.user.gameStats?.totalPlayers ?? 0,
                     steamId: userData.user.gameStats?.steamId ?? '',
                     playerName: userData.user.gameStats?.playerName ?? '',
                     lastConnected: userData.user.gameStats?.lastConnected ?? 0,
@@ -310,15 +311,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({
             };
 
             setUser(updatedUser);
-            // setUser((prevUser) =>
-            //   prevUser
-            //     ? {
-            //         ...prevUser,
-            //         isSteamLinked: true,
-            //         steamId: steamId || null,
-            //       }
-            //     : prevUser
-            // );
           }
         } else {
           console.error("User ID not available");
