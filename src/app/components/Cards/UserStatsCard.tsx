@@ -1,6 +1,6 @@
 // components/Cards/UserStatsCard.tsx
 
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import {
   Card,
   CardHeader,
@@ -39,6 +39,7 @@ import { GameStats, UserRecord, styleMapping } from "@/app/interfaces/server2";
 import { mapsAndBonuses } from "@/app/data/mapsAndBonuses";
 import { mapsTypesAndTiers } from "@/app/data/mapsTypesAndTiers";
 
+// Define types
 type MapType = string | "All";
 type StyleType = string | "All";
 type CompletionStatus = "Completed" | "In Progress" | "Not Started" | "All";
@@ -61,6 +62,7 @@ interface Rank {
   icon: string;
 }
 
+// Color mapping for ranks
 const colorMapping: { [key: string]: string } = {
   "{darkred}": "text-red-800",
   "{lightred}": "text-red-500",
@@ -74,6 +76,7 @@ const colorMapping: { [key: string]: string } = {
   "{default}": "text-white",
 };
 
+// Rank definitions
 const rankDefinitions: Rank[] = [
   {
     title: "[God III]",
@@ -328,94 +331,59 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     );
   };
 
+  // Early returns for different states
   if (!isLoggedIn) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Flame className="mr-2 h-5 w-5 text-red-500" />
-            Your Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-yellow-500">
-            Please log in to see your stats.
-          </p>
-        </CardContent>
-      </Card>
+      <StatusCard
+        message="Please log in to see your stats."
+        icon={<Flame className="mr-2 h-5 w-5 text-red-500" />}
+        title="Your Stats"
+        color="text-yellow-500"
+      />
     );
   }
 
   if (!hasCompletedOnboarding) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Flame className="mr-2 h-5 w-5 text-red-500" />
-            Your Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-yellow-500">
-            Please complete your onboarding to view your stats.
-          </p>
-        </CardContent>
-      </Card>
+      <StatusCard
+        message="Please complete your onboarding to view your stats."
+        icon={<Flame className="mr-2 h-5 w-5 text-red-500" />}
+        title="Your Stats"
+        color="text-yellow-500"
+      />
     );
   }
 
   if (!isSteamLinked) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Flame className="mr-2 h-5 w-5 text-red-500" />
-            Your Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-red-500">
-            Please link your Steam account to view your detailed stats.
-          </p>
-        </CardContent>
-      </Card>
+      <StatusCard
+        message="Please link your Steam account to view your detailed stats."
+        icon={<Flame className="mr-2 h-5 w-5 text-red-500" />}
+        title="Your Stats"
+        color="text-red-500"
+      />
     );
   }
 
   if (!hasServerData) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Flame className="mr-2 h-5 w-5 text-red-500" />
-            Your Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-red-500">
-            No server data found for your Steam account. Play on our server to
-            generate stats.
-          </p>
-        </CardContent>
-      </Card>
+      <StatusCard
+        message="No server data found for your Steam account. Play on our server to generate stats."
+        icon={<Flame className="mr-2 h-5 w-5 text-red-500" />}
+        title="Your Stats"
+        color="text-red-500"
+      />
     );
   }
 
   if (!gameStats) {
     return (
-      <Card className="bg-zinc-950 border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-white flex items-center">
-            <Flame className="mr-2 h-5 w-5 text-red-500" />
-            Your Stats
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <p className="text-center text-red-500">
-            Failed to load your stats. Please try again later.
-          </p>
-        </CardContent>
-      </Card>
+      <StatusCard
+        message="Failed to load your stats. Please try again later."
+        icon={<Flame className="mr-2 h-5 w-5 text-red-500" />}
+        title="Your Stats"
+        color="text-red-500"
+      />
     );
   }
 
@@ -429,6 +397,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     totalGlobalPlayers,
   } = gameStats;
 
+  // Function to get player rank
   const getPlayerRank = (
     placement: number,
     totalPlayers: number
@@ -445,11 +414,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
       (r.percent !== 0 && percentageRank <= r.percent)
     );
 
-    if (rank) {
-      return rank;
-    } else {
-      return rankDefinitions.find((rank) => rank.title === "[Unranked]")!;
-    }
+    return rank || rankDefinitions.find((rank) => rank.title === "[Unranked]")!;
   };
 
   const playerRank = getPlayerRank(globalPlacement, totalGlobalPlayers);
@@ -457,8 +422,8 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
   const totalMaps = mapsAndBonuses.totalMaps || 0;
   const totalBonuses = mapsAndBonuses.totalBonuses || 0;
 
-  const completedMapsSet = new Set<string>();
-  const completedBonusesSet = new Set<string>();
+  const completedMapsSet = useMemo(() => new Set<string>(), []);
+  const completedBonusesSet = useMemo(() => new Set<string>(), []);
 
   const userCompletedBonusesMap: { [mapName: string]: Set<string> } = {};
   const userLastFinishedMap: { [mapName: string]: number } = {};
@@ -505,65 +470,75 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     });
   };
 
-  const allMapsWithCompletionStatus = mapsAndBonuses.maps.map((map) => {
-    const isMapCompleted = completedMapsSet.has(map.name);
-    const userCompletedBonuses =
-      userCompletedBonusesMap[map.name] || new Set<string>();
+  const allMapsWithCompletionStatus = useMemo(
+    () =>
+      mapsAndBonuses.maps.map((map) => {
+        const isMapCompleted = completedMapsSet.has(map.name);
+        const userCompletedBonuses =
+          userCompletedBonusesMap[map.name] || new Set<string>();
 
-    const totalBonusesForMap = map.bonuses.length;
-    const completedBonusesForMap = userCompletedBonuses.size;
+        const totalBonusesForMap = map.bonuses.length;
+        const completedBonusesForMap = userCompletedBonuses.size;
 
-    let status: CompletionStatus = "Not Started";
+        let status: CompletionStatus = "Not Started";
 
-    if (isMapCompleted && completedBonusesForMap === totalBonusesForMap) {
-      status = "Completed";
-    } else if (isMapCompleted || completedBonusesForMap > 0) {
-      status = "In Progress";
-    }
+        if (isMapCompleted && completedBonusesForMap === totalBonusesForMap) {
+          status = "Completed";
+        } else if (isMapCompleted || completedBonusesForMap > 0) {
+          status = "In Progress";
+        }
 
-    const lastFinished = userLastFinishedMap[map.name] || null;
+        const lastFinished = userLastFinishedMap[map.name] || null;
 
-    const mapTierAndType = mapsTypesAndTiers[map.name] || {
-      Tier: null,
-      Type: null,
-    };
+        const mapTierAndType = mapsTypesAndTiers[map.name] || {
+          Tier: null,
+          Type: null,
+        };
 
-    return {
-      ...map,
-      status,
-      completedBonusesForMap,
-      totalBonusesForMap,
-      lastFinished,
-      tier: mapTierAndType.Tier,
-      type: mapTierAndType.Type,
-    };
-  });
+        return {
+          ...map,
+          status,
+          completedBonusesForMap,
+          totalBonusesForMap,
+          lastFinished,
+          tier: mapTierAndType.Tier,
+          type: mapTierAndType.Type,
+        };
+      }),
+    [mapsAndBonuses.maps, completedMapsSet, completedBonusesSet, userCompletedBonusesMap, userLastFinishedMap]
+  );
 
-  const allTiers = Array.from(
-    new Set(
-      allMapsWithCompletionStatus
-        .map((map) => (map.tier ? map.tier.toString() : null))
-        .filter(Boolean)
-    )
-  ).sort((a, b) => parseInt(a!) - parseInt(b!)) as string[];
+  const allTiers = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          allMapsWithCompletionStatus
+            .map((map) => (map.tier ? map.tier.toString() : null))
+            .filter(Boolean)
+        )
+      ).sort((a, b) => parseInt(a!) - parseInt(b!)) as string[],
+    [allMapsWithCompletionStatus]
+  );
 
-  let displayedMaps = allMapsWithCompletionStatus.filter((map) => {
-    const mapTypeMatch =
-      filters.mapType === "All" || filters.mapType === map.type;
+  let displayedMaps = useMemo(() => {
+    return allMapsWithCompletionStatus.filter((map) => {
+      const mapTypeMatch =
+        filters.mapType === "All" || filters.mapType === map.type;
 
-    const tierMatch =
-      filters.tier === "All" || filters.tier === map.tier?.toString();
+      const tierMatch =
+        filters.tier === "All" || filters.tier === map.tier?.toString();
 
-    const completionMatch =
-      filters.completionStatus === "All" ||
-      filters.completionStatus === map.status;
+      const completionMatch =
+        filters.completionStatus === "All" ||
+        filters.completionStatus === map.status;
 
-    const nameMatch = map.name
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+      const nameMatch = map.name
+        .toLowerCase()
+        .includes(searchQuery.toLowerCase());
 
-    return mapTypeMatch && tierMatch && completionMatch && nameMatch;
-  });
+      return mapTypeMatch && tierMatch && completionMatch && nameMatch;
+    });
+  }, [allMapsWithCompletionStatus, filters, searchQuery]);
 
   displayedMaps.sort((a, b) => {
     if (sortBy === "Last Finished") {
@@ -585,34 +560,33 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
     }
   });
 
- // Helper function to format bonus names
- const formatBonusName = (
-  bonusMapName: string,
-  parentMapName: string
-): string => {
-  const regex = new RegExp(`${parentMapName}_bonus(\\d+)`);
-  const match = regex.exec(bonusMapName);
-  if (match && match[1]) {
-    return `Bonus ${match[1]}`;
-  } else {
-    return bonusMapName; // return as is if not matching the pattern
-  }
-};
-  
+  // Helper function to format bonus names
+  const formatBonusName = (
+    bonusMapName: string,
+    parentMapName: string
+  ): string => {
+    const regex = new RegExp(`${parentMapName}_bonus(\\d+)`);
+    const match = regex.exec(bonusMapName);
+    if (match && match[1]) {
+      return `Bonus ${match[1]}`;
+    } else {
+      return bonusMapName; // return as is if not matching the pattern
+    }
+  };
 
   return (
-    <Card className="bg-zinc-950 border-zinc-800">
+    <Card className="bg-zinc-950 border-zinc-800 shadow-lg w-full">
       <CardHeader>
-        <CardTitle className="text-white flex items-center">
-          <Flame className="mr-2 h-5 w-5 text-red-500" />
+        <CardTitle className="text-white flex items-center text-lg md:text-xl">
+          <Flame className="mr-2 h-6 w-6 text-red-500" />
           Your Stats
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-6 text-zinc-300">
           {/* Player Name and Rank */}
-          <div className="flex justify-between items-center">
-            <div className="flex items-center space-x-2">
+          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
+            <div className="flex items-center space-x-2 mb-4 md:mb-0">
               <span className="text-base font-semibold">Player:</span>
               <span className="text-base font-bold text-zinc-100">
                 {playerName}
@@ -638,10 +612,10 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
           </div>
 
           {/* Global Points */}
-          <div className="flex justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center">
             <span className="text-base font-semibold">Global Points:</span>
-            <div className="flex items-center bg-gradient-to-r from-red-600 to-red-400 px-3 py-1 rounded-full">
-              <span className="text-white font-bold text-base">
+            <div className="flex items-center bg-gradient-to-r from-red-600 to-red-400 px-4 py-2 rounded-full mt-2 sm:mt-0 transition-transform transform hover:scale-105">
+              <span className="text-white font-bold text-lg">
                 {globalPoints}
               </span>
             </div>
@@ -662,7 +636,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                 <TooltipTrigger asChild>
                   <Progress
                     value={overallCompletionPercentage}
-                    className="w-full h-2 bg-zinc-700"
+                    className="w-full h-2 bg-zinc-700 rounded"
                   />
                 </TooltipTrigger>
                 <TooltipContent>
@@ -674,15 +648,17 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
 
           {/* Completion Stats */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <TourStatItem
+            <StatItem
               label="Maps"
               completed={mapsCompleted}
               total={totalMaps}
+              color="text-zinc-100"
             />
-            <TourStatItem
+            <StatItem
               label="Bonuses"
               completed={bonusesCompleted}
               total={totalBonuses}
+              color="text-zinc-100"
             />
             <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-4">
               <span className="text-sm text-zinc-400">Total Completions</span>
@@ -711,137 +687,27 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
 
           {/* User Records */}
           <div>
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-4">
-              <h2 className="text-2xl font-bold text-red-400 flex items-center mb-2 sm:mb-0">
+            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-4">
+              <h2 className="text-2xl font-bold text-red-400 flex items-center mb-2 lg:mb-0">
                 <Trophy className="w-6 h-6 mr-2" />
                 User Records
               </h2>
-              <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-2 space-y-2 sm:space-y-0">
-                {/* Quick Search */}
-                <div className="relative">
-                  <input
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    placeholder="Search maps..."
-                    className="bg-zinc-700 text-zinc-100 p-2 pl-10 rounded text-sm w-full sm:w-auto"
-                  />
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
-                </div>
-                {/* Sort By */}
-                <div>
-                  <label className="block text-xs text-zinc-400 mb-1">
-                    Sort By
-                  </label>
-                  <select
-                    value={sortBy}
-                    onChange={(e) =>
-                      setSortBy(
-                        e.target.value as
-                          | "Default"
-                          | "Last Finished"
-                          | "Tier"
-                      )
-                    }
-                    className="bg-zinc-700 text-zinc-100 p-2 rounded text-sm w-full sm:w-auto"
-                  >
-                    <option value="Default">Default</option>
-                    <option value="Last Finished">Last Finished</option>
-                    <option value="Tier">Tier</option>
-                  </select>
-                </div>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="mt-2 sm:mt-0 text-zinc-400 hover:text-zinc-100"
-                    >
-                      <Filter className="w-6 h-6" />
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-64 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl">
-                    <h3 className="text-lg font-semibold mb-2 text-zinc-100">
-                      Filters
-                    </h3>
-                    <div className="space-y-2">
-                      {/* Map Type Filter */}
-                      <div>
-                        <label className="block text-zinc-300 mb-1">
-                          Map Type
-                        </label>
-                        <select
-                          value={filters.mapType}
-                          onChange={(e) =>
-                            setFilters({
-                              ...filters,
-                              mapType: e.target.value as MapType,
-                            })
-                          }
-                          className="w-full bg-zinc-700 text-zinc-100 p-2 rounded"
-                        >
-                          <option value="All">All</option>
-                          <option value="Linear">Linear</option>
-                          <option value="Staged">Staged</option>
-                          <option value="Hybrid">Hybrid</option>
-                        </select>
-                      </div>
-                      {/* Tier Filter */}
-                      <div>
-                        <label className="block text-zinc-300 mb-1">
-                          Tier
-                        </label>
-                        <select
-                          value={filters.tier}
-                          onChange={(e) =>
-                            setFilters({
-                              ...filters,
-                              tier: e.target.value as TierType,
-                            })
-                          }
-                          className="w-full bg-zinc-700 text-zinc-100 p-2 rounded"
-                        >
-                          <option value="All">All</option>
-                          {allTiers.map((tier, index) => (
-                            <option key={index} value={tier}>
-                              Tier {tier}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      {/* Completion Status Filter */}
-                      <div>
-                        <label className="block text-zinc-300 mb-1">
-                          Completion Status
-                        </label>
-                        <select
-                          value={filters.completionStatus}
-                          onChange={(e) =>
-                            setFilters({
-                              ...filters,
-                              completionStatus: e.target
-                                .value as CompletionStatus,
-                            })
-                          }
-                          className="w-full bg-zinc-700 text-zinc-100 p-2 rounded"
-                        >
-                          <option value="All">All</option>
-                          <option value="Completed">Completed</option>
-                          <option value="In Progress">In Progress</option>
-                          <option value="Not Started">Not Started</option>
-                        </select>
-                      </div>
-                    </div>
-                  </PopoverContent>
-                </Popover>
-              </div>
+              <UserRecordsControls
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                sortBy={sortBy}
+                setSortBy={setSortBy}
+                filters={filters}
+                setFilters={setFilters}
+                allTiers={allTiers}
+              />
             </div>
             {/* Displayed Maps Count */}
             <p className="text-sm text-zinc-400 mb-2">
               Showing {displayedMaps.length} out of{" "}
               {allMapsWithCompletionStatus.length} maps
             </p>
-            <ScrollArea className="h-96">
+            <ScrollArea className="h-80 sm:h-96 overflow-y-auto">
               <div className="space-y-4 pr-4">
                 {displayedMaps.map((map) => (
                   <motion.div
@@ -849,10 +715,21 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                     className={`bg-gradient-to-br from-zinc-700 to-zinc-600 rounded-lg p-4 text-sm shadow-md border border-zinc-500 relative ${
                       map.status === "Not Started" ? "opacity-50" : ""
                     }`}
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
                   >
                     <div
-                      className="flex items-center justify-between cursor-pointer"
+                      className="flex flex-col sm:flex-row items-center justify-between cursor-pointer"
                       onClick={() => toggleExpand(map.name)}
+                      role="button"
+                      aria-expanded={expandedMaps.includes(map.name)}
+                      tabIndex={0}
+                      onKeyPress={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          toggleExpand(map.name);
+                        }
+                      }}
                     >
                       <div>
                         <h4 className="font-semibold text-zinc-100">
@@ -862,7 +739,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                           Tier {map.tier || "N/A"} - {map.type || "N/A"}
                         </p>
                       </div>
-                      <div className="flex items-center space-x-2">
+                      <div className="flex items-center space-x-2 mt-2 sm:mt-0">
                         <span
                           className={`text-xs font-semibold ${
                             map.status === "Completed"
@@ -982,49 +859,49 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                                   )}
                                 </div>
                               ))}
- {/* Display remaining bonuses if any */}
- {map.status === "In Progress" && (
-                                    <div className="pl-3 border-l-2 border-zinc-500">
-                                      <p className="text-xs font-semibold text-yellow-400 mb-2">
-                                        Remaining to Complete:
-                                      </p>
-                                      <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
-                                        {!completedMapsSet.has(map.name) && (
-                                          <li>Main Map</li>
-                                        )}
-                                        {map.bonuses
-                                          .filter((bonus) => {
-                                            const formattedBonusName =
-                                              formatBonusName(bonus, map.name);
-                                            const records =
-                                              mapRecords[map.name] || {};
-                                            const bonusCompletedInRecords =
-                                              Object.values(records).some(
-                                                (recordArray: UserRecord[]) =>
-                                                  recordArray.some(
-                                                    (record) =>
-                                                      record.isBonus &&
-                                                      formatBonusName(
-                                                        record.mapName,
-                                                        map.name
-                                                      ) === formattedBonusName
-                                                  )
-                                              );
-                                              return (
-                                                !userCompletedBonusesMap[
-                                                  map.name
-                                                ]?.has(bonus) &&
-                                                !bonusCompletedInRecords
-                                              );
-                                            })
-                                            .map((bonus, index) => (
-                                              <li key={index}>
-                                                {formatBonusName(bonus, map.name)}
-                                              </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                  )}
+                              {/* Display remaining bonuses if any */}
+                              {map.status === "In Progress" && (
+                                <div className="pl-3 border-l-2 border-zinc-500">
+                                  <p className="text-xs font-semibold text-yellow-400 mb-2">
+                                    Remaining to Complete:
+                                  </p>
+                                  <ul className="list-disc list-inside text-xs text-zinc-400 space-y-1">
+                                    {!completedMapsSet.has(map.name) && (
+                                      <li>Main Map</li>
+                                    )}
+                                    {map.bonuses
+                                      .filter((bonus) => {
+                                        const formattedBonusName =
+                                          formatBonusName(bonus, map.name);
+                                        const records =
+                                          mapRecords[map.name] || {};
+                                        const bonusCompletedInRecords =
+                                          Object.values(records).some(
+                                            (recordArray: UserRecord[]) =>
+                                              recordArray.some(
+                                                (record) =>
+                                                  record.isBonus &&
+                                                  formatBonusName(
+                                                    record.mapName,
+                                                    map.name
+                                                  ) === formattedBonusName
+                                              )
+                                          );
+                                        return (
+                                          !userCompletedBonusesMap[
+                                            map.name
+                                          ]?.has(bonus) &&
+                                          !bonusCompletedInRecords
+                                        );
+                                      })
+                                      .map((bonus, index) => (
+                                        <li key={index}>
+                                          {formatBonusName(bonus, map.name)}
+                                        </li>
+                                      ))}
+                                  </ul>
+                                </div>
+                              )}
                             </>
                           ) : (
                             <div className="text-xs text-zinc-400">
@@ -1046,30 +923,205 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
   );
 };
 
-// Helper function component
-function TourStatItem({
-  label,
-  completed,
-  total,
-}: {
+// Reusable Status Card Component with React.memo for performance
+const StatusCard: React.FC<{
+  message: string;
+  icon: React.ReactElement;
+  title: string;
+  color: string;
+}> = React.memo(({ message, icon, title, color }) => (
+  <Card className="bg-zinc-950 border-zinc-800 shadow-lg w-full">
+    <CardHeader>
+      <CardTitle className="text-white flex items-center text-lg md:text-xl">
+        {icon}
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className={`text-center ${color}`}>{message}</p>
+    </CardContent>
+  </Card>
+));
+
+// Reusable Stat Item Component with React.memo for performance
+const StatItem: React.FC<{
   label: string;
   completed: number;
   total: number;
-}) {
+  color: string;
+}> = React.memo(({ label, completed, total, color }) => {
   const percentage = total > 0 ? (completed / total) * 100 : 0;
 
   return (
     <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-4">
       <span className="text-sm text-zinc-400">{label}</span>
       <div className="flex items-baseline space-x-2">
-        <span className="text-2xl font-bold text-zinc-100">
+        <span className={`text-2xl font-bold ${color}`}>
           {completed}
         </span>
         <span className="text-sm text-zinc-400">/ {total}</span>
       </div>
-      <Progress value={percentage} className="w-full h-2 mt-2" />
+      <Progress value={percentage} className="w-full h-2 mt-2 rounded" />
     </div>
   );
+});
+
+// New Component: UserRecordsControls
+interface UserRecordsControlsProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  sortBy: "Default" | "Last Finished" | "Tier";
+  setSortBy: (sort: "Default" | "Last Finished" | "Tier") => void;
+  filters: {
+    mapType: MapType;
+    tier: TierType;
+    style: StyleType;
+    completionStatus: CompletionStatus;
+  };
+  setFilters: React.Dispatch<
+    React.SetStateAction<{
+      mapType: MapType;
+      tier: TierType;
+      style: StyleType;
+      completionStatus: CompletionStatus;
+    }>
+  >;
+  allTiers: string[];
 }
+
+const UserRecordsControls: React.FC<UserRecordsControlsProps> = ({
+  searchQuery,
+  setSearchQuery,
+  sortBy,
+  setSortBy,
+  filters,
+  setFilters,
+  allTiers,
+}) => {
+  return (
+    <div className="flex flex-wrap items-center space-y-2 sm:space-y-0 sm:space-x-4 w-full lg:w-auto">
+      {/* Quick Search */}
+      <div className="relative flex-1 sm:flex-none">
+        <input
+          type="text"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search maps..."
+          className="bg-zinc-700 text-zinc-100 p-2 pl-10 rounded text-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+          aria-label="Search maps"
+        />
+        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-zinc-400" />
+      </div>
+      {/* Sort By */}
+      <div className="flex-1 sm:flex-none">
+        <label className="block text-xs text-zinc-400 mb-1">
+          Sort By
+        </label>
+        <select
+          value={sortBy}
+          onChange={(e) =>
+            setSortBy(
+              e.target.value as "Default" | "Last Finished" | "Tier"
+            )
+          }
+          className="bg-zinc-700 text-zinc-100 p-2 rounded text-sm w-full focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+          aria-label="Sort by"
+        >
+          <option value="Default">Default</option>
+          <option value="Last Finished">Last Finished</option>
+          <option value="Tier">Tier</option>
+        </select>
+      </div>
+      {/* Filter */}
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-zinc-400 hover:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+            aria-label="Filter options"
+          >
+            <Filter className="w-6 h-6" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-64 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl">
+          <h3 className="text-lg font-semibold mb-2 text-zinc-100">
+            Filters
+          </h3>
+          <div className="space-y-2">
+            {/* Map Type Filter */}
+            <div>
+              <label className="block text-zinc-300 mb-1">
+                Map Type
+              </label>
+              <select
+                value={filters.mapType}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    mapType: e.target.value as MapType,
+                  }))
+                }
+                className="w-full bg-zinc-700 text-zinc-100 p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                aria-label="Filter by map type"
+              >
+                <option value="All">All</option>
+                <option value="Linear">Linear</option>
+                <option value="Staged">Staged</option>
+                <option value="Hybrid">Hybrid</option>
+              </select>
+            </div>
+            {/* Tier Filter */}
+            <div>
+              <label className="block text-zinc-300 mb-1">
+                Tier
+              </label>
+              <select
+                value={filters.tier}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    tier: e.target.value as TierType,
+                  }))
+                }
+                className="w-full bg-zinc-700 text-zinc-100 p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                aria-label="Filter by tier"
+              >
+                <option value="All">All</option>
+                {allTiers.map((tier, index) => (
+                  <option key={index} value={tier}>
+                    Tier {tier}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {/* Completion Status Filter */}
+            <div>
+              <label className="block text-zinc-300 mb-1">
+                Completion Status
+              </label>
+              <select
+                value={filters.completionStatus}
+                onChange={(e) =>
+                  setFilters((prev) => ({
+                    ...prev,
+                    completionStatus: e.target.value as CompletionStatus,
+                  }))
+                }
+                className="w-full bg-zinc-700 text-zinc-100 p-2 rounded focus:outline-none focus:ring-2 focus:ring-red-500 transition-colors"
+                aria-label="Filter by completion status"
+              >
+                <option value="All">All</option>
+                <option value="Completed">Completed</option>
+                <option value="In Progress">In Progress</option>
+                <option value="Not Started">Not Started</option>
+              </select>
+            </div>
+          </div>
+        </PopoverContent>
+      </Popover>
+    </div>
+  );
+};
 
 export default UserStatsCard;
