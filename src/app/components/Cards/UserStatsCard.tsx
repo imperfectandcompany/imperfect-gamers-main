@@ -1,7 +1,12 @@
 // components/Cards/UserStatsCard.tsx
 
-import React, { useState, useMemo } from "react";
-import { Card, CardHeader, CardTitle, CardContent } from "@components/ui/card";
+import React, { useState, useMemo, KeyboardEvent } from "react";
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+} from "@components/ui/card";
 import {
   Flame,
   Trophy,
@@ -59,18 +64,15 @@ interface UserStatsProps {
   gameStats: GameStats | null;
 }
 
-// Color mapping for ranks
+// Semantic color mapping for ranks
 const colorMapping: { [key: string]: string } = {
-  "{darkred}": "text-red-800",
-  "{lightred}": "text-red-500",
-  "{orange}": "text-orange-500",
-  "{lime}": "text-lime-500",
-  "{purple}": "text-purple-500",
-  "{lightblue}": "text-blue-400",
-  "{yellow}": "text-yellow-500",
-  "{silver}": "text-gray-400",
-  "{lightyellow}": "text-yellow-200",
-  "{default}": "text-white",
+  Unranked: "text-gray-400",
+  Bronze: "text-yellow-500",
+  Silver: "text-gray-400",
+  Gold: "text-yellow-400",
+  Platinum: "text-blue-500",
+  Diamond: "text-purple-500",
+  // Add more ranks as needed
 };
 
 // Define all possible Map Types and Completion Statuses
@@ -81,6 +83,442 @@ const allCompletionStatuses: CompletionStatus[] = [
   "In Progress",
   "Not Started",
 ];
+
+// Animation Variants for Consistency
+const fadeInVariants = {
+  hidden: { opacity: 0, scale: 0.95 },
+  visible: { opacity: 1, scale: 1 },
+  exit: { opacity: 0, scale: 0.95 },
+};
+
+const slideDownVariants = {
+  hidden: { opacity: 0, height: 0 },
+  visible: { opacity: 1, height: "auto" },
+  exit: { opacity: 0, height: 0 },
+};
+
+// Reusable Status Card Component with React.memo for performance
+const StatusCard: React.FC<{
+  message: string;
+  icon: React.ReactElement;
+  title: string;
+  color: string;
+}> = React.memo(({ message, icon, title, color }) => (
+  <Card className="bg-zinc-950 border-zinc-800 shadow-lg w-full">
+    <CardHeader>
+      <CardTitle className="text-white flex items-center text-lg sm:text-xl">
+        {icon}
+        {title}
+      </CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className={`text-center ${color}`}>{message}</p>
+    </CardContent>
+  </Card>
+));
+
+// Reusable Stat Item Component with React.memo for performance
+const StatItem: React.FC<{
+  label: string;
+  completed: number;
+  total: number;
+  color: string;
+}> = React.memo(({ label, completed, total, color }) => {
+  const percentage = total > 0 ? (completed / total) * 100 : 0;
+
+  return (
+    <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-6">
+      <span className="text-sm text-zinc-400 mb-2">{label}</span>
+      <div className="flex items-baseline space-x-2">
+        <span className={`text-3xl font-bold ${color}`}>{completed}</span>
+        <span className="text-sm text-zinc-400">/ {total}</span>
+      </div>
+      <Progress value={percentage} className="w-full h-2 mt-3 rounded" />
+    </div>
+  );
+});
+
+// UserRecordsControls Component
+interface UserRecordsControlsProps {
+  searchQuery: string;
+  setSearchQuery: (query: string) => void;
+  sortBy: SortBy;
+  setSortBy: (sort: SortBy) => void;
+  filters: Filters;
+  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
+  allTiers: string[];
+}
+
+const UserRecordsControls: React.FC<UserRecordsControlsProps> = ({
+  searchQuery,
+  setSearchQuery,
+  sortBy,
+  setSortBy,
+  filters,
+  setFilters,
+  allTiers,
+}) => {
+  // Type Guards to ensure type safety
+  const isMapType = (value: string): value is MapType => {
+    return allMapTypes.includes(value as MapType);
+  };
+
+  const isCompletionStatus = (value: string): value is CompletionStatus => {
+    return allCompletionStatuses.includes(value as CompletionStatus);
+  };
+
+  // Handle Tier Change
+  const handleTierChange = (selectedTiers: string[]) => {
+    setFilters((prevFilters) => {
+      if (selectedTiers.includes("All")) {
+        const newTiers = selectedTiers.filter(
+          (tier) => tier !== "All" && !prevFilters.tiers.includes(tier)
+        );
+        return { ...prevFilters, tiers: newTiers.length === 0 ? ["All"] : newTiers };
+      } else if (prevFilters.tiers.includes("All")) {
+        return { ...prevFilters, tiers: selectedTiers };
+      } else if (selectedTiers.length === allTiers.length) {
+        return { ...prevFilters, tiers: ["All"] };
+      } else if (selectedTiers.length === 0) {
+        return { ...prevFilters, tiers: ["All"] };
+      } else {
+        return { ...prevFilters, tiers: selectedTiers };
+      }
+    });
+  };
+
+  // Handle Map Type Change
+  const handleMapTypeChange = (selectedMapTypes: string[]) => {
+    setFilters((prevFilters) => {
+      if (selectedMapTypes.includes("All")) {
+        if (selectedMapTypes.length > 1) {
+          const allIndex = selectedMapTypes.indexOf("All");
+          const otherIndex = selectedMapTypes.findIndex((type) => type !== "All");
+          if (allIndex < otherIndex) {
+            const validMapTypes = selectedMapTypes
+              .filter(isMapType)
+              .filter((type) => type !== "All");
+            return { ...prevFilters, mapType: validMapTypes };
+          } else {
+            return { ...prevFilters, mapType: ["All"] };
+          }
+        } else {
+          return { ...prevFilters, mapType: ["All"] };
+        }
+      } else {
+        if (selectedMapTypes.length === allMapTypes.length - 1) {
+          return { ...prevFilters, mapType: ["All"] };
+        } else if (selectedMapTypes.length === 0) {
+          return { ...prevFilters, mapType: ["All"] };
+        } else {
+          const validMapTypes = selectedMapTypes.filter(isMapType);
+          return { ...prevFilters, mapType: validMapTypes };
+        }
+      }
+    });
+  };
+
+  // Handle Completion Status Change
+  const handleCompletionStatusChange = (selectedStatuses: string[]) => {
+    setFilters((prevFilters) => {
+      if (selectedStatuses.includes("All")) {
+        if (selectedStatuses.length > 1) {
+          const allIndex = selectedStatuses.indexOf("All");
+          const otherIndex = selectedStatuses.findIndex((status) => status !== "All");
+          if (allIndex < otherIndex) {
+            const validStatuses = selectedStatuses
+              .filter(isCompletionStatus)
+              .filter((status) => status !== "All");
+            return { ...prevFilters, completionStatus: validStatuses };
+          } else {
+            return { ...prevFilters, completionStatus: ["All"] };
+          }
+        } else {
+          return { ...prevFilters, completionStatus: ["All"] };
+        }
+      } else {
+        if (selectedStatuses.length === allCompletionStatuses.length - 1) {
+          return { ...prevFilters, completionStatus: ["All"] };
+        } else if (selectedStatuses.length === 0) {
+          return { ...prevFilters, completionStatus: ["All"] };
+        } else {
+          const validStatuses = selectedStatuses.filter(isCompletionStatus);
+          return { ...prevFilters, completionStatus: validStatuses };
+        }
+      }
+    });
+  };
+
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="text-zinc-400 hover:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors p-2 data-[state=open]:text-white"
+          aria-label="Filter and Sort options"
+        >
+          <Filter className="w-5 h-5 sm:w-6 sm:h-6" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent
+        className="w-72 sm:w-80 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl"
+        side="bottom"
+        align="end"
+      >
+        <motion.div
+          initial="hidden"
+          animate="visible"
+          exit="exit"
+          variants={fadeInVariants}
+          transition={{ duration: 0.2 }}
+        >
+          <div>
+            <h3 className="text-lg font-semibold mb-4 text-zinc-100">
+              Filters & Sort
+            </h3>
+            <div className="space-y-4">
+              {/* Search Bar */}
+              <div className="relative flex items-center">
+                <Search className="absolute left-3 text-zinc-400" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search maps..."
+                  className="border border-zinc-700 bg-zinc-800 text-zinc-100 pl-10 pr-4 py-2 rounded-lg text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring placeholder-zinc-400 placeholder:text-muted-foreground transition-colors"
+                  aria-label="Search maps"
+                />
+              </div>
+
+              {/* Map Type Filter */}
+              <div>
+                <span className="block text-xs text-zinc-300 mb-1">
+                  Map Type
+                </span>
+                <ToggleGroup
+                  type="multiple"
+                  value={filters.mapType}
+                  onValueChange={handleMapTypeChange}
+                  className="flex flex-wrap gap-2"
+                >
+                  {/* "All" Toggle */}
+                  <ToggleGroupItem
+                    value="All"
+                    aria-label="All Map Types"
+                    className={`
+                      px-3 py-1 rounded-lg text-sm
+                      bg-transparent text-zinc-300
+                      transition-colors
+                      data-[state=on]:bg-zinc-950 data-[state=on]:text-white
+                      hover:bg-zinc-700 hover:text-white
+                      focus:outline-none
+                      ${
+                        filters.mapType.includes("All")
+                          ? "cursor-default"
+                          : "cursor-pointer"
+                      }
+                    `}
+                    disabled={filters.mapType.includes("All")}
+                  >
+                    All
+                  </ToggleGroupItem>
+
+                  {/* Individual Map Type Toggles */}
+                  {allMapTypes
+                    .filter((type) => type !== "All")
+                    .map((type) => {
+                      const isOnlyOptionSelected =
+                        filters.mapType.includes(type) &&
+                        filters.mapType.length === 1;
+                      return (
+                        <ToggleGroupItem
+                          key={type}
+                          value={type}
+                          aria-label={`Map Type ${type}`}
+                          className={`
+                            px-3 py-1 rounded-lg text-sm
+                            bg-transparent text-zinc-300
+                            transition-colors
+                            data-[state=on]:bg-zinc-950 data-[state=on]:text-white
+                            hover:bg-zinc-700 hover:text-white
+                            focus:outline-none
+                            ${
+                              isOnlyOptionSelected
+                                ? "cursor-default"
+                                : "cursor-pointer"
+                            }
+                          `}
+                          disabled={isOnlyOptionSelected}
+                        >
+                          {type}
+                        </ToggleGroupItem>
+                      );
+                    })}
+                </ToggleGroup>
+              </div>
+
+              {/* Tier Filter with Toggle Group */}
+              <div>
+                <span className="block text-xs text-zinc-300 mb-1">Tier</span>
+                <ToggleGroup
+                  type="multiple"
+                  value={filters.tiers}
+                  onValueChange={handleTierChange}
+                  className="flex flex-wrap gap-2"
+                >
+                  {/* "All" Toggle */}
+                  <ToggleGroupItem
+                    value="All"
+                    aria-label="All Tiers"
+                    className={`
+                      px-3 py-1 rounded-lg text-sm
+                      bg-transparent text-zinc-300
+                      transition-colors
+                      data-[state=on]:bg-zinc-950 data-[state=on]:text-white
+                      hover:bg-zinc-700 hover:text-white
+                      focus:outline-none
+                      ${
+                        filters.tiers.includes("All")
+                          ? "cursor-default"
+                          : "cursor-pointer"
+                      }
+                    `}
+                    disabled={filters.tiers.includes("All")}
+                  >
+                    All
+                  </ToggleGroupItem>
+
+                  {/* Individual Tier Toggles */}
+                  {allTiers.map((tier) => {
+                    const isOnlyTierSelected =
+                      filters.tiers.includes(tier) &&
+                      filters.tiers.length === 1;
+                    return (
+                      <ToggleGroupItem
+                        key={tier}
+                        value={tier}
+                        aria-label={`Tier ${tier}`}
+                        className={`
+                          px-3 py-1 rounded-lg text-sm
+                          bg-transparent text-zinc-300
+                          transition-colors
+                          data-[state=on]:bg-zinc-950 data-[state=on]:text-white
+                          hover:bg-zinc-700 hover:text-white
+                          focus:outline-none
+                          ${
+                            isOnlyTierSelected
+                              ? "cursor-default"
+                              : "cursor-pointer"
+                          }
+                        `}
+                        disabled={isOnlyTierSelected}
+                      >
+                        Tier {tier}
+                      </ToggleGroupItem>
+                    );
+                  })}
+                </ToggleGroup>
+              </div>
+
+              {/* Completion Status Filter */}
+              <div>
+                <span className="block text-xs text-zinc-300 mb-1">
+                  Completion Status
+                </span>
+                <ToggleGroup
+                  type="multiple"
+                  value={filters.completionStatus}
+                  onValueChange={handleCompletionStatusChange}
+                  className="flex flex-wrap gap-2"
+                >
+                  {/* "All" Toggle */}
+                  <ToggleGroupItem
+                    value="All"
+                    aria-label="All Completion Statuses"
+                    className={`
+                      px-3 py-1 rounded-lg text-sm
+                      bg-transparent text-zinc-300
+                      transition-colors
+                      data-[state=on]:bg-zinc-950 data-[state=on]:text-white
+                      hover:bg-zinc-700 hover:text-white
+                      focus:outline-none
+                      ${
+                        filters.completionStatus.includes("All")
+                          ? "cursor-default"
+                          : "cursor-pointer"
+                      }
+                    `}
+                    disabled={filters.completionStatus.includes("All")}
+                  >
+                    All
+                  </ToggleGroupItem>
+
+                  {/* Individual Completion Status Toggles */}
+                  {allCompletionStatuses
+                    .filter((status) => status !== "All")
+                    .map((status) => {
+                      const isOnlyStatusSelected =
+                        filters.completionStatus.includes(status) &&
+                        filters.completionStatus.length === 1;
+                      return (
+                        <ToggleGroupItem
+                          key={status}
+                          value={status}
+                          aria-label={`Completion Status ${status}`}
+                          className={`
+                            px-3 py-1 rounded-lg text-sm
+                            bg-transparent text-zinc-300
+                            transition-colors
+                            data-[state=on]:bg-zinc-950 data-[state=on]:text-white
+                            hover:bg-zinc-700 hover:text-white
+                            focus:outline-none
+                            ${
+                              isOnlyStatusSelected
+                                ? "cursor-default"
+                                : "cursor-pointer"
+                            }
+                          `}
+                          disabled={isOnlyStatusSelected}
+                        >
+                          {status}
+                        </ToggleGroupItem>
+                      );
+                    })}
+                </ToggleGroup>
+              </div>
+
+              {/* Sort By Options */}
+              <div>
+                <span className="block text-xs text-zinc-300 mb-1">
+                  Sort By
+                </span>
+                <div className="flex flex-col gap-2">
+                  {["Default", "Last Finished"].map((sortOption) => (
+                    <Button
+                      key={sortOption}
+                      variant={sortBy === sortOption ? "default" : "ghost"}
+                      size="sm"
+                      onClick={() => setSortBy(sortOption as SortBy)}
+                      className={`w-full text-left text-zinc-300 py-2 px-4 rounded-md transition-colors ${
+                        sortBy === sortOption
+                          ? "bg-zinc-700 text-white cursor-default"
+                          : "hover:bg-zinc-700 hover:text-white"
+                      }`}
+                      disabled={sortBy === sortOption}
+                    >
+                      {sortOption}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </motion.div>
+      </PopoverContent>
+    </Popover>
+  );
+};
 
 const UserStatsCard: React.FC<UserStatsProps> = ({
   isLoggedIn,
@@ -175,7 +613,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
 
   const getPlayerRank = (placement: number, totalPlayers: number): Rank => {
     if (placement === 0) {
-      return rankDefinitions.find((rank) => rank.title === "[Unranked]")!;
+      return rankDefinitions.find((rank) => rank.title === "Unranked")!;
     }
 
     const percentageRank = (placement / totalPlayers) * 100;
@@ -186,7 +624,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
           (r.placement !== 0 && r.placement === placement) ||
           (r.top !== 0 && placement <= r.top) ||
           (r.percent !== 0 && percentageRank <= r.percent)
-      ) || rankDefinitions.find((rank) => rank.title === "[Unranked]")!;
+      ) || rankDefinitions.find((rank) => rank.title === "Unranked")!;
 
     return rank;
   };
@@ -363,16 +801,16 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
   return (
     <Card className="bg-zinc-950 border-zinc-800 shadow-lg w-full">
       <CardHeader>
-        <CardTitle className="text-white flex items-center text-lg md:text-xl">
-          <Flame className="mr-2 h-6 w-6 text-red-500" />
+        <CardTitle className="text-white flex items-center text-base sm:text-lg md:text-xl">
+          <Flame className="mr-2 h-5 w-5 sm:h-6 sm:w-6 text-red-500" />
           Your Stats
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-6 text-zinc-300">
+        <div className="space-y-6 sm:space-y-8 text-zinc-300">
           {/* Player Name and Rank */}
-          <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
-            <div className="flex items-center space-x-2 mb-4 md:mb-0">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center p-4 sm:p-6">
+            <div className="flex items-center space-x-2 mb-4 sm:mb-0">
               <span className="text-base font-semibold">IGN:</span>
               <span className="text-base font-bold text-zinc-100">
                 {playerName}
@@ -382,11 +820,11 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
               <img
                 src={playerRank.icon}
                 alt={playerRank.title}
-                className="w-6 h-6"
+                className="w-6 h-6 sm:w-7 sm:h-7"
               />
               <span
                 className={`text-base font-bold ${
-                  colorMapping[playerRank.color] || colorMapping["{default}"]
+                  colorMapping[playerRank.title] || colorMapping["Unranked"]
                 }`}
               >
                 {playerRank.title}
@@ -398,7 +836,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
           </div>
 
           {/* Global Points */}
-          <div className="flex flex-col sm:flex-row justify-between items-center">
+          <div className="flex flex-col sm:flex-row justify-between items-center p-4 sm:p-6">
             <span className="text-base font-semibold">Global Points:</span>
             <div className="flex items-center bg-gradient-to-r from-red-600 to-red-400 px-6 py-3 rounded-full mt-2 sm:mt-0 transition-transform transform hover:scale-105">
               <span className="text-white font-bold text-lg">
@@ -473,8 +911,8 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
 
           {/* User Records */}
           <div>
-            <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center mb-6">
-              <h2 className="text-2xl font-bold text-red-400 flex items-center mb-4 lg:mb-0">
+            <div className="flex flex-row justify-between items-center mb-6 flex-wrap">
+              <h2 className="text-2xl font-bold text-red-400 flex items-center mb-4 sm:mb-0">
                 <Trophy className="w-6 h-6 mr-3" />
                 User Records
               </h2>
@@ -509,17 +947,10 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                       animate={{ opacity: 1 }}
                       transition={{ duration: 0.3 }}
                     >
-                      <div
-                        className="flex flex-col sm:flex-row items-center justify-between cursor-pointer"
+                      <button
+                        className="flex flex-col sm:flex-row items-center justify-between w-full text-left focus:outline-none"
                         onClick={() => toggleExpand(map.name)}
-                        role="button"
                         aria-expanded={expandedMaps.includes(map.name)}
-                        tabIndex={0}
-                        onKeyPress={(e) => {
-                          if (e.key === "Enter" || e.key === " ") {
-                            toggleExpand(map.name);
-                          }
-                        }}
                       >
                         <div>
                           <h4 className="font-semibold text-zinc-100 text-lg">
@@ -554,13 +985,14 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                             )}
                           </motion.div>
                         </div>
-                      </div>
+                      </button>
                       <AnimatePresence>
                         {expandedMaps.includes(map.name) && (
                           <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: "auto" }}
-                            exit={{ opacity: 0, height: 0 }}
+                            initial="hidden"
+                            animate="visible"
+                            exit="exit"
+                            variants={slideDownVariants}
                             transition={{ duration: 0.3 }}
                             className="mt-4 space-y-4 overflow-hidden"
                           >
@@ -578,10 +1010,7 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
                                       </p>
                                       {records.length > 0 ? (
                                         records.map(
-                                          (
-                                            record: UserRecord,
-                                            index: number
-                                          ) => (
+                                          (record: UserRecord, index: number) => (
                                             <div key={index} className="mb-4">
                                               <p className="text-xs mb-1">
                                                 <span className="text-zinc-400 font-semibold">
@@ -718,417 +1147,6 @@ const UserStatsCard: React.FC<UserStatsProps> = ({
         </div>
       </CardContent>
     </Card>
-  );
-};
-
-
-// Reusable Status Card Component with React.memo for performance
-const StatusCard: React.FC<{
-  message: string;
-  icon: React.ReactElement;
-  title: string;
-  color: string;
-}> = React.memo(({ message, icon, title, color }) => (
-  <Card className="bg-zinc-950 border-zinc-800 shadow-lg w-full">
-    <CardHeader>
-      <CardTitle className="text-white flex items-center text-lg md:text-xl">
-        {icon}
-        {title}
-      </CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p className={`text-center ${color}`}>{message}</p>
-    </CardContent>
-  </Card>
-));
-
-// Reusable Stat Item Component with React.memo for performance
-const StatItem: React.FC<{
-  label: string;
-  completed: number;
-  total: number;
-  color: string;
-}> = React.memo(({ label, completed, total, color }) => {
-  const percentage = total > 0 ? (completed / total) * 100 : 0;
-
-  return (
-    <div className="flex flex-col items-center justify-center bg-zinc-700/50 rounded-lg p-6">
-      <span className="text-sm text-zinc-400 mb-2">{label}</span>
-      <div className="flex items-baseline space-x-2">
-        <span className={`text-3xl font-bold ${color}`}>{completed}</span>
-        <span className="text-sm text-zinc-400">/ {total}</span>
-      </div>
-      <Progress value={percentage} className="w-full h-2 mt-3 rounded" />
-    </div>
-  );
-});
-
-// UserRecordsControls Component
-interface UserRecordsControlsProps {
-  searchQuery: string;
-  setSearchQuery: (query: string) => void;
-  sortBy: SortBy;
-  setSortBy: (sort: SortBy) => void;
-  filters: Filters;
-  setFilters: React.Dispatch<React.SetStateAction<Filters>>;
-  allTiers: string[];
-}
-
-const UserRecordsControls: React.FC<UserRecordsControlsProps> = ({
-  searchQuery,
-  setSearchQuery,
-  sortBy,
-  setSortBy,
-  filters,
-  setFilters,
-  allTiers,
-}) => {
-  // Type Guards to ensure type safety
-  const isMapType = (value: string): value is MapType => {
-    return allMapTypes.includes(value as MapType);
-  };
-
-  const isCompletionStatus = (value: string): value is CompletionStatus => {
-    return allCompletionStatuses.includes(value as CompletionStatus);
-  };
-
-  // Stable and working perfectly.
-  const handleTierChange = (selectedTiers: string[]) => {
-    setFilters((prevFilters) => {
-      if (selectedTiers.includes("All")) {
-        // If "All" is selected and a tier is clicked, deselect "All" and select "All" if no other tiers are selected
-        const newTiers = selectedTiers.filter(tier => tier !== "All" && !prevFilters.tiers.includes(tier));
-        return { ...prevFilters, tiers: newTiers.length === 0 ? ["All"] : newTiers };
-      } else if (prevFilters.tiers.includes("All")) {
-        // If "All" was previously selected and a tier is clicked, select that tier and deselect "All"
-        return { ...prevFilters, tiers: selectedTiers };
-      } else if (selectedTiers.length === allTiers.length) {
-        // If all individual tiers are selected, automatically select "All"
-        return { ...prevFilters, tiers: ["All"] };
-      } else if (selectedTiers.length === 0) {
-        // Prevent having no selection by defaulting to ["All"]
-        return { ...prevFilters, tiers: ["All"] };
-      } else {
-        // Set to the selected individual tiers
-        return { ...prevFilters, tiers: selectedTiers };
-      }
-    });
-  };
-
-// Handler for Map Type Change
-const handleMapTypeChange = (selectedMapTypes: string[]) => {
-  setFilters((prevFilters) => {
-    if (selectedMapTypes.includes("All")) {
-      if (selectedMapTypes.length > 1) {
-        // If "All" is selected and a map type is clicked and "All" came before the map type, deselect "All" and select the map type
-        const allIndex = selectedMapTypes.indexOf("All");
-        const otherIndex = selectedMapTypes.findIndex((type) => type !== "All");
-        if (allIndex < otherIndex) {
-          const validMapTypes = selectedMapTypes.filter(isMapType).filter((type) => type !== "All");
-          return { ...prevFilters, mapType: validMapTypes };
-        } else {
-          // If a map type is selected and then "All" is clicked, deselect the map type(s) and select "All"
-          return { ...prevFilters, mapType: ["All"] };
-        }
-      } else {
-        // If only "All" is selected, set mapType to ["All"]
-        return { ...prevFilters, mapType: ["All"] };
-      }
-    } else {
-      if (selectedMapTypes.length === allMapTypes.length - 1) {
-        // If all individual map types are selected, automatically select "All"
-        return { ...prevFilters, mapType: ["All"] };
-      } else if (selectedMapTypes.length === 0) {
-        // Prevent having no selection by defaulting to ["All"]
-        return { ...prevFilters, mapType: ["All"] };
-      } else {
-        // Validate and set to the selected individual map types
-        const validMapTypes = selectedMapTypes.filter(isMapType);
-        return { ...prevFilters, mapType: validMapTypes };
-      }
-    }
-  });
-};
-
-// Handler for Completion Status Change
-const handleCompletionStatusChange = (selectedStatuses: string[]) => {
-  setFilters((prevFilters) => {
-    if (selectedStatuses.includes("All")) {
-      if (selectedStatuses.length > 1) {
-        // If "All" is selected and a completion status is clicked and "All" came before the completion status, deselect "All" and select the completion status
-        const allIndex = selectedStatuses.indexOf("All");
-        const otherIndex = selectedStatuses.findIndex((status) => status !== "All");
-        if (allIndex < otherIndex) {
-          const validStatuses = selectedStatuses.filter(isCompletionStatus).filter((status) => status !== "All");
-          return { ...prevFilters, completionStatus: validStatuses };
-        } else {
-          // If a completion status is selected and then "All" is clicked, deselect the completion status(es) and select "All"
-          return { ...prevFilters, completionStatus: ["All"] };
-        }
-      } else {
-        // If only "All" is selected, set completionStatus to ["All"]
-        return { ...prevFilters, completionStatus: ["All"] };
-      }
-    } else {
-      if (selectedStatuses.length === allCompletionStatuses.length - 1) {
-        // If all individual statuses are selected, automatically select "All"
-        return { ...prevFilters, completionStatus: ["All"] };
-      } else if (selectedStatuses.length === 0) {
-        // Prevent having no selection by defaulting to ["All"]
-        return { ...prevFilters, completionStatus: ["All"] };
-      } else {
-        // Validate and set to the selected individual statuses
-        const validStatuses = selectedStatuses.filter(isCompletionStatus);
-        return { ...prevFilters, completionStatus: validStatuses };
-      }
-    }
-  });
-};
-
-  return (
-    <div className="flex flex-wrap items-center space-x-2">
-      {/* Quick Search */}
-      <div className="relative flex items-center">
-        <Search className="absolute left-3 text-zinc-400" />
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search maps..."
-          className="bg-zinc-700 text-zinc-100 pl-10 pr-4 py-2 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors"
-          aria-label="Search maps"
-        />
-      </div>
-
-      {/* Filter and Sort within Popover */}
-      <Popover>
-        <PopoverTrigger asChild>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="text-zinc-400 hover:text-zinc-100 focus:outline-none focus:ring-2 focus:ring-zinc-500 transition-colors"
-            aria-label="Filter and Sort options"
-          >
-            <Filter className="w-6 h-6" />
-          </Button>
-        </PopoverTrigger>
-        <PopoverContent
-          className="w-80 bg-zinc-800 border border-zinc-700 p-4 rounded-lg shadow-xl"
-          side="bottom"
-          align="end"
-        >
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
-            transition={{ duration: 0.2 }}
-          >
-            <div>
-              <h3 className="text-lg font-semibold mb-4 text-zinc-100">
-                Filters & Sort
-              </h3>
-              <div className="space-y-4">
-                {/* Map Type Filter */}
-                <div>
-                  <span className="block text-xs text-zinc-300 mb-1">
-                    Map Type
-                  </span>
-                  <ToggleGroup
-                    type="multiple"
-                    value={filters.mapType}
-                    onValueChange={handleMapTypeChange}
-                    className="flex flex-wrap gap-2"
-                  >
-                    {/* "All" Toggle */}
-                    <ToggleGroupItem
-                      value="All"
-                      aria-label="All Map Types"
-                      className={`
-                        px-3 py-1 rounded-lg text-sm
-                        bg-transparent text-zinc-300
-                        transition-colors
-                        data-[state=on]:bg-zinc-950 data-[state=on]:text-white
-                        hover:bg-white hover:text-zinc-950
-                        focus:outline-none
-                        ${filters.mapType.includes("All") ? "cursor-default" : "cursor-pointer"}
-                      `}
-                      disabled={filters.mapType.includes("All")}
-                    >
-                      All
-                    </ToggleGroupItem>
-
-                    {/* Individual Map Type Toggles */}
-                    {allMapTypes
-                      .filter((type) => type !== "All")
-                      .map((type) => {
-                        const isOnlyOptionSelected =
-                          filters.mapType.includes(type) && filters.mapType.length === 1;
-                        return (
-                          <ToggleGroupItem
-                            key={type}
-                            value={type}
-                            aria-label={`Map Type ${type}`}
-                            className={`
-                              px-3 py-1 rounded-lg text-sm
-                              bg-transparent text-zinc-300
-                              transition-colors
-                              data-[state=on]:bg-zinc-950 data-[state=on]:text-white
-                              hover:bg-white hover:text-zinc-950
-                              focus:outline-none
-                              ${isOnlyOptionSelected ? "cursor-default" : "cursor-pointer"}
-                            `}
-                            disabled={isOnlyOptionSelected}
-                          >
-                            {type}
-                          </ToggleGroupItem>
-                        );
-                      })}
-                  </ToggleGroup>
-                </div>
-
-                {/* Tier Filter with Toggle Group */}
-                <div>
-                  <span className="block text-xs text-zinc-300 mb-1">Tier</span>
-                  <ToggleGroup
-                    type="multiple"
-                    value={filters.tiers}
-                    onValueChange={handleTierChange}
-                    className="flex flex-wrap gap-2"
-                  >
-                    {/* "All" Toggle */}
-                    <ToggleGroupItem
-                      value="All"
-                      aria-label="All Tiers"
-                      className={`
-                        px-3 py-1 rounded-lg text-sm
-                        bg-transparent text-zinc-300
-                        transition-colors
-                        data-[state=on]:bg-zinc-950 data-[state=on]:text-white
-                        hover:bg-white hover:text-zinc-950
-                        focus:outline-none
-                        ${filters.tiers.includes("All") ? "cursor-default" : "cursor-pointer"}
-                      `}
-                      disabled={filters.tiers.includes("All")}
-                    >
-                      All
-                    </ToggleGroupItem>
-
-                    {/* Individual Tier Toggles */}
-                    {allTiers.map((tier) => {
-                      const isOnlyTierSelected =
-                        filters.tiers.includes(tier) && filters.tiers.length === 1;
-                      return (
-                        <ToggleGroupItem
-                          key={tier}
-                          value={tier}
-                          aria-label={`Tier ${tier}`}
-                          className={`
-                            px-3 py-1 rounded-lg text-sm
-                            bg-transparent text-zinc-300
-                            transition-colors
-                            data-[state=on]:bg-zinc-950 data-[state=on]:text-white
-                            hover:bg-white hover:text-zinc-950
-                            focus:outline-none
-                            ${isOnlyTierSelected ? "cursor-default" : "cursor-pointer"}
-                          `}
-                          disabled={isOnlyTierSelected}
-                        >
-                          Tier {tier}
-                        </ToggleGroupItem>
-                      );
-                    })}
-                  </ToggleGroup>
-                </div>
-
-                {/* Completion Status Filter */}
-                <div>
-                  <span className="block text-xs text-zinc-300 mb-1">
-                    Completion Status
-                  </span>
-                  <ToggleGroup
-                    type="multiple"
-                    value={filters.completionStatus}
-                    onValueChange={handleCompletionStatusChange}
-                    className="flex flex-wrap gap-2"
-                  >
-                    {/* "All" Toggle */}
-                    <ToggleGroupItem
-                      value="All"
-                      aria-label="All Completion Statuses"
-                      className={`
-                        px-3 py-1 rounded-lg text-sm
-                        bg-transparent text-zinc-300
-                        transition-colors
-                        data-[state=on]:bg-zinc-950 data-[state=on]:text-white
-                        hover:bg-white hover:text-zinc-950
-                        focus:outline-none
-                        ${filters.completionStatus.includes("All") ? "cursor-default" : "cursor-pointer"}
-                      `}
-                      disabled={filters.completionStatus.includes("All")}
-                    >
-                      All
-                    </ToggleGroupItem>
-
-                    {/* Individual Completion Status Toggles */}
-                    {allCompletionStatuses
-                      .filter((status) => status !== "All")
-                      .map((status) => {
-                        const isOnlyStatusSelected =
-                          filters.completionStatus.includes(status) &&
-                          filters.completionStatus.length === 1;
-                        return (
-                          <ToggleGroupItem
-                            key={status}
-                            value={status}
-                            aria-label={`Completion Status ${status}`}
-                            className={`
-                              px-3 py-1 rounded-lg text-sm
-                              bg-transparent text-zinc-300
-                              transition-colors
-                              data-[state=on]:bg-zinc-950 data-[state=on]:text-white
-                              hover:bg-white hover:text-zinc-950
-                              focus:outline-none
-                              ${isOnlyStatusSelected ? "cursor-default" : "cursor-pointer"}
-                            `}
-                            disabled={isOnlyStatusSelected}
-                          >
-                            {status}
-                          </ToggleGroupItem>
-                        );
-                      })}
-                  </ToggleGroup>
-                </div>
-
-                {/* Sort By Options */}
-                <div>
-                  <span className="block text-xs text-zinc-300 mb-1">
-                    Sort By
-                  </span>
-                  <div className="flex flex-col gap-2">
-                    {["Default", "Last Finished"].map((sortOption) => (
-                      <Button
-                        key={sortOption}
-                        variant={sortBy === sortOption ? "default" : "ghost"}
-                        size="sm"
-                        onClick={() => setSortBy(sortOption as SortBy)}
-                        className={`w-full text-left text-zinc-300 ${
-                          sortBy === sortOption
-                            ? "cursor-default"
-                            : "hover:text-zinc-950 hover:bg-white"
-                        }`}
-                        disabled={sortBy === sortOption}
-                      >
-                        {sortOption}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </motion.div>
-        </PopoverContent>
-      </Popover>
-    </div>
   );
 };
 
